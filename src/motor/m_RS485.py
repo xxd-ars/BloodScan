@@ -1,115 +1,112 @@
-'''概述
-本模块负责采血管的精确移动和定位,具体实现包括对XYZ轴和夹持旋转电机的控制。通过串口通信实现与步进电机和伺服电机的指令发送和反馈处理。
+'''
+
+本模块负责采血管的精确移动和定位, 具体实现包括对XYZ轴和夹持旋转电机的控制
+通过串口通信实现与步进电机和伺服电机的指令发送和反馈处理
 
 API接口
 Find_serial()
 
-    功能：查找可用的串口设备。
-    输入：无
-    输出：打印可用的串口设备列表。
+    功能: 查找可用的串口设备。
+    输入: 无
+    输出: 打印可用的串口设备列表。
 
 serial_init()
 
-    功能：初始化并打开串口通信。
-    输入：无
-    输出：打印串口打开成功或失败的信息。
+    功能: 初始化并打开串口通信。
+    输入: 无
+    输出: 打印串口打开成功或失败的信息。
 
 serial_close()
 
-    功能：关闭串口通信。
-    输入：无
-    输出：打印串口关闭的信息。
+    功能: 关闭串口通信。
+    输入: 无
+    输出: 打印串口关闭的信息。
 
 X_send_command_with_wait(commands, port='COM3', baudrate=115200, wait_for_1percent=True)
 
-    功能：发送X轴的控制指令，并在需要时等待"1%"的反馈。
-    输入：
-    commands：包含指令字符串的列表。
-    port：串口端口号（默认COM3）。
-    baudrate：波特率（默认115200）。
-    wait_for_1percent：是否等待"1%"的反馈（默认True）。
-    输出：打印发送的指令和接收到的反馈信息。
+    功能: 发送X轴的控制指令并在需要时等待"1%"的反馈
+    输入: 
+        - commands: 包含指令字符串的列表
+        - port: 串口端口号(default: COM3)
+        - baudrate: 波特率(default: 默认115200)
+        - wait_for_1percent: 是否等待"1%"的反馈(default: 默认True)
+    输出: 打印发送的指令和接收到的反馈信息
 
 Y_send_command_with_wait(commands, port='COM3', baudrate=115200, wait_for_2percent=True)
 
-    功能：发送Y轴的控制指令，并在需要时等待"2%"的反馈。
-    输入：
-    commands：包含指令字符串的列表。
-    port：串口端口号（默认COM3）。
-    baudrate：波特率（默认115200）。
-    wait_for_2percent：是否等待"2%"的反馈（默认True）。
-    输出：打印发送的指令和接收到的反馈信息。
+    功能: 发送Y轴的控制指令并在需要时等待"2%"的反馈
+    输入: 
+        - commands: 包含指令字符串的列表
+        - port: 串口端口号(default: COM3)
+        - baudrate: 波特率(default: 默认115200)
+        - wait_for_2percent: 是否等待"2%"的反馈(default: 默认True)
+    输出: 打印发送的指令和接收到的反馈信息
 
 Z_send_command_with_wait(commands, port='COM3', baudrate=115200, wait_for_3percent=True)
 
-    功能：发送Z轴的控制指令，并在需要时等待"3%"的反馈。
-    输入：
-    commands：包含指令字符串的列表。
-    port：串口端口号（默认COM3）。
-    baudrate：波特率（默认115200）。
-    wait_for_3percent：是否等待"3%"的反馈（默认True）。
-    输出：打印发送的指令和接收到的反馈信息。
+    功能: 发送Z轴的控制指令并在需要时等待"3%"的反馈
+    输入: 
+        - commands: 包含指令字符串的列表
+        - port: 串口端口号(default: COM3)
+        - baudrate: 波特率(default: 默认115200)
+        - wait_for_3percent: 是否等待"3%"的反馈(default: 默认True)
+    输出: 打印发送的指令和接收到的反馈信息
 
 replace_DI_data(commands, DI_data)
 
-    功能：替换指令列表中的DI数据。
-    输入：
-    commands：包含指令字符串的列表。
-    DI_data：新的DI数据值。
-    输出：返回替换DI数据后的指令列表。
+    功能: 替换指令列表中的DI数据
+    输入: 
+        commands: 包含指令字符串的列表
+        DI_data: 新的DI数据值
+    输出: 返回替换DI数据后的指令列表
 
 test_replace_DI_data(distance)
 
-    功能：测试替换Z轴指令中的DI数据。
-    输入：
-    distance：Z轴移动距离。
-    输出：打印替换后的Z轴指令列表。
+    功能: 测试替换Z轴指令中的DI数据
+    输入: distance: Z轴移动距离
+    输出: 打印替换后的Z轴指令列表
     
 Send_FindHOM()
 
-    功能：发送XYZ轴的归零指令。
-    输入：无
-    输出：调用Z_send_command_with_wait、X_send_command_with_wait和Y_send_command_with_wait发送各轴归零指令。
+    功能: 发送XYZ轴的归零指令
+    输入: 无
+    输出: 调用Z_send_command_with_wait X_send_command_with_wait和Y_send_command_with_wait发送各轴归零指令
 
 X_Move(distance)
 
-    功能：移动X轴指定距离。
-    输入：
-    distance：X轴移动距离（正负值代表方向）。
-    输出：调用replace_DI_data替换DI数据，并调用X_send_command_with_wait发送指令。
+    功能: 移动X轴指定距离。
+    输入: distance: X轴移动距离正负值代表方向
+    输出: 调用replace_DI_data替换DI数据并调用X_send_command_with_wait发送指令
 
 Y_Move(distance)
 
-    功能：移动Y轴指定距离。
-    输入：
-    distance：Y轴移动距离（正负值代表方向）。
-    输出：调用replace_DI_data替换DI数据，并调用Y_send_command_with_wait发送指令。
+    功能: 移动Y轴指定距离。
+    输入: distance: Y轴移动距离正负值代表方向
+    输出: 调用replace_DI_data替换DI数据并调用Y_send_command_with_wait发送指令
 
 Z_Move(distance)
 
-    功能：移动Z轴指定距离。
-    输入：
-    distance：Z轴移动距离（正负值代表方向）。
-    输出：调用replace_DI_data替换DI数据，并调用Z_send_command_with_wait发送指令。
+功能原理: 
 
-    
-功能原理
+串口通信: 
+串口初始化配置波特率 数据位 停止位和校验位
+通过串口发送和接收指令与电机控制器进行通信
 
-串口通信
-
-    串口初始化配置波特率、数据位、停止位和校验位，通过串口发送和接收指令与电机控制器进行通信。 
 归零操作
+归零操作通过发送一系列预设指令实现电机的归零
+确保电机在初始位置
 
-    归零操作通过发送一系列预设指令实现电机的归零，确保电机在初始位置。
 移动控制
+通过指令中的DI参数指定移动距离
+指令发送后等待特定的反馈信息以确保操作成功
 
-    通过指令中的DI参数指定移动距离，指令发送后等待特定的反馈信息以确保操作成功。
 指令替换
+为了实现不同的移动距离 通过正则表达式替换指令中的DI参数
 
-    为了实现不同的移动距离，通过正则表达式替换指令中的DI参数。
 多轴协调
+通过不同的指令集实现对XYZ三轴的独立控制 并通过调整指令参数实现对不同方向和距离的移动控制
+'''
 
-    通过不同的指令集实现对XYZ三轴的独立控制，并通过调整指令参数实现对不同方向和距离的移动控制。'''
 import serial
 import time
 import re
@@ -176,9 +173,9 @@ ser = serial.Serial()
 def Find_serial():
     ports_list = list(serial.tools.list_ports.comports())
     if len(ports_list) <= 0:
-        print("无串口设备。")
+        print("无串口设备")
     else:
-        print("可用的串口设备如下：")
+        print("可用的串口设备如下: ")
         for comport in ports_list:
             print(list(comport)[0], list(comport)[1])
 
