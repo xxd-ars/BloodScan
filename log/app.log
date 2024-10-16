@@ -1,0 +1,363 @@
+2024-05-15 18:51:19,639 - func - INFO - UI setup complete
+2024-05-15 18:51:20,386 - func - INFO - Video device opened successfully
+2024-05-15 18:51:20,388 - func - INFO - Info timer started
+2024-05-15 18:51:20,391 - func - INFO - Video thread started
+2024-05-15 18:51:20,403 - func - INFO - Motor initialization started
+2024-05-15 18:51:20,577 - func - INFO - Initialization complete
+2024-05-15 18:51:28,887 - func - INFO - Motor initialization completed successfully
+2024-05-15 18:51:38,808 - func - INFO - Detection started
+2024-05-15 18:51:53,636 - func - INFO - Photo event triggered
+2024-05-15 18:51:56,266 - func - INFO - Photo event triggered
+2024-05-15 18:51:56,520 - PIL.PngImagePlugin - DEBUG - STREAM b'IHDR' 16 13
+2024-05-15 18:51:56,530 - PIL.PngImagePlugin - DEBUG - STREAM b'IDAT' 41 65536
+2024-05-15 18:51:58,724 - func - INFO - Data added to the database successfully
+2024-05-15 18:52:22,423 - func - INFO - Photo event triggered
+2024-05-15 18:52:25,503 - func - INFO - Photo event triggered
+2024-05-15 18:52:25,680 - PIL.PngImagePlugin - DEBUG - STREAM b'IHDR' 16 13
+2024-05-15 18:52:25,681 - PIL.PngImagePlugin - DEBUG - STREAM b'IDAT' 41 65536
+2024-05-15 18:52:27,542 - func - INFO - Data added to the database successfully
+2024-05-15 18:52:51,365 - func - INFO - Photo event triggered
+2024-05-15 18:52:53,015 - func - INFO - Photo event triggered
+2024-05-15 18:52:53,186 - PIL.PngImagePlugin - DEBUG - STREAM b'IHDR' 16 13
+2024-05-15 18:52:53,187 - PIL.PngImagePlugin - DEBUG - STREAM b'IDAT' 41 65536
+2024-05-15 18:52:55,504 - func - INFO - Data added to the database successfully
+2024-05-15 18:53:19,256 - func - INFO - Photo event triggered
+2024-05-15 18:53:20,932 - func - INFO - Photo event triggered
+2024-05-15 18:53:21,104 - PIL.PngImagePlugin - DEBUG - STREAM b'IHDR' 16 13
+2024-05-15 18:53:21,105 - PIL.PngImagePlugin - DEBUG - STREAM b'IDAT' 41 65536
+2024-05-15 18:53:23,666 - func - INFO - Data added to the database successfully
+2024-05-15 18:53:47,374 - func - INFO - Photo event triggered
+2024-05-15 18:53:49,065 - func - INFO - Photo event triggered
+2024-05-15 18:53:49,218 - PIL.PngImagePlugin - DEBUG - STREAM b'IHDR' 16 13
+2024-05-15 18:53:49,220 - PIL.PngImagePlugin - DEBUG - STREAM b'IDAT' 41 65536
+2024-05-15 18:53:51,007 - func - INFO - Data added to the database successfully
+2024-05-15 18:54:00,990 - func - INFO - Detection stopped
+2024-05-15 18:54:08,138 - func - INFO - Detection continued
+2024-05-15 18:54:20,871 - func - INFO - Photo event triggered
+2024-05-15 18:54:23,190 - func - INFO - Photo event triggered
+2024-05-15 18:54:23,356 - PIL.PngImagePlugin - DEBUG - STREAM b'IHDR' 16 13
+2024-05-15 18:54:23,358 - PIL.PngImagePlugin - DEBUG - STREAM b'IDAT' 41 65536
+2024-05-15 18:54:25,443 - func - INFO - Data added to the database successfully
+2024-05-15 18:54:49,264 - func - INFO - Photo event triggered
+2024-05-15 18:54:50,921 - func - INFO - Photo event triggered
+2024-05-15 18:54:51,090 - PIL.PngImagePlugin - DEBUG - STREAM b'IHDR' 16 13
+2024-05-15 18:54:51,091 - PIL.PngImagePlugin - DEBUG - STREAM b'IDAT' 41 65536
+2024-05-15 18:54:53,167 - func - INFO - Data added to the database successfully
+2024-05-15 18:55:17,003 - func - INFO - Photo event triggered
+2024-05-15 18:55:19,860 - func - INFO - Photo event triggered
+2024-05-15 18:55:20,051 - PIL.PngImagePlugin - DEBUG - STREAM b'IHDR' 16 13
+2024-05-15 18:55:20,052 - PIL.PngImagePlugin - DEBUG - STREAM b'IDAT' 41 65536
+2024-05-15 18:55:21,959 - func - INFO - Data added to the database successfully
+2024-05-15 18:55:45,691 - func - INFO - Photo event triggered
+2024-05-15 18:55:47,922 - func - INFO - Photo event triggered
+2024-05-15 18:55:48,072 - PIL.PngImagePlugin - DEBUG - STREAM b'IHDR' 16 13
+2024-05-15 18:55:48,074 - PIL.PngImagePlugin - DEBUG - STREAM b'IDAT' 41 65536
+2024-05-15 18:55:49,850 - func - INFO - Data added to the database successfully
+2024-05-15 18:56:13,771 - func - INFO - Photo event triggered
+2024-05-15 18:56:15,349 - func - INFO - Photo event triggered
+2024-05-15 18:56:15,545 - PIL.PngImagePlugin - DEBUG - STREAM b'IHDR' 16 13
+2024-05-15 18:56:15,546 - PIL.PngImagePlugin - DEBUG - STREAM b'IDAT' 41 65536
+2024-05-15 18:56:17,553 - func - INFO - Data added to the database successfully
+2024-05-15 18:56:32,518 - func - INFO - Table data loaded successfully
+2024-05-15 18:56:32,518 - func - INFO - Viewing data from SQL
+2024-05-15 18:56:55,027 - func - INFO - Detection continued
+2024-05-15 18:57:00,898 - func - INFO - Detection stopped
+2024-05-15 19:00:04,434 - func - INFO - UI setup complete
+2024-05-15 19:00:05,110 - func - INFO - Video device opened successfully
+2024-05-15 19:00:05,112 - func - INFO - Info timer started
+2024-05-15 19:00:05,116 - func - INFO - Video thread started
+2024-05-15 19:00:05,117 - func - INFO - Motor initialization started
+2024-05-15 19:00:05,179 - func - INFO - Initialization complete
+2024-05-15 19:00:15,718 - func - INFO - Motor initialization completed successfully
+2024-05-15 19:00:28,495 - func - INFO - Detection started
+2024-05-15 19:00:43,312 - func - INFO - Photo event triggered
+2024-05-15 19:00:47,123 - func - INFO - Photo event triggered
+2024-05-15 19:00:47,446 - PIL.PngImagePlugin - DEBUG - STREAM b'IHDR' 16 13
+2024-05-15 19:00:47,471 - PIL.PngImagePlugin - DEBUG - STREAM b'IDAT' 41 65536
+2024-05-15 19:00:50,322 - func - INFO - Data added to the database successfully
+2024-05-15 19:01:14,113 - func - INFO - Photo event triggered
+2024-05-15 19:01:15,814 - func - INFO - Photo event triggered
+2024-05-15 19:01:15,962 - PIL.PngImagePlugin - DEBUG - STREAM b'IHDR' 16 13
+2024-05-15 19:01:15,963 - PIL.PngImagePlugin - DEBUG - STREAM b'IDAT' 41 65536
+2024-05-15 19:01:17,970 - func - INFO - Data added to the database successfully
+2024-05-15 19:01:27,638 - func - INFO - Detection stopped
+2024-05-15 19:04:14,545 - func - INFO - UI setup complete
+2024-05-15 19:04:15,304 - func - INFO - Video device opened successfully
+2024-05-15 19:04:15,305 - func - INFO - Info timer started
+2024-05-15 19:04:15,315 - func - INFO - Video thread started
+2024-05-15 19:04:15,488 - func - INFO - Motor initialization started
+2024-05-15 19:04:15,709 - func - INFO - Initialization complete
+2024-05-15 19:04:57,062 - func - INFO - UI setup complete
+2024-05-15 19:04:57,727 - func - INFO - Video device opened successfully
+2024-05-15 19:04:57,728 - func - INFO - Info timer started
+2024-05-15 19:04:57,730 - func - INFO - Video thread started
+2024-05-15 19:04:57,732 - func - INFO - Motor initialization started
+2024-05-15 19:04:57,756 - func - INFO - Initialization complete
+2024-05-15 19:05:06,575 - func - INFO - Motor initialization completed successfully
+2024-05-15 19:05:16,351 - func - INFO - Detection started
+2024-05-15 19:05:31,254 - func - INFO - Photo event triggered
+2024-05-15 19:05:35,045 - func - INFO - Photo event triggered
+2024-05-15 19:05:35,314 - PIL.PngImagePlugin - DEBUG - STREAM b'IHDR' 16 13
+2024-05-15 19:05:35,315 - PIL.PngImagePlugin - DEBUG - STREAM b'IDAT' 41 65536
+2024-05-15 19:05:37,701 - func - INFO - Data added to the database successfully
+2024-05-15 19:09:43,654 - func - INFO - UI setup complete
+2024-05-15 19:09:44,358 - func - INFO - Video device opened successfully
+2024-05-15 19:09:44,364 - func - INFO - Info timer started
+2024-05-15 19:09:44,367 - func - INFO - Video thread started
+2024-05-15 19:09:44,508 - func - INFO - Motor initialization started
+2024-05-15 19:09:44,679 - func - INFO - Initialization complete
+2024-05-15 19:09:53,277 - func - INFO - Motor initialization completed successfully
+2024-05-15 19:10:05,588 - func - INFO - Detection started
+2024-05-15 19:10:20,339 - func - INFO - Photo event triggered
+2024-05-15 19:10:20,724 - func - INFO - Detection stopped
+2024-05-15 17:11:32,552 - func - INFO - UI setup complete
+2024-05-15 17:11:33,611 - func - INFO - Video device opened successfully
+2024-05-15 17:11:33,612 - func - INFO - Info timer started
+2024-05-15 17:11:33,618 - func - INFO - Video thread started
+2024-05-15 17:11:33,629 - func - INFO - Motor initialization started
+2024-05-15 17:11:33,633 - func - INFO - Initialization complete
+2024-05-15 17:11:39,681 - func - INFO - Motor initialization completed successfully
+2024-05-15 17:11:56,628 - func - INFO - Detection started
+2024-05-15 17:12:11,511 - func - INFO - Photo event triggered
+2024-05-15 17:12:13,295 - func - INFO - Photo event triggered
+2024-05-15 17:12:13,529 - PIL.PngImagePlugin - DEBUG - STREAM b'IHDR' 16 13
+2024-05-15 17:12:13,530 - PIL.PngImagePlugin - DEBUG - STREAM b'IDAT' 41 65536
+2024-05-15 17:12:15,814 - func - INFO - Data added to the database successfully
+2024-05-15 17:12:39,635 - func - INFO - Photo event triggered
+2024-05-15 17:12:41,894 - func - INFO - Photo event triggered
+2024-05-15 17:12:42,045 - PIL.PngImagePlugin - DEBUG - STREAM b'IHDR' 16 13
+2024-05-15 17:12:42,046 - PIL.PngImagePlugin - DEBUG - STREAM b'IDAT' 41 65536
+2024-05-15 17:12:44,022 - func - INFO - Data added to the database successfully
+2024-05-15 17:13:07,717 - func - INFO - Photo event triggered
+2024-05-15 17:13:09,417 - func - INFO - Photo event triggered
+2024-05-15 17:13:09,585 - PIL.PngImagePlugin - DEBUG - STREAM b'IHDR' 16 13
+2024-05-15 17:13:09,586 - PIL.PngImagePlugin - DEBUG - STREAM b'IDAT' 41 65536
+2024-05-15 17:13:11,516 - func - INFO - Data added to the database successfully
+2024-05-15 17:13:35,463 - func - INFO - Photo event triggered
+2024-05-15 17:13:37,053 - func - INFO - Photo event triggered
+2024-05-15 17:13:37,196 - PIL.PngImagePlugin - DEBUG - STREAM b'IHDR' 16 13
+2024-05-15 17:13:37,197 - PIL.PngImagePlugin - DEBUG - STREAM b'IDAT' 41 65536
+2024-05-15 17:13:39,464 - func - INFO - Data added to the database successfully
+2024-05-15 17:14:03,251 - func - INFO - Photo event triggered
+2024-05-15 17:14:04,881 - func - INFO - Photo event triggered
+2024-05-15 17:14:05,030 - PIL.PngImagePlugin - DEBUG - STREAM b'IHDR' 16 13
+2024-05-15 17:14:05,031 - PIL.PngImagePlugin - DEBUG - STREAM b'IDAT' 41 65536
+2024-05-15 17:14:07,110 - func - INFO - Data added to the database successfully
+2024-05-15 17:14:30,951 - func - INFO - Photo event triggered
+2024-05-15 17:14:32,581 - func - INFO - Photo event triggered
+2024-05-15 17:14:32,742 - PIL.PngImagePlugin - DEBUG - STREAM b'IHDR' 16 13
+2024-05-15 17:14:32,742 - PIL.PngImagePlugin - DEBUG - STREAM b'IDAT' 41 65536
+2024-05-15 17:14:34,949 - func - INFO - Data added to the database successfully
+2024-05-15 17:14:58,672 - func - INFO - Photo event triggered
+2024-05-15 17:15:04,812 - func - INFO - Photo event triggered
+2024-05-15 17:15:04,957 - PIL.PngImagePlugin - DEBUG - STREAM b'IHDR' 16 13
+2024-05-15 17:15:04,958 - PIL.PngImagePlugin - DEBUG - STREAM b'IDAT' 41 65536
+2024-05-15 17:15:07,086 - func - INFO - Data added to the database successfully
+2024-05-15 17:15:30,957 - func - INFO - Photo event triggered
+2024-05-15 17:15:32,559 - func - INFO - Photo event triggered
+2024-05-15 17:15:32,730 - PIL.PngImagePlugin - DEBUG - STREAM b'IHDR' 16 13
+2024-05-15 17:15:32,731 - PIL.PngImagePlugin - DEBUG - STREAM b'IDAT' 41 65536
+2024-05-15 17:15:35,091 - func - INFO - Data added to the database successfully
+2024-05-15 17:15:58,831 - func - INFO - Photo event triggered
+2024-05-15 17:16:00,445 - func - INFO - Photo event triggered
+2024-05-15 17:16:00,603 - PIL.PngImagePlugin - DEBUG - STREAM b'IHDR' 16 13
+2024-05-15 17:16:00,605 - PIL.PngImagePlugin - DEBUG - STREAM b'IDAT' 41 65536
+2024-05-15 17:16:02,764 - func - INFO - Data added to the database successfully
+2024-05-15 17:16:26,574 - func - INFO - Photo event triggered
+2024-05-15 17:16:28,120 - func - INFO - Photo event triggered
+2024-05-15 17:16:28,269 - PIL.PngImagePlugin - DEBUG - STREAM b'IHDR' 16 13
+2024-05-15 17:16:28,270 - PIL.PngImagePlugin - DEBUG - STREAM b'IDAT' 41 65536
+2024-05-15 17:16:30,106 - func - INFO - Data added to the database successfully
+2024-05-15 17:17:04,404 - func - INFO - Detection continued
+2024-05-15 17:17:12,047 - func - INFO - Detection stopped
+2024-05-15 18:58:29,140 - func - WARNING - Failed to capture video frame
+2024-05-15 18:58:29,241 - func - WARNING - Failed to capture video frame
+2024-05-15 18:58:29,344 - func - WARNING - Failed to capture video frame
+2024-05-15 18:58:29,445 - func - WARNING - Failed to capture video frame
+2024-05-15 18:58:29,582 - func - WARNING - Failed to capture video frame
+2024-05-15 18:58:29,691 - func - WARNING - Failed to capture video frame
+2024-05-15 18:58:29,802 - func - WARNING - Failed to capture video frame
+2024-05-15 18:58:29,903 - func - WARNING - Failed to capture video frame
+2024-05-15 18:58:30,005 - func - WARNING - Failed to capture video frame
+2024-05-15 18:58:30,106 - func - WARNING - Failed to capture video frame
+2024-05-15 18:58:30,207 - func - WARNING - Failed to capture video frame
+2024-05-15 18:58:30,308 - func - WARNING - Failed to capture video frame
+2024-05-15 18:58:30,411 - func - WARNING - Failed to capture video frame
+2024-05-15 18:58:30,512 - func - WARNING - Failed to capture video frame
+2024-05-15 18:58:30,613 - func - WARNING - Failed to capture video frame
+2024-05-15 18:58:30,714 - func - WARNING - Failed to capture video frame
+2024-05-15 18:58:30,816 - func - WARNING - Failed to capture video frame
+2024-05-15 18:58:30,917 - func - WARNING - Failed to capture video frame
+2024-05-15 18:58:31,020 - func - WARNING - Failed to capture video frame
+2024-05-15 18:58:31,123 - func - WARNING - Failed to capture video frame
+2024-05-15 18:58:31,224 - func - WARNING - Failed to capture video frame
+2024-05-15 18:58:31,327 - func - WARNING - Failed to capture video frame
+2024-05-15 18:58:31,428 - func - WARNING - Failed to capture video frame
+2024-05-15 18:58:31,529 - func - WARNING - Failed to capture video frame
+2024-05-15 18:58:31,630 - func - WARNING - Failed to capture video frame
+2024-05-15 18:58:31,731 - func - WARNING - Failed to capture video frame
+2024-05-15 18:58:31,832 - func - WARNING - Failed to capture video frame
+2024-05-15 18:58:31,933 - func - WARNING - Failed to capture video frame
+2024-05-15 18:58:32,034 - func - WARNING - Failed to capture video frame
+2024-05-15 18:58:32,134 - func - WARNING - Failed to capture video frame
+2024-05-15 18:58:32,237 - func - WARNING - Failed to capture video frame
+2024-05-15 18:58:32,338 - func - WARNING - Failed to capture video frame
+2024-05-15 18:58:32,439 - func - WARNING - Failed to capture video frame
+2024-05-15 18:58:32,540 - func - WARNING - Failed to capture video frame
+2024-05-15 18:58:52,333 - func - INFO - UI setup complete
+2024-05-15 18:58:53,005 - func - INFO - Video device opened successfully
+2024-05-15 18:58:53,007 - func - INFO - Info timer started
+2024-05-15 18:58:53,009 - func - INFO - Video thread started
+2024-05-15 18:58:53,022 - func - INFO - Motor initialization started
+2024-05-15 18:58:53,055 - func - INFO - Initialization complete
+2024-05-15 18:58:54,847 - func - ERROR - Motor initialization failed: [Errno 32] Broken pipe
+2024-05-15 18:58:56,488 - func - INFO - Detection started
+2024-05-15 18:58:56,490 - func - ERROR - Detection failed: Attempting to use a port that is not open
+2024-05-15 19:01:06,653 - func - INFO - UI setup complete
+2024-05-15 19:01:07,276 - func - INFO - Video device opened successfully
+2024-05-15 19:01:07,279 - func - INFO - Info timer started
+2024-05-15 19:01:07,282 - func - INFO - Video thread started
+2024-05-15 19:01:07,286 - func - INFO - Motor initialization started
+2024-05-15 19:01:07,291 - func - INFO - Initialization complete
+2024-05-15 19:01:13,366 - func - INFO - Motor initialization completed successfully
+2024-05-15 19:01:25,798 - func - INFO - Detection started
+2024-05-15 19:01:40,529 - func - INFO - Photo event triggered
+2024-05-15 19:01:42,816 - func - INFO - Photo event triggered
+2024-05-15 19:01:43,029 - PIL.PngImagePlugin - DEBUG - STREAM b'IHDR' 16 13
+2024-05-15 19:01:43,029 - PIL.PngImagePlugin - DEBUG - STREAM b'IDAT' 41 65536
+2024-05-15 19:01:45,060 - func - INFO - Data added to the database successfully
+2024-05-15 19:01:55,041 - func - INFO - Detection stopped
+2024-05-15 19:02:18,371 - func - INFO - UI setup complete
+2024-05-15 19:02:18,994 - func - INFO - Video device opened successfully
+2024-05-15 19:02:18,995 - func - INFO - Info timer started
+2024-05-15 19:02:18,999 - func - INFO - Video thread started
+2024-05-15 19:02:19,004 - func - INFO - Motor initialization started
+2024-05-15 19:02:19,036 - func - INFO - Initialization complete
+2024-05-15 19:02:27,399 - func - INFO - Motor initialization completed successfully
+2024-05-15 19:02:39,924 - func - INFO - Detection started
+2024-05-15 19:02:54,758 - func - INFO - Photo event triggered
+2024-05-15 19:03:00,841 - func - INFO - Photo event triggered
+2024-05-15 19:03:01,045 - PIL.PngImagePlugin - DEBUG - STREAM b'IHDR' 16 13
+2024-05-15 19:03:01,045 - PIL.PngImagePlugin - DEBUG - STREAM b'IDAT' 41 65536
+2024-05-15 19:03:03,173 - func - INFO - Data added to the database successfully
+2024-05-15 19:03:26,971 - func - INFO - Photo event triggered
+2024-05-15 19:03:28,530 - func - INFO - Photo event triggered
+2024-05-15 19:03:28,683 - PIL.PngImagePlugin - DEBUG - STREAM b'IHDR' 16 13
+2024-05-15 19:03:28,684 - PIL.PngImagePlugin - DEBUG - STREAM b'IDAT' 41 65536
+2024-05-15 19:03:30,604 - func - INFO - Data added to the database successfully
+2024-05-15 19:03:54,453 - func - INFO - Photo event triggered
+2024-05-15 19:03:56,018 - func - INFO - Photo event triggered
+2024-05-15 19:03:56,156 - PIL.PngImagePlugin - DEBUG - STREAM b'IHDR' 16 13
+2024-05-15 19:03:56,157 - PIL.PngImagePlugin - DEBUG - STREAM b'IDAT' 41 65536
+2024-05-15 19:03:58,352 - func - INFO - Data added to the database successfully
+2024-05-15 19:04:22,084 - func - INFO - Photo event triggered
+2024-05-15 19:04:25,492 - func - INFO - Photo event triggered
+2024-05-15 19:04:25,640 - PIL.PngImagePlugin - DEBUG - STREAM b'IHDR' 16 13
+2024-05-15 19:04:25,641 - PIL.PngImagePlugin - DEBUG - STREAM b'IDAT' 41 65536
+2024-05-15 19:04:27,368 - func - INFO - Data added to the database successfully
+2024-05-15 19:04:51,155 - func - INFO - Photo event triggered
+2024-05-15 19:04:53,398 - func - INFO - Photo event triggered
+2024-05-15 19:04:53,560 - PIL.PngImagePlugin - DEBUG - STREAM b'IHDR' 16 13
+2024-05-15 19:04:53,562 - PIL.PngImagePlugin - DEBUG - STREAM b'IDAT' 41 65536
+2024-05-15 19:04:55,382 - func - INFO - Data added to the database successfully
+2024-05-15 19:05:19,209 - func - INFO - Photo event triggered
+2024-05-15 19:05:20,752 - func - INFO - Photo event triggered
+2024-05-15 19:05:20,889 - PIL.PngImagePlugin - DEBUG - STREAM b'IHDR' 16 13
+2024-05-15 19:05:20,890 - PIL.PngImagePlugin - DEBUG - STREAM b'IDAT' 41 65536
+2024-05-15 19:05:22,631 - func - INFO - Data added to the database successfully
+2024-05-15 19:05:46,489 - func - INFO - Photo event triggered
+2024-05-15 19:05:48,858 - func - INFO - Photo event triggered
+2024-05-15 19:05:49,046 - PIL.PngImagePlugin - DEBUG - STREAM b'IHDR' 16 13
+2024-05-15 19:05:49,046 - PIL.PngImagePlugin - DEBUG - STREAM b'IDAT' 41 65536
+2024-05-15 19:05:51,025 - func - INFO - Data added to the database successfully
+2024-05-15 19:06:14,947 - func - INFO - Photo event triggered
+2024-05-15 19:06:16,473 - func - INFO - Photo event triggered
+2024-05-15 19:06:16,621 - PIL.PngImagePlugin - DEBUG - STREAM b'IHDR' 16 13
+2024-05-15 19:06:16,622 - PIL.PngImagePlugin - DEBUG - STREAM b'IDAT' 41 65536
+2024-05-15 19:06:18,508 - func - INFO - Data added to the database successfully
+2024-05-15 19:06:36,900 - func - INFO - Detection stopped
+2024-05-15 19:06:56,417 - func - INFO - UI setup complete
+2024-05-15 19:06:57,060 - func - INFO - Video device opened successfully
+2024-05-15 19:06:57,062 - func - INFO - Info timer started
+2024-05-15 19:06:57,064 - func - INFO - Video thread started
+2024-05-15 19:06:57,069 - func - INFO - Motor initialization started
+2024-05-15 19:06:57,099 - func - INFO - Initialization complete
+2024-05-15 19:07:07,403 - func - INFO - Motor initialization completed successfully
+2024-05-15 19:07:16,822 - func - INFO - Detection started
+2024-05-15 19:07:31,557 - func - INFO - Photo event triggered
+2024-05-15 19:07:33,178 - func - INFO - Photo event triggered
+2024-05-15 19:07:33,384 - PIL.PngImagePlugin - DEBUG - STREAM b'IHDR' 16 13
+2024-05-15 19:07:33,384 - PIL.PngImagePlugin - DEBUG - STREAM b'IDAT' 41 65536
+2024-05-15 19:07:35,363 - func - INFO - Data added to the database successfully
+2024-05-15 19:07:59,288 - func - INFO - Photo event triggered
+2024-05-15 19:08:02,197 - func - INFO - Photo event triggered
+2024-05-15 19:08:02,361 - PIL.PngImagePlugin - DEBUG - STREAM b'IHDR' 16 13
+2024-05-15 19:08:02,363 - PIL.PngImagePlugin - DEBUG - STREAM b'IDAT' 41 65536
+2024-05-15 19:08:04,198 - func - INFO - Data added to the database successfully
+2024-05-15 19:08:28,024 - func - INFO - Photo event triggered
+2024-05-15 19:08:29,667 - func - INFO - Photo event triggered
+2024-05-15 19:08:29,850 - PIL.PngImagePlugin - DEBUG - STREAM b'IHDR' 16 13
+2024-05-15 19:08:29,850 - PIL.PngImagePlugin - DEBUG - STREAM b'IDAT' 41 65536
+2024-05-15 19:08:31,746 - func - INFO - Data added to the database successfully
+2024-05-15 19:08:55,578 - func - INFO - Photo event triggered
+2024-05-15 19:08:57,136 - func - INFO - Photo event triggered
+2024-05-15 19:08:57,308 - PIL.PngImagePlugin - DEBUG - STREAM b'IHDR' 16 13
+2024-05-15 19:08:57,308 - PIL.PngImagePlugin - DEBUG - STREAM b'IDAT' 41 65536
+2024-05-15 19:08:59,257 - func - INFO - Data added to the database successfully
+2024-05-15 19:09:01,681 - func - INFO - Table data loaded successfully
+2024-05-15 19:09:01,681 - func - INFO - Viewing data from SQL
+2024-05-15 19:09:23,077 - func - INFO - Photo event triggered
+2024-05-15 19:09:25,310 - func - INFO - Photo event triggered
+2024-05-15 19:09:25,481 - PIL.PngImagePlugin - DEBUG - STREAM b'IHDR' 16 13
+2024-05-15 19:09:25,493 - PIL.PngImagePlugin - DEBUG - STREAM b'IDAT' 41 65536
+2024-05-15 19:09:27,485 - func - INFO - Data added to the database successfully
+2024-05-15 19:09:38,069 - func - INFO - Detection stopped
+2024-05-15 19:10:07,690 - func - INFO - UI setup complete
+2024-05-15 19:10:08,318 - func - INFO - Video device opened successfully
+2024-05-15 19:10:08,319 - func - INFO - Info timer started
+2024-05-15 19:10:08,331 - func - INFO - Video thread started
+2024-05-15 19:10:08,346 - func - INFO - Motor initialization started
+2024-05-15 19:10:08,369 - func - INFO - Initialization complete
+2024-05-15 19:10:16,760 - func - INFO - Motor initialization completed successfully
+2024-05-15 19:10:23,354 - func - INFO - Detection started
+2024-05-15 19:10:38,194 - func - INFO - Photo event triggered
+2024-05-15 19:10:40,504 - func - INFO - Photo event triggered
+2024-05-15 19:10:40,711 - PIL.PngImagePlugin - DEBUG - STREAM b'IHDR' 16 13
+2024-05-15 19:10:40,711 - PIL.PngImagePlugin - DEBUG - STREAM b'IDAT' 41 65536
+2024-05-15 19:10:42,505 - func - INFO - Data added to the database successfully
+2024-05-15 19:11:06,204 - func - INFO - Photo event triggered
+2024-05-15 19:11:09,008 - func - INFO - Photo event triggered
+2024-05-15 19:11:09,169 - PIL.PngImagePlugin - DEBUG - STREAM b'IHDR' 16 13
+2024-05-15 19:11:09,170 - PIL.PngImagePlugin - DEBUG - STREAM b'IDAT' 41 65536
+2024-05-15 19:11:10,993 - func - INFO - Data added to the database successfully
+2024-05-15 19:11:34,909 - func - INFO - Photo event triggered
+2024-05-15 19:11:36,476 - func - INFO - Photo event triggered
+2024-05-15 19:11:36,659 - PIL.PngImagePlugin - DEBUG - STREAM b'IHDR' 16 13
+2024-05-15 19:11:36,667 - PIL.PngImagePlugin - DEBUG - STREAM b'IDAT' 41 65536
+2024-05-15 19:11:38,977 - func - INFO - Data added to the database successfully
+2024-05-15 19:12:02,898 - func - INFO - Photo event triggered
+2024-05-15 19:12:04,472 - func - INFO - Photo event triggered
+2024-05-15 19:12:04,656 - PIL.PngImagePlugin - DEBUG - STREAM b'IHDR' 16 13
+2024-05-15 19:12:04,664 - PIL.PngImagePlugin - DEBUG - STREAM b'IDAT' 41 65536
+2024-05-15 19:12:06,454 - func - INFO - Data added to the database successfully
+2024-05-15 19:12:30,258 - func - INFO - Photo event triggered
+2024-05-15 19:12:31,802 - func - INFO - Photo event triggered
+2024-05-15 19:12:31,947 - PIL.PngImagePlugin - DEBUG - STREAM b'IHDR' 16 13
+2024-05-15 19:12:31,949 - PIL.PngImagePlugin - DEBUG - STREAM b'IDAT' 41 65536
+2024-05-15 19:12:33,697 - func - INFO - Data added to the database successfully
+2024-05-15 19:12:57,600 - func - INFO - Photo event triggered
+2024-05-15 19:12:59,188 - func - INFO - Photo event triggered
+2024-05-15 19:12:59,362 - PIL.PngImagePlugin - DEBUG - STREAM b'IHDR' 16 13
+2024-05-15 19:12:59,374 - PIL.PngImagePlugin - DEBUG - STREAM b'IDAT' 41 65536
+2024-05-15 19:13:01,545 - func - INFO - Data added to the database successfully
+2024-05-15 19:13:25,377 - func - INFO - Photo event triggered
+2024-05-15 19:13:26,922 - func - INFO - Photo event triggered
+2024-05-15 19:13:27,081 - PIL.PngImagePlugin - DEBUG - STREAM b'IHDR' 16 13
+2024-05-15 19:13:27,082 - PIL.PngImagePlugin - DEBUG - STREAM b'IDAT' 41 65536
+2024-05-15 19:13:28,947 - func - INFO - Data added to the database successfully
+2024-05-15 19:13:52,724 - func - INFO - Photo event triggered
+2024-05-15 19:13:54,291 - func - INFO - Photo event triggered
+2024-05-15 19:13:54,430 - PIL.PngImagePlugin - DEBUG - STREAM b'IHDR' 16 13
+2024-05-15 19:13:54,431 - PIL.PngImagePlugin - DEBUG - STREAM b'IDAT' 41 65536
+2024-05-15 19:13:56,388 - func - INFO - Data added to the database successfully
+2024-05-15 19:14:06,092 - func - INFO - Detection stopped

@@ -1,0 +1,78 @@
+
+1、安装驱动
+
+    在版本比较新的Linux内核中应该都集成该驱动，可以通过下边这个命令查看是否已安装驱动
+
+1 $ modinfo ftdi_sio 
+    会出现大概如下的信息
+
+01 filename:       /lib/modules/2.6.28-oshirix-special-edition/kernel/drivers/usb/serial/ftdi_sio.ko 
+
+02 author:         Greg Kroah-Hartman <greg@kroah.com>, Bill Ryder <bryder@sgi.com>, Kuba Ober <kuba@mareimbrium.org> 
+
+03 description:    USB FTDI Serial Converters Driver 
+
+04 license:        GPL 
+
+05 vermagic:       2.6.28-oshirix-special-edition SMP preempt mod_unload modversions 586 
+
+06 depends:        usbserial,usbcore 
+
+07 alias:          usb:v0403pFF00d*dc*dsc*dp*ic*isc*ip* 
+
+08 alias:          usb:v0403pFFA8d*dc*dsc*dp*ic*isc*ip* 
+
+09 alias:          usb:v0403p9F80d*dc*dsc*dp*ic*isc*ip* 
+
+10 alias:          usb:v0403pD010d*dc*dsc*dp*ic*isc*ip* 
+
+11 alias:          usb:v0403pD011d*dc*dsc*dp*ic*isc*ip* 
+
+12 alias:          usb:v0403pD012d*dc*dsc*dp*ic*isc*ip* 
+
+13 。。。。。。。。。。。。。。。。。。。。。。。。。。。。。 
+如果出现上边的一大堆信息，就说明你的内核已经集成列该驱动，如果没有的话，就要去下载自己安装。
+
+2、查看驱动的另一种方法
+
+01 1.原有内容 
+
+02     luther@gliethttp:~$ ls /sys/bus/usb-serial/drivers/ 
+
+03     generic 
+
+04 2.插入usb-serail之后内容 
+
+05     luther@gliethttp:~$ ls /sys/bus/usb-serial/drivers/ 
+
+06     ftdi_sio  generic 
+
+07 或者使用dmesg 查看 
+
+08     luther@gliethttp:~$ dmesg |grep 'interface driver' 
+
+09 3.删除已经加载了的built-ind的模块 
+
+10     luther@gliethttp:~$ lsmod |grep ftdi_sio 
+
+11     ftdi_sio               55944  0 
+
+12     usbserial              39528  1 ftdi_sio 
+
+13     usbcore               148848  8 ftdi_sio     
+
+14     luther@gliethttp:~$ sudo rmmod ftdi_sio 
+
+15     luther@gliethttp:~$ lsmod |grep ftdi_sio 
+
+16 4.将其添加到驱动黑名单中 
+
+17     luther@gliethttp:~$ sudo vim /etc/modprobe.d/blacklist 
+
+18     # 文件结尾追加如下一行内容 
+
+19     blacklist ftdi_sio 
+
+20 5.这样再次插入usb-serial,该设备的驱动已经没有了 
+
+21     luther@gliethttp:~$ lsmod |grep ftdi_sio 

@@ -1,0 +1,12 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet type="text/xsl" href="Festo.FCT.FestoConfigurationTool.Project.xsl"?>
+<PROJECT xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" Name="218 CMMO-ST-FESTO EHMD PLUS" Title="" Creation="2022-02-24" Author="shizhihui" Version="V1.0.0" LastModification="2022-02-24T10:49:32.4749001+08:00" SystemOfMeasurement="metric" xmlns="http://Festo.FCT.FestoConfigurationTool.Project">
+  <DESCRIPTION />
+  <ATTRIBUTES>
+    <ATTRIBUTE Name="SelectedTabIndex" Value="2" />
+  </ATTRIBUTES>
+  <HARDWARE>
+    <DEVICE DeviceInstanceName="CMMO-ST-G-PLUS" DeviceVendor="Festo" DeviceFamily="CMMO-ST" OpenModuleOnLoad="true" PlugInVersion="V1.12.0" />
+    <DEVICE DeviceInstanceName="CMMO-ST-R-PLUS" DeviceVendor="Festo" DeviceFamily="CMMO-ST" OpenModuleOnLoad="true" PlugInVersion="V1.12.0" />
+  </HARDWARE>
+</PROJECT>
