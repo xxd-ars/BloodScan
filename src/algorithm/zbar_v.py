@@ -30,7 +30,7 @@ import pandas as pd
 import re
 import argparse
 import imutils
-# import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 from tqdm import tqdm  
 
 
@@ -47,9 +47,10 @@ def get_qrcode_result(image_input, binary_max=255, binary_step=5):
     number = 1
     
     # 把输入图像灰度化
-    if len(image_input.shape) >= 3:
+    if len(np.shape(image_input)) >= 3:
         image_input = cv2.cvtColor(image_input, cv2.COLOR_RGB2GRAY)
-
+        # plt.imshow(image_input, cmap='gray')
+        # plt.show()
     # 获取自适配阈值
     binary, _ = cv2.threshold(image_input, 0, 255, cv2.THRESH_OTSU)
 
