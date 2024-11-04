@@ -76,43 +76,53 @@ from collections import Counter
 from tqdm import tqdm
 # %%
 def paral_read(img,ru,rd,w):
-    h1,w1 = ru
-    h2,w2 = rd
-    img_paral = np.zeros((h2-h1,w,3),dtype=np.uint8)
-    for h in range(h1,h2):
+    # pa_readral(img, (300, 840), (1290, 900), 160) (y, x)
+    h1, w1 = ru
+    h2, w2 = rd
+    img_paral = np.zeros((h2 - h1, w, 3), dtype=np.uint8)
+    for h in range(h1, h2):
         start = int((w2-w1)/(h2-h1)*(h-h1)+w1)
         img_paral[h-h1,:,:] = img[h,start:start+w,:]
     return img_paral
 #%%
 def KM(img,n_cluster,inital_center):
+    """
+    img: 输入的图像数据，通常是一个三维数组（高度、宽度、颜色通道）。
+    n_cluster: 要划分的簇的数量，即目标分割的类别数。
+    inital_center: K-Means 算法的初始聚类中心，作为算法的起始点。
+    """
     pixels = img.reshape(-1, 3)
 
     kmeans = KMeans(n_clusters=n_cluster,init=inital_center, n_init=1, random_state=0,max_iter=100)
     kmeans.fit(pixels)
     labels = kmeans.labels_
     centers = kmeans.cluster_centers_
-
+    print("labels: ", set(labels))
     segmented_image = labels.reshape(img.shape[0], img.shape[1])
 
-    # fig, ax = plt.subplots(1, 2, figsize=(12, 6))
-    # ax[0].imshow(img)
-    # ax[0].set_title('Original Image')
-    # ax[0].axis('off')
+    fig, ax = plt.subplots(1, 2, figsize=(12, 6))
+    ax[0].imshow(img)
+    ax[0].set_title('Original Image')
+    ax[0].axis('off')
 
-    # ax[1].imshow(segmented_image, cmap='viridis')
-    # ax[1].set_title('Segmented Image')
-    # ax[1].axis('off')
+    ax[1].imshow(segmented_image, cmap='viridis')
+    ax[1].set_title('Segmented Image')
+    ax[1].axis('off')
 
-    # plt.show()
+    plt.show()
     return segmented_image
+
 #%%
-
 def region_check(segmented_image,index):
-    data = (segmented_image == index)
-    n_point = np.sum(data)
 
-    # if major area exist or not
+    data = (segmented_image == index)
+    n_point = np.sum(data) # 目标区域(index)像素点的数量
+    
     labeled_array, num_features = measure.label(data, connectivity=2, return_num=True)
+    # 对二值图像进行连通区域标记
+    # num_features连通区域的数量, labeled_array每个像素被赋予一个连通区域的标签从 1 开始
+
+    # 查找主要的连通区域
     major_feature = 0
     for feature in range(1,num_features+1):
         n_current_point = np.sum(labeled_array==feature)
@@ -190,16 +200,20 @@ def plasma_check(region,threshold,h_layer):
             return False
     return True
 
-
+#%%
 def load_data(index):
     if index<=200:
-        test_file_path = "./data_first/{}-B.png".format(index)
-        w_file, h_file = (2048, 1536)
+        test_file_path = "../../data/data_first/{}-B.png".format(index)
+        w_file, h_file = (2048, 1536) # 定义图像大小
         img = np.asarray(Image.open(test_file_path).convert('RGB').resize((w_file, h_file)))
         img_paral = paral_read(img, (300, 840), (1290, 900), 160)
+        # plt.imshow(img)
+        # plt.show()
+        # plt.imshow(img_paral)
+        # plt.show()
         return img,img_paral,300
     else:
-        test_file_path = "./data_first/{}-B.png".format(index)
+        test_file_path = "../../data/data_first/{}-B.png".format(index)
         w_file, h_file = (2048, 1536)
         pos_base = np.array([400, 1130, 910, 1060])
         img = np.asarray(Image.open(test_file_path).convert('RGB').resize((w_file, h_file)))
@@ -217,7 +231,7 @@ def test(k):
     h_depth = 0
     img_draw = False
     img,ROI,h_intrinsic = load_data(k)
-    segmented_image = KM(ROI,n_clusters,initial_center)
+    segmented_image = KM(ROI,n_clusters,'k-means++')
     draw,regions,string = type_check(segmented_image,string)
     seg2_image = np.ones(segmented_image.shape)*3
     seg2_image[regions[0]] = 0
@@ -258,7 +272,4 @@ def test(k):
             
     print(time.time()-start_time)
     return draw,segmented_image,img_draw,string,h_depth
-
-
-
-
+# %%
