@@ -1,0 +1,6 @@
+
+*.pt
+*.zip
+/data/rawdata
+/data/data_collection
+/data/data_first

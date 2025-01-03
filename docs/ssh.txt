@@ -1,0 +1,10 @@
+ssh -p22000 xin99@202.120.48.71
+xin99
+
+ssh USER@FINAL_DEST -o "ProxyCommand=nc -X connect -x PROXYHOST:PROXYPORT %h %p"
+
+ssh xin99@202.120.48.71 -p 22000 -o "ProxyCommand=proxytunnel -p inproxy.sjtu.edu.cn:80 -u xxd_ars -U 54442664zhao -d %h:%p"
+
+/home/xin99/.local/bin
+
+ssh -L 8888:localhost:8888 -p22000 xin99@202.120.48.71
