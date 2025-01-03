@@ -1,0 +1,13 @@
+train: /BloodScan/tests/yolo_seg/datasets/Blood-Scan-2/train/images
+val: /BloodScan/tests/yolo_seg/datasets/Blood-Scan-2/valid/images
+test: /BloodScan/tests/yolo_seg/datasets/Blood-Scan-2/test/images
+
+nc: 3
+names: ['bloodzone1', 'bloodzone2', 'bloodzone3']
+
+roboflow:
+  workspace: bloodscan
+  project: blood-scan-lyzhe
+  version: 2
+  license: CC BY 4.0
+  url: https://universe.roboflow.com/bloodscan/blood-scan-lyzhe/dataset/2

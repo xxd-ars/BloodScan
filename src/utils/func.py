@@ -63,13 +63,11 @@ from motor.m_ModBusTcp import photo_event, rotate_event
 import logging
 import logging.config
 
-# 配置日志
 logging.basicConfig(
     level    = logging.DEBUG,
     format   = '%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers = [logging.FileHandler("./logs/app.log"),
                 logging.StreamHandler()])
-
 logger = logging.getLogger(__name__)
 
 class MyMainWindow(QtWidgets.QMainWindow, ui_winqt.Ui_MainWindow):
@@ -145,7 +143,6 @@ class MyMainWindow(QtWidgets.QMainWindow, ui_winqt.Ui_MainWindow):
             logger.info("Detection completed successfully")
         except Exception as e:
             logger.error(f"Detection failed: {e}")
-        
 
     def video_show(self):
         while True:
@@ -256,7 +253,7 @@ class MyMainWindow(QtWidgets.QMainWindow, ui_winqt.Ui_MainWindow):
 
                 
             #     # 条形码检测
-            #     barcode_data, binary_value, decode_time,number = zbar_v.get_qrcode_result(frame_rgb)
+            #     barcode_data, binary_value, decode_time, number = zbar_v.get_qrcode_result(frame_rgb)
             #     print(f"Barcode: {barcode_data}")
             #     print(f"time:{time.time()-start_time}")
 
@@ -338,7 +335,6 @@ class MyMainWindow(QtWidgets.QMainWindow, ui_winqt.Ui_MainWindow):
             time.sleep(5)
             photo_event.clear()
             rotate_event.set()
-
 
     def load_table_data(self):
         conn = sqlite3.connect('./src/database/sample_data.db')  # 连接到SQLite数据库
