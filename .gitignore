@@ -1,5 +1,9 @@
 
 *.pt
 *.zip
+*.jpg
+*.bmp
+*.png
+*.txt
 /data/rawdata
 /data/data_first
