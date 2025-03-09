@@ -46,7 +46,9 @@ def sort_points_by_angle(points):
 
 project_dir= "/home/xin99/BloodScan/tests/yolo_seg"
 project_dir= "./tests/yolo_seg"
-model_name = "train_blue_rawdata_1504_500_200epoch"
+
+epoch_num  = 200
+model_name = f"train_blue_rawdata_1504_500_{epoch_num}epoch"
 dataset_v  = "Blue-Rawdata-1504-500-1"
 
 # if __name__ == '__main__':
