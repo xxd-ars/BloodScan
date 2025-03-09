@@ -4,7 +4,25 @@ xin99
 ssh USER@FINAL_DEST -o "ProxyCommand=nc -X connect -x PROXYHOST:PROXYPORT %h %p"
 
 ssh xin99@202.120.48.71 -p 22000 -o "ProxyCommand=proxytunnel -p inproxy.sjtu.edu.cn:80 -u xxd_ars -U 54442664zhao -d %h:%p"
-
+xin990114
 /home/xin99/.local/bin
 
 ssh -L 8888:localhost:8888 -p22000 xin99@202.120.48.71
+
+ssh -i .\.ssh\id_rsa\id_rsa_gcp_neo root@35.212.229.246
+
+ssh -i .\.ssh\id_rsa\id_rsa_gcp_neo root@35.212.178.199 -t "cd /home/timothee_neo/dc/Tweetcord && bash"
+nohup ../dc-x/bin/python3 bot.py > console.log 2>&1 &
+ps -ef | grep bot.py
+
+ssh -i .\.ssh\id_rsa\id_rsa_gcp_neo root@35.212.178.199 -t "cd /home/timothee_neo/tg/ && bash"
+nohup tg_env/bin/python3 tg_note_user.py > console.log 2>&1 &
+ps -ef | grep tg_note_user.py
+
+ssh -i .\.ssh\id_rsa\llt-xxd.pem root@122.8.186.112 -t "su - lilith && cd /home/lilith/ai-writing/"
+8.3JDuHbZdsuj98
+
+../elasticsearch-8.17.0/bin/elasticsearch -d
+python ./src/app/summary.py
+nohup python ./src/app/summary.py > console.log 2>&1 &
+watch -n 1 -d free -h / htop
