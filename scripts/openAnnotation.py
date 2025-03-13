@@ -4,27 +4,29 @@ import cv2
 import matplotlib.pyplot as plt
 import numpy as np
 
-# Load JSON annotation file
-class_name = 'class1'
+# Load random JSON annotation file
+class_name = 'class1' # 'class2'
 folder_path = './data/rawdata/' + class_name + '/'
 json_files = [file for file in os.listdir(folder_path) if file.endswith('.json')]
-numb_files = np.random.randint(0, len(json_files))
+index_file = np.random.randint(0, len(json_files))
 
-with open(folder_path + json_files[numb_files], 'r') as f:
+with open(folder_path + json_files[index_file], 'r') as f:
     data = json.load(f)
 
+# with open(folder_path + '2022-03-29_084745_72_T5_2562.json', 'r') as f:
+#     data = json.load(f)
+    
 # Load image paths
-image_path_normal = data["imagePath"]
-image_path_blue   = data["imagePath"]
-
 if class_name == 'class1':
-    image_path_normal = image_path_normal.replace("T5", "T3").rsplit("_", 1)[0] + f"_{int(image_path_normal.rsplit('_', 1)[1].split('.')[0]) - 2}.bmp"
+    image_path_blue   = data["imagePath"]
+    image_path_normal = data["imagePath"].replace("T5", "T3").rsplit("_", 1)[0] + f"_{int(data["imagePath"].rsplit('_', 1)[1].split('.')[0]) - 2}.bmp"
 elif class_name == 'class2':
-    image_path_blue = image_path_blue.replace("T3", "T5").rsplit("_", 1)[0] + f"_{int(image_path_blue.rsplit('_', 1)[1].split('.')[0]) + 2}.bmp"
+    image_path_normal = data["imagePath"]
+    image_path_blue = data["imagePath"].replace("T3", "T5").rsplit("_", 1)[0] + f"_{int(data["imagePath"].rsplit('_', 1)[1].split('.')[0]) + 2}.bmp"
 
 image_normal = cv2.imread(folder_path + image_path_normal)
-image_blue   = cv2.imread(folder_path + image_path_blue)
 image_normal = cv2.cvtColor(image_normal, cv2.COLOR_BGR2RGB)
+image_blue   = cv2.imread(folder_path + image_path_blue)
 image_blue   = cv2.cvtColor(image_blue, cv2.COLOR_BGR2RGB)
 
 # Extract and draw points on both images
@@ -48,7 +50,11 @@ plt.title("Annotated Normal Image")
 
 plt.subplot(1, 2, 2)
 plt.imshow(image_blue)
+plt.imsave('./img/output_1500_label.jpg', image_blue)
 plt.axis("off")
 plt.title("Annotated Blue Image")
 
 plt.show()
+
+# plt.imsave('./img/rawdata_demo_white.jpg', image_normal)
+# plt.imsave('./img/rawdata_demo_blue.jpg', image_blue)

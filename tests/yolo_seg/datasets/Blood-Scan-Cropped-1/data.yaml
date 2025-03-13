@@ -1,0 +1,13 @@
+train: ../train/images
+val: ../valid/images
+test: ../test/images
+
+nc: 3
+names: ['0', '1', '2']
+
+roboflow:
+  workspace: bloodscancropped
+  project: blood-scan-cropped
+  version: 1
+  license: MIT
+  url: https://universe.roboflow.com/bloodscancropped/blood-scan-cropped/dataset/1
