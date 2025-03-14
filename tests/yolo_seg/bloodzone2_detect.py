@@ -47,7 +47,7 @@ def sort_points_by_angle(points):
 project_dir= "/home/xin99/BloodScan/tests/yolo_seg"
 project_dir= "./tests/yolo_seg"
 
-epoch_num  = 200
+epoch_num  = 10
 model_name = f"train_blue_rawdata_1504_500_{epoch_num}epoch"
 dataset_v  = "Blue-Rawdata-1504-500-1"
 
@@ -176,22 +176,21 @@ print('Average lower surface difference %', f'{round(np.mean(height_lower_diff_p
 
 fig, ax1 = plt.subplots(figsize=(9, 6))
 bar_width = 0.4
-x1, x2, x3 = 0.4, 1.6, 3
+x1, x2, x3, x4 = 0.2, 1., 1.8, 2.6
 color='black'
-ax1.bar(x=x1, height=np.mean(iou_list), yerr=np.std(iou_list), capsize=5, color='C0', alpha=0.9, width=bar_width)
-ax1.set_ylabel('IoU', color=color)
+ax1.bar(x=x1, height=detected_count/len(os.listdir(ipath)), capsize=5, color='C0', alpha=0.9, width=bar_width)
+ax1.bar(x=x2, height=np.mean(iou_list), yerr=np.std(iou_list), capsize=5, color='C0', alpha=0.9, width=bar_width)
 ax1.tick_params(axis='y', labelcolor=color)
 ax1.set_ylim([0, 1.])
 
 ax2 = ax1.twinx()
-ax2.bar(x=x2, height=np.mean(height_upper_diff), yerr=np.std(height_upper_diff), capsize=5, color='C0', alpha=0.9, width=bar_width)
+ax2.bar(x=x3, height=np.mean(height_upper_diff), yerr=np.std(height_upper_diff), capsize=5, color='C0', alpha=0.9, width=bar_width)
+ax2.bar(x=x4, height=np.mean(height_lower_diff), yerr=np.std(height_lower_diff), capsize=5, color='C0', alpha=0.9, width=bar_width)
 ax2.set_ylabel('Diff (pixel over 1504 pixel)', color=color)
 ax2.tick_params(axis='y', labelcolor=color)
 ax2.set_ylim([0, 10.])
 
-ax2.bar(x=x3, height=np.mean(height_lower_diff), yerr=np.std(height_lower_diff), capsize=5, color='C0', alpha=0.9, width=bar_width)
-
-plt.xticks([x1, x2, x3], ['IoU', 'Upper level difference', 'Lower level difference'])
+plt.xticks([x1, x2, x3, x4], ['Recall', 'IoU', 'Upper level difference', 'Lower level difference'])
 plt.title('Evaluation of yolo-seg on position accuracy', fontsize=10, pad=10)
 
 ax1.grid(axis='y', linestyle='--', alpha=0.7)
