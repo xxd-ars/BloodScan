@@ -4,9 +4,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 def crop_yolo_segment_labels(
-    image_path: str,
-    label_path: str,
-    output_image_path: str,
+    image_path,
+    label_path,
+    output_image_path,
     output_label_path: str,
     crop_left: int,
     crop_top: int,
@@ -18,7 +18,17 @@ def crop_yolo_segment_labels(
     如果需要更复杂的裁剪逻辑（如多边形部分越界处理），可在此函数内扩展。
     """
     # ---- 1. 打开原图并获取宽高 ----
-    img = Image.open(image_path)
+    if isinstance(image_path, list):
+        try:
+            img = Image.open(image_path[0])
+            output_image_path = output_image_path[0]
+        except:
+            img = Image.open(image_path[1])
+            output_image_path = output_image_path[1]
+
+    elif isinstance(image_path, str):
+        img = Image.open(image_path)
+
     orig_w, orig_h = img.size
     
     # ---- 2. 进行图像裁剪并保存 ----
@@ -55,9 +65,9 @@ def crop_yolo_segment_labels(
     plt.show()
 
 def main():
-    class_name = "class2"
+    class_name = "class1"
     file_dir_in  = f'./data/rawdata/{class_name}'
-    file_dir_out = f'./data/rawdata_cropped/{class_name}'
+    file_dir_out = f'./data/rawdata_cropped_white/{class_name}'
 
     os.makedirs(file_dir_out, exist_ok=True)
     # os.makedirs(output_label_dir, exist_ok=True)
@@ -75,10 +85,19 @@ def main():
         with open(os.path.join(file_dir_in, json_name), 'r') as f:
             data = json.load(f)
         if class_name == 'class1':
-            image_name = data["imagePath"]
+            whit_image_name = [data["imagePath"].replace("T5", "T3").rsplit("_", 1)[0] + f"_{int(data["imagePath"].rsplit('_', 1)[1].split('.')[0]) - 2}.bmp",
+                               data["imagePath"]]
+            blue_image_name = data["imagePath"]
         elif class_name == 'class2':
-            image_name = data["imagePath"].replace("T3", "T5").rsplit("_", 1)[0] + f"_{int(data["imagePath"].rsplit('_', 1)[1].split('.')[0]) + 2}.bmp"
-        image_path = os.path.join(file_dir_in, image_name)
+            whit_image_name = data["imagePath"]
+            blue_image_name = data["imagePath"].replace("T3", "T5").rsplit("_", 1)[0] + f"_{int(data["imagePath"].rsplit('_', 1)[1].split('.')[0]) + 2}.bmp"
+        
+        image_name = whit_image_name
+
+        if isinstance(image_name, list):
+            image_path = [os.path.join(file_dir_in, image_name[0]), os.path.join(file_dir_in, image_name[1])]
+        elif isinstance(image_name, str):
+            image_path = os.path.join(file_dir_in, image_name)
         json_path  = os.path.join(file_dir_in, json_name)
         
         # img = Image.open(image_path)
@@ -86,9 +105,13 @@ def main():
         # plt.show()
         # break
         # 输出的图像、标签路径
-        output_image_path = os.path.join(file_dir_out, image_name)
-        output_label_path = os.path.join(file_dir_out, json_name)
-        
+        if isinstance(image_name, list):
+            output_image_path = [os.path.join(file_dir_out, image_name[0]), os.path.join(file_dir_out, image_name[1])]
+            output_label_path = os.path.join(file_dir_out, json_name)
+        elif isinstance(image_name, str):
+            output_image_path = os.path.join(file_dir_out, image_name)
+            output_label_path = os.path.join(file_dir_out, json_name)
+            
         # 调用裁剪处理函数
         crop_yolo_segment_labels(
             image_path, json_path,
