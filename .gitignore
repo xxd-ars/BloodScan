@@ -7,3 +7,6 @@
 *.txt
 /data/rawdata
 /data/data_first
+/data/mac
+/data/rawdata_cropped
+/data/rawdata_cropped_white
