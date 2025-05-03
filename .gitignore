@@ -5,8 +5,8 @@
 *.bmp
 *.png
 *.txt
-/data
-/yolo_seg/datasets
-/yolo_seg/runs
-/yolo_seg/weights
-/logs
+/data/rawdata
+/data/data_first
+/data/mac
+/data/rawdata_cropped
+/data/rawdata_cropped_white
