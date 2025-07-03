@@ -5,6 +5,7 @@
 *.bmp
 *.png
 *.txt
+*.pptx
 /data
 /datasets
 /outputs
