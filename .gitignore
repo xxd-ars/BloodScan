@@ -6,6 +6,12 @@
 *.png
 *.txt
 /data
+/datasets
+/outputs
+/docs
+/cv
+/MICFormer
+/weights
 /yolo_seg/datasets
 /yolo_seg/runs
 /yolo_seg/weights
