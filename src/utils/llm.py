@@ -10,7 +10,8 @@ logger = setup_logger(__name__)
 config = configparser.ConfigParser()
 config.read("./src/config/config.ini", encoding="utf-8")
 
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "your-api-key-here")
+# OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "your-api-key-here")
+OPENAI_API_KEY = "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"
 
 pr_price_dict = {
     "gpt-4o-2024-11-20": 2.5,
