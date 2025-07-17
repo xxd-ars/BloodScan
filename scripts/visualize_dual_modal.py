@@ -13,10 +13,10 @@ from PIL import Image
 from pathlib import Path
 
 # 设置中文字体
-plt.rcParams['font.sans-serif'] = ['SimHei', 'Microsoft YaHei', 'DejaVu Sans']
+plt.rcParams['font.sans-serif'] = ['PingFang HK', 'PingFang SC', 'Hiragino Sans GB', 'STHeiti', 'SimSong', 'SimHei', 'Microsoft YaHei', 'DejaVu Sans']
 plt.rcParams['axes.unicode_minus'] = False
 
-target_dataset = "test_augmented"
+target_dataset = "test"
 
 def load_image(image_path):
     """加载图像"""
@@ -304,7 +304,7 @@ def main():
     print("- 红色: 目标物质0, 绿色: 目标物质1, 蓝色: 目标物质2")
     print("- 支持所有数据增强策略的可视化")
     print("=" * 50)
-    2022-03-28_140655_23_T5_2419_bmp.rf.f661f4e144a581c91f644226b96e93f0_rot_neg5_exp_low.txt
+    # 2022-03-28_140655_23_T5_2419_bmp.rf.f661f4e144a581c91f644226b96e93f0_rot_neg5_exp_low.txt
     if not dataset_root.exists():
         print(f"错误: 数据集目录不存在 {dataset_root}")
         return

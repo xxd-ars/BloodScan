@@ -27,9 +27,10 @@ pt_path = project_dir + f"/runs/segment/{model_name}/weights/best.pt"
 fusion_dict = {
     'concat_compress': './dual_yolo/models/yolo11x-dseg-concat-compress.yaml',
     'weighted_fusion': './dual_yolo/models/yolo11x-dseg-weighted-fusion.yaml',
-    'cross_attn': './dual_yolo/models/yolo11x-dseg-crossattn.yaml'
+    'cross_attn': './dual_yolo/models/yolo11x-dseg-crossattn.yaml',
+    'id': './dual_yolo/models/yolo11x-dseg-id.yaml'
 }
-model_yaml = fusion_dict['concat_compress']
+model_yaml = fusion_dict['id']
 model_pt = './dual_yolo/weights/dual_yolo11x.pt'
 
 model_dual = YOLO(model_yaml).load(model_pt)

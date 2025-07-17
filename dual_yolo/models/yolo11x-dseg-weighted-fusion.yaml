@@ -46,7 +46,7 @@ backbone_w:
 
 # YOLO11 dual modal head with WeightedFusion
 head:  
-  # 方案2：WeightedFusion融合 - 空间和内容感知的加权融合，自动保持单模态通道数
+  # 方案3：WeightedFusion融合 - 空间和内容感知的加权融合，自动保持单模态通道数
   - [[4, 15], 1, WeightedFusion, []] # 22 P3融合: [768, 768]->768 (自动)
   - [[6, 17], 1, WeightedFusion, []] # 23 P4融合: [768, 768]->768 (自动)
   - [[10, 21], 1, WeightedFusion, []] # 24 P5融合: [768, 768]->768 (自动)
