@@ -23,8 +23,13 @@
 *.bmp
 *.png
 *.txt
-/data
+
 /yolo_seg/datasets
 /yolo_seg/runs
 /yolo_seg/weights
 /logs
+/data/data_1
+/docs
+/runs
+
+/yolo_seg
