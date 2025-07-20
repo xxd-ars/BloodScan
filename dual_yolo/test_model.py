@@ -37,8 +37,8 @@ model_dual = YOLO(model_yaml).load(model_pt)
 model_dual.info(verbose=True)
 
 # 加载蓝光和白光图像
-img_path_b = 'data/rawdata_cropped/class1/2022-03-28_103204_1_T5_2348.jpg'
-img_path_w = 'data/rawdata_cropped/class1/2022-03-28_103204_1_T3_2346.jpg'
+img_path_b = 'datasets/Dual-Modal-1504-500-0/test/images_b/2022-03-28_103204_17_T5_2412.jpg'
+img_path_w = 'datasets/Dual-Modal-1504-500-0/test/images_w/2022-03-28_103204_17_T3_2410.jpg'
 image_b = Image.open(img_path_b).convert('RGB')
 image_w = Image.open(img_path_w).convert('RGB')
 print(f"原图尺寸 (白光): {image_w.size}")
