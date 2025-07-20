@@ -518,10 +518,10 @@ class LoadTensor:
     A class for loading and processing tensor data for object detection tasks.
 
     This class handles the loading and pre-processing of image data from PyTorch tensors, preparing them for
-    further processing in object detection pipelines.
+    further processing in object detection pipelines. Supports both standard 3-channel and dual-modal 6-channel tensors.
 
     Attributes:
-        im0 (torch.Tensor): The input tensor containing the image(s) with shape (B, C, H, W).
+        im0 (torch.Tensor): The input tensor containing the image(s) with shape (B, C, H, W) where C can be 3 or 6.
         bs (int): Batch size, inferred from the shape of `im0`.
         mode (str): Current processing mode, set to 'image'.
         paths (List[str]): List of image paths or auto-generated filenames.
@@ -531,10 +531,17 @@ class LoadTensor:
 
     Examples:
         >>> import torch
+        >>> # Standard 3-channel tensor
         >>> tensor = torch.rand(1, 3, 640, 640)
         >>> loader = LoadTensor(tensor)
         >>> paths, images, info = next(iter(loader))
         >>> print(f"Processed {len(images)} images")
+        
+        >>> # Dual-modal 6-channel tensor (3 channels for each modality)
+        >>> dual_tensor = torch.rand(1, 6, 640, 640)
+        >>> loader = LoadTensor(dual_tensor)
+        >>> paths, images, info = next(iter(loader))
+        >>> print(f"Processed {len(images)} dual-modal images")
     """
 
     def __init__(self, im0) -> None:
@@ -547,16 +554,30 @@ class LoadTensor:
     @staticmethod
     def _single_check(im, stride=32):
         """Validates and formats a single image tensor, ensuring correct shape and normalization."""
-        s = (
-            f"torch.Tensor inputs should be BCHW i.e. shape(1, 3, 640, 640) "
-            f"divisible by stride {stride}. Input shape{tuple(im.shape)} is incompatible."
-        )
+        # 支持3通道和6通道张量（用于双模态模型）
         if len(im.shape) != 4:
             if len(im.shape) != 3:
+                s = (
+                    f"torch.Tensor inputs should be BCHW i.e. shape(1, 3, 640, 640) or (1, 6, 640, 640) "
+                    f"divisible by stride {stride}. Input shape{tuple(im.shape)} is incompatible."
+                )
                 raise ValueError(s)
-            LOGGER.warning(s)
+            LOGGER.warning(f"Input tensor shape {tuple(im.shape)} is 3D, unsqueezing to 4D")
             im = im.unsqueeze(0)
+        
+        # 检查通道数：支持3通道（标准）和6通道（双模态）
+        if im.shape[1] not in [3, 6]:
+            s = (
+                f"torch.Tensor inputs should have 3 or 6 channels, got {im.shape[1]} channels. "
+                f"Input shape{tuple(im.shape)} is incompatible."
+            )
+            raise ValueError(s)
+            
         if im.shape[2] % stride or im.shape[3] % stride:
+            s = (
+                f"torch.Tensor inputs should be BCHW i.e. shape(1, 3, 640, 640) or (1, 6, 640, 640) "
+                f"divisible by stride {stride}. Input shape{tuple(im.shape)} is incompatible."
+            )
             raise ValueError(s)
         if im.max() > 1.0 + torch.finfo(im.dtype).eps:  # torch.float32 eps is 1.2e-07
             LOGGER.warning(
