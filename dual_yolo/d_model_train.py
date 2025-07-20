@@ -30,12 +30,18 @@ model_dual.info(verbose=True)
 print("开始训练双模态YOLO模型...")
 results = model_dual.train(
     data=str(data_config),
-    device="cuda", 
-    # device="0,1,2,3",
+    device="cuda",
     epochs=10,
     imgsz=1504,
-    batch=1,
-    name='dual_modal_train'
+    batch=4,
+    name='dual_modal_train',
+    # 显式设置数据增强参数以避免多GPU训练时的配置问题
+    cutmix=0.0,
+    mixup=0.0,
+    copy_paste=0.0,
+    # 其他可能有问题的参数
+    mosaic=0.0,  # 禁用mosaic增强
+    erasing=0.0  # 禁用随机擦除
 )
 
 print("训练完成！")

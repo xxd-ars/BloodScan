@@ -1,7 +1,6 @@
 
 *.pt
 *.zip
-*.jpg
 *.bmp
 *.png
 *.txt
@@ -19,9 +18,7 @@
 /logs
 *.pt
 *.zip
-*.jpg
 *.bmp
-*.png
 *.txt
 *.pyc
 
