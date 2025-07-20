@@ -139,9 +139,9 @@ class DualModalVisualizer:
             if user_input == 'q':
                 break
 
-# if __name__ == "__main__":
-#     project_root = Path(__file__).parent.parent
-#     config = DatasetConfig(project_root)
+if __name__ == "__main__":
+    from d_dataset_config import DatasetConfig
     
-#     visualizer = DualModalVisualizer(config)
-#     visualizer.run()
+    config = DatasetConfig(version=1, split="test")
+    visualizer = DualModalVisualizer(config, use_augmented=True)
+    visualizer.run()

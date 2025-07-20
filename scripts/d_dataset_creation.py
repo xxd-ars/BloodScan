@@ -16,13 +16,31 @@ class DualModalDatasetCreator:
         self.dest_images_w_dir = config.target_dataset / "images_w"
         
     def extract_filename_prefix(self, jpg_filename):
-        parts = jpg_filename.split('_')
-        return '_'.join(parts[:3]) if len(parts) >= 3 else jpg_filename
+        # Extract the base name before the roboflow suffix
+        # From: 2022-03-28_103204_1_T5_2348_bmp.rf.xxx.jpg
+        # To: 2022-03-28_103204_1_ (include trailing underscore for pattern matching)
+        if '_bmp.rf.' in jpg_filename:
+            base = jpg_filename.split('_bmp.rf.')[0]
+            # Split by underscore and take first 3 parts + underscore
+            parts = base.split('_')
+            if len(parts) >= 3:
+                return '_'.join(parts[:3]) + '_'
+        
+        # Fallback
+        parts = jpg_filename.rsplit('.', 1)[0].split('_')
+        if len(parts) >= 3:
+            return '_'.join(parts[:3]) + '_'
+        return jpg_filename.rsplit('.', 1)[0]
         
     def find_matching_bmp_files(self, prefix, search_dir):
         if not search_dir.exists():
             return []
-        return list(search_dir.glob(f"{prefix}*.bmp"))
+        
+        # Use glob pattern with the prefix ending with underscore
+        # This will match both T5 and T3 variants flexibly
+        # Example: 2022-03-28_103204_1_ matches both T5 and T3 files
+        matching_files = list(search_dir.glob(f"{prefix}*.bmp"))
+        return matching_files
         
     def convert_bmp_to_jpg(self, bmp_path, jpg_path, quality=100):
         with Image.open(bmp_path) as img:
@@ -88,8 +106,8 @@ class DualModalDatasetCreator:
         return b_count + w_count
 
 if __name__ == "__main__":
-    script_dir = Path(__file__).parent
-    project_root = script_dir.parent
+    from d_dataset_config import DatasetConfig
     
-    creator = DualModalDatasetCreator(project_root)
+    config = DatasetConfig(version=1, split="test")
+    creator = DualModalDatasetCreator(config)
     creator.run()

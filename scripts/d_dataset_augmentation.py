@@ -368,15 +368,12 @@ class DataAugmenter:
         print(f"输出目录: {self.augmented_dir}")
 
 if __name__ == "__main__":
-    """主函数"""
-    project_root = Path(__file__).parent.parent
-    dataset_root = project_root / "datasets" / "Dual-Modal-1504-500-0" / "test"
+    from d_dataset_config import DatasetConfig
     
     print("=" * 60)
     print("双模态数据集数据增强工具")
     print("=" * 60)
-    print(f"数据集路径: {dataset_root}")
     
-    # 创建数据增强器
-    augmenter = DataAugmenter(str(dataset_root))
+    config = DatasetConfig(version=1, split="test")
+    augmenter = DataAugmenter(config)
     augmenter.augment_dataset()
