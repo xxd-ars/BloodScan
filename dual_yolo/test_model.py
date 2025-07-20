@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 import cv2
 import sys
 import os
+from pathlib import Path
 # 确保使用本地修改的ultralytics代码
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
@@ -36,9 +37,10 @@ model_pt = './dual_yolo/weights/dual_yolo11x.pt'
 model_dual = YOLO(model_yaml).load(model_pt)
 model_dual.info(verbose=True)
 
+project_root = Path(__file__).parent.parent
 # 加载蓝光和白光图像
-img_path_b = 'datasets/Dual-Modal-1504-500-0/test/images_b/2022-03-28_103204_17_T5_2412.jpg'
-img_path_w = 'datasets/Dual-Modal-1504-500-0/test/images_w/2022-03-28_103204_17_T3_2410.jpg'
+img_path_b = project_root / 'datasets' / 'Dual-Modal-1504-500-1' / 'test' / 'images_b' / '2022-03-28_103204_17_T5_2412_0.jpg'
+img_path_w = project_root / 'datasets' / 'Dual-Modal-1504-500-1' / 'test' / 'images_w' / '2022-03-28_103204_17_T3_2410_0.jpg'
 image_b = Image.open(img_path_b).convert('RGB')
 image_w = Image.open(img_path_w).convert('RGB')
 print(f"原图尺寸 (白光): {image_w.size}")
