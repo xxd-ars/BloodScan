@@ -1490,7 +1490,7 @@ def parse_model(d, ch_b, ch_w, verbose=True):  # model_dict, input_channels(3)
     )
 
     for i, (f, n, m, args) in enumerate(d["backbone_b"] + d["backbone_w"] + d["head"]):  # from, number, module, args
-        print(i, f, n, m, args)
+        # print(i, f, n, m, args)
         m = (
             getattr(torch.nn, m[3:])
             if "nn." in m
@@ -1657,7 +1657,7 @@ def parse_model(d, ch_b, ch_w, verbose=True):  # model_dict, input_channels(3)
                     raise ValueError(f"Fusion module {m} requires exactly 2 input indices, got {f}")
             else:
                 c22 = ch_w[f]
-        print(f, c2, c22)
+        # print(f, c2, c22)
         m_ = torch.nn.Sequential(*(m(*args) for _ in range(n))) if n > 1 else m(*args)  # module
         t = str(m)[8:-2].replace("__main__.", "")  # module type
         m_.np = sum(x.numel() for x in m_.parameters())  # number params

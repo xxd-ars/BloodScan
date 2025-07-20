@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
-import torch
+import torch, os
+from pathlib import Path
 from ultralytics import YOLO
-import os
+project_root = Path(__file__).parent.parent
 
 def load_and_inspect_pretrained():
     """加载预训练权重并检查结构"""
-    pretrained_path = "./yolo_seg/runs/segment/train_blue_rawdata_1504_500_10epoch/weights/best.pt"
+    pretrained_path = project_root / 'yolo_seg' / 'runs' / 'segment' / 'train_blue_rawdata_1504_500_10epoch' / 'weights' / 'best.pt'
     
     if not os.path.exists(pretrained_path):
         print(f"❌ 预训练文件不存在: {pretrained_path}")
@@ -71,7 +72,7 @@ def transfer_weights():
         return
     
     # 2. 创建新架构模型
-    new_model = YOLO('./dual_yolo/yolo11x-dseg.yaml')
+    new_model = YOLO(project_root / 'dual_yolo' / 'models' / 'yolo11x-dseg.yaml')
     new_state_dict = new_model.model.state_dict()
     
     print(f"新模型参数数量: {len(new_state_dict)}")
@@ -113,8 +114,8 @@ def transfer_weights():
     new_model.model.load_state_dict(new_state_dict)
     
     # 6. 保存新的权重文件
-    output_path = './dual_yolo/weights/dual_yolo_transferred.pt'
-    os.makedirs('./dual_yolo/weights', exist_ok=True)
+    output_path = project_root / 'dual_yolo' / 'weights' / 'dual_yolo_transferred.pt'
+    os.makedirs(project_root / 'dual_yolo' / 'weights', exist_ok=True)
     
     # 构建完整的checkpoint
     checkpoint = {
@@ -137,7 +138,7 @@ def verify_transfer():
     print("="*50)
     
     # 加载迁移后的模型
-    model = YOLO('./dual_yolo/yolo11x-dseg.yaml').load('./dual_yolo/weights/dual_yolo_transferred.pt')
+    model = YOLO(project_root / 'dual_yolo' / 'models' / 'yolo11x-dseg.yaml').load(project_root / 'dual_yolo' / 'weights' / 'dual_yolo_transferred.pt')
     
     # 检查第一层参数
     first_params = []

@@ -5,6 +5,7 @@
 
 # Parameters
 nc: 3 # number of classes
+channels: 6 # number of input channels (3 for blue + 3 for white)
 ch_b: 3 # input channels for blue light
 ch_w: 3 # input channels for white light
 scales: # model compound scaling constants, i.e. 'model=yolo11n-seg.yaml' will call yolo11-seg.yaml with scale 'n'
