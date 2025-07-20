@@ -13,9 +13,10 @@ from pathlib import Path
 import shutil
 
 class DataAugmenter:
-    def __init__(self, dataset_root):
-        self.test_dir = dataset_root
-        self.augmented_dir = dataset_root + f'_augmented_{len(self.get_augmentation_strategies())}'
+    def __init__(self, config):
+        self.config = config
+        self.test_dir = str(config.target_dataset)
+        self.augmented_dir = config.augmented_dataset
         
         # 创建增强数据输出目录
         self.create_output_dirs()
@@ -188,8 +189,6 @@ class DataAugmenter:
             if augmented_white is None:
                 print(f"    错误: 白光图像旋转失败!")
                 return False
-                
-            print(f"    ✓ 蓝光和白光图像旋转完成")
             
             # 对所有标注点应用相同的旋转变换
             augmented_annotations = []
@@ -272,62 +271,7 @@ class DataAugmenter:
     
     def get_augmentation_strategies(self):
         """定义数据增强策略"""
-        strategies = {
-            # 原图（复制）
-            '0': {},
-            # 二元组合 1-4
-            '1': {'rotation': 5,    'blur': 1.5},
-            '2': {'rotation': -5,   'blur': 1.5},
-            '3': {'rotation': 5,    'exposure': 0.9},
-            '4': {'rotation': -5,   'exposure': 1.1},
-            # 三元组合 5-8
-            '5': {'rotation': 10,   'brightness': 1.15, 'blur': 1.2},
-            '6': {'rotation': -10,  'brightness': 0.85, 'blur': 1.2},
-            '7': {'rotation': 5,    'exposure': 0.9,    'blur': 1.2},
-            '8': {'rotation': -5,   'exposure': 1.1,    'blur': 1.2},
-            }
-        strategies_old = {
-            # 原图（复制）
-            'original': {},
-            
-            # 单一变换
-            'rot_neg10': {'rotation': -10},
-            'rot_neg5': {'rotation': -5},
-            'rot_pos5': {'rotation': 5},
-            'rot_pos10': {'rotation': 10},
-            
-            'bright_low': {'brightness': 0.85},  # -15%
-            'bright_high': {'brightness': 1.15},  # +15%
-            
-            'exp_low': {'exposure': 0.9},   # -10%
-            'exp_high': {'exposure': 1.1},  # +10%
-            
-            'blur_light': {'blur': 1.2},
-            'blur_medium': {'blur': 1.5},
-            'blur_heavy': {'blur': 2.0},
-            
-            # 二元组合 1-4
-            'rot5_blur_medium': {'rotation': 5, 'blur': 1.5},
-            'rot_neg5_blur_medium': {'rotation': -5, 'blur': 1.5},
-            'rot5_exp_low': {'rotation': 5, 'exposure': 0.9},
-            'rot_neg5_exp_high': {'rotation': -5, 'exposure': 1.1},
-            
-            # 'bright_low_blur': {'brightness': 0.85, 'blur': 1.2},
-            # 'bright_high_blur': {'brightness': 1.15, 'blur': 1.2},
-            # 'exp_low_blur': {'exposure': 0.9, 'blur': 1.2},
-            # 'exp_high_blur': {'exposure': 1.1, 'blur': 1.2},
-            
-            # 三元组合 5-8
-            'rot10_bright_blur': {'rotation': 10, 'brightness': 1.15, 'blur': 1.2},
-            'rot_neg10_bright_blur': {'rotation': -10, 'brightness': 0.85, 'blur': 1.2},
-            'rot5_exp_blur': {'rotation': 5, 'exposure': 0.9, 'blur': 1.2},
-            'rot_neg5_exp_blur': {'rotation': -5, 'exposure': 1.1, 'blur': 1.2},
-            
-            # 强化组合
-            'heavy_aug1': {'rotation': 10, 'brightness': 1.15, 'exposure': 1.1, 'blur': 1.5},
-            'heavy_aug2': {'rotation': -10, 'brightness': 0.85, 'exposure': 0.9, 'blur': 1.5},
-        }
-        return strategies
+        return self.config.strategies if self.config.strategies else {'0': {}}
     
     def get_corresponding_files(self, blue_image_path):
         """获取对应的白光图片和标签文件"""
@@ -426,7 +370,7 @@ class DataAugmenter:
 if __name__ == "__main__":
     """主函数"""
     project_root = Path(__file__).parent.parent
-    dataset_root = project_root / "datasets" / "Dual-Modal-1504-500-0-mac" / "test"
+    dataset_root = project_root / "datasets" / "Dual-Modal-1504-500-0" / "test"
     
     print("=" * 60)
     print("双模态数据集数据增强工具")

@@ -2,23 +2,18 @@
 
 import os
 import glob
+import shutil
 from pathlib import Path
 from PIL import Image
 
 class DualModalDatasetCreator:
-    def __init__(self, 
-                 project_root,
-                 source_jpg_dir,
-                 rawdata_cropped_dir,
-                 rawdata_cropped_white_dir,
-                 dest_images_b_dir,
-                 dest_images_w_dir):
-        self.project_root = Path(project_root)
-        self.source_jpg_dir = self.project_root / source_jpg_dir
-        self.rawdata_cropped_dir = self.project_root / rawdata_cropped_dir
-        self.rawdata_cropped_white_dir = self.project_root / rawdata_cropped_white_dir
-        self.dest_images_b_dir = self.project_root / dest_images_b_dir
-        self.dest_images_w_dir = self.project_root / dest_images_w_dir
+    def __init__(self, config):
+        self.config = config
+        self.source_jpg_dir = config.source_dataset / "images"
+        self.rawdata_cropped_dir = config.rawdata_blue
+        self.rawdata_cropped_white_dir = config.rawdata_white
+        self.dest_images_b_dir = config.target_dataset / "images_b"
+        self.dest_images_w_dir = config.target_dataset / "images_w"
         
     def extract_filename_prefix(self, jpg_filename):
         parts = jpg_filename.split('_')
@@ -48,6 +43,15 @@ class DualModalDatasetCreator:
                 if not new_path.exists():
                     txt_file.rename(new_path)
                     
+    def copy_labels(self):
+        source_labels_dir = self.source_jpg_dir.parent / "labels"
+        dest_labels_dir = self.dest_images_b_dir.parent / "labels"
+        
+        if source_labels_dir.exists():
+            os.makedirs(dest_labels_dir, exist_ok=True)
+            for txt_file in source_labels_dir.glob("*.txt"):
+                shutil.copy2(txt_file, dest_labels_dir / txt_file.name)
+    
     def process_conversions(self):
         os.makedirs(self.dest_images_b_dir, exist_ok=True)
         os.makedirs(self.dest_images_w_dir, exist_ok=True)
@@ -78,6 +82,7 @@ class DualModalDatasetCreator:
         
     def run(self):
         self.rename_label_files()
+        self.copy_labels()
         b_count, w_count, failed = self.process_conversions()
         print(f"Converted: {b_count} blue, {w_count} white files")
         return b_count + w_count
@@ -85,11 +90,6 @@ class DualModalDatasetCreator:
 if __name__ == "__main__":
     script_dir = Path(__file__).parent
     project_root = script_dir.parent
-
-    creator = DualModalDatasetCreator(project_root,
-                                      source_jpg_dir = "datasets/Dual-Modal-1504-500-0-mac/test/images",
-                                      rawdata_cropped_dir = "data/rawdata_cropped/class1",
-                                      rawdata_cropped_white_dir = "data/rawdata_cropped_white/class1",
-                                      dest_images_b_dir = "datasets/Dual-Modal-1504-500-1-mac/test/images_b",
-                                      dest_images_w_dir = "datasets/Dual-Modal-1504-500-1-mac/test/images_w")
+    
+    creator = DualModalDatasetCreator(project_root)
     creator.run()

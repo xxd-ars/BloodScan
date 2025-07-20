@@ -14,11 +14,12 @@ plt.rcParams['font.sans-serif'] = ['PingFang HK', 'PingFang SC', 'Hiragino Sans 
 plt.rcParams['axes.unicode_minus'] = False
 
 class DualModalVisualizer:
-    def __init__(self, target_dataset="datasets/Dual-Modal-1504-500-0-mac/test"):
-        self.target_dataset = target_dataset
-        self.images_b_dir = target_dataset / "images_b"
-        self.images_w_dir = target_dataset / "images_w"
-        self.labels_dir = target_dataset / "labels"
+    def __init__(self, config):
+        self.config = config
+        self.target_dataset = Path(config.target_dataset)
+        self.images_b_dir = self.target_dataset / "images_b"
+        self.images_w_dir = self.target_dataset / "images_w"
+        self.labels_dir = self.target_dataset / "labels"
         self.colors = {0: 'red', 1: 'green', 2: 'blue'}
         
     def load_image(self, image_path):
@@ -138,9 +139,9 @@ class DualModalVisualizer:
             if user_input == 'q':
                 break
 
-if __name__ == "__main__":
-    project_root = Path(__file__).parent.parent
-    dataset_root = Path(project_root / "datasets" / "Dual-Modal-1504-500-0-mac" / "test_augmented_9")
+# if __name__ == "__main__":
+#     project_root = Path(__file__).parent.parent
+#     config = DatasetConfig(project_root)
     
-    visualizer = DualModalVisualizer(target_dataset=dataset_root)
-    visualizer.run()
+#     visualizer = DualModalVisualizer(config)
+#     visualizer.run()
