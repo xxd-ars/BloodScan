@@ -23,6 +23,7 @@
 *.bmp
 *.png
 *.txt
+*.pyc
 
 /yolo_seg/datasets
 /yolo_seg/runs
