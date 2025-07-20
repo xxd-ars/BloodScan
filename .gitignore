@@ -21,6 +21,8 @@
 *.bmp
 *.txt
 *.pyc
+/img
+/tests
 
 /yolo_seg/datasets
 /yolo_seg/runs
