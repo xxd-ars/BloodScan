@@ -90,11 +90,10 @@ def visualize_results(annotated_image, pred_points=None, true_points=None, save_
         plt.imsave(save_path, rgb_image)
 
 
-def evaluate_dual_yolo_model():
+def evaluate_dual_yolo_model(fusion_name = 'crossattn'):
     """主评估函数"""
     # 配置参数
     project_root = Path(__file__).parent.parent
-    fusion_name = 'crossattn'
     model_yaml = project_root / 'dual_yolo' / 'models' / f'yolo11x-dseg-{fusion_name}.yaml'
     model_pt = project_root / 'dual_yolo' / 'runs' / 'segment' / f'dual_modal_train_{fusion_name}' / 'weights' / 'best.pt'
     
@@ -148,11 +147,17 @@ def process_single_image(npy_file, test_images_dir, model, results_dir, metrics)
             dual_tensor = dual_tensor.transpose(2, 0, 1)
         dual_tensor = torch.from_numpy(dual_tensor).unsqueeze(0).float()
         
-        # 获取可视化图像 (修复颜色通道顺序)
-        blue_image = dual_tensor[0, :3, :, :].permute(1, 2, 0).numpy()
-        # 确保颜色通道正确 - 从BGR转换为RGB
-        blue_image = blue_image[:, :, ::-1]  # BGR -> RGB
-        annotated_image = (blue_image * 255).astype(np.uint8)
+        # 获取可视化图像 (使用测试验证的Method 1方法)
+        # 直接从numpy数组提取蓝光通道
+        dual_array = dual_tensor[0].numpy()  # [6, H, W]
+        blue_channels = dual_array[:3, :, :]  # 前3个通道是蓝光
+        blue_image = blue_channels.transpose(1, 2, 0)  # CHW -> HWC
+        
+        # 检查数据范围并适当缩放 (与测试中Method 1相同的逻辑)
+        if blue_image.max() <= 1.0:
+            annotated_image = np.clip(blue_image * 255, 0, 255).astype(np.uint8)
+        else:
+            annotated_image = np.clip(blue_image, 0, 255).astype(np.uint8)
         
         # 查找JSON标注
         json_data = find_json_annotation(npy_file)
@@ -285,4 +290,5 @@ def generate_evaluation_chart(metrics, total_images, save_dir, fusion_name):
 
 
 if __name__ == '__main__':
-    evaluate_dual_yolo_model()
+    fusion_name = 'crossattn' # 'crossattn', 'id', 'concat_compress', 'weighted_fusion'
+    evaluate_dual_yolo_model(fusion_name = fusion_name)
