@@ -13,8 +13,9 @@ fusion_dict = {
     'cross_attn': 'yolo11x-dseg-crossattn.yaml',
     'id': 'yolo11x-dseg-id.yaml'
 }
-model_yaml = project_root / 'dual_yolo' / 'models' / fusion_dict['id']
-model_pt = project_root / 'dual_yolo' / 'weights' / 'dual_yolo11x.pt'
+model_yaml = project_root / 'dual_yolo' / 'models' / fusion_dict['cross_attn']
+model_pt = project_root / 'runs' / 'segment' / 'dual_modal_train10' / 'weights' / 'best.pt'
+# model_pt = project_root / 'dual_yolo' / 'weights' / 'dual_yolo11x.pt'
 
 model_dual = YOLO(model_yaml).load(model_pt)
 model_dual.info(verbose=True)

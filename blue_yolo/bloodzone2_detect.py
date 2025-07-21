@@ -72,7 +72,7 @@ for image_name in os.listdir(ipath):
     ## testing use
     # image_name = '2022-03-28_143344_39_T5_2334_bmp_jpg.rf.03672cb0b717b22356ea1aa5976e7b24.jpg'
     try:
-        json_name = './data/rawdata/class1/' + image_name[:re.search(r'_bmp', image_name).start()] + '.json'
+        json_nae = './data/rawdata/class1/' + image_name[:re.search(r'_bmp', image_name).start()] + '.json'
         with open(json_name, 'r') as f:
             data = json.load(f)
     except:

@@ -10,14 +10,15 @@ project_root = Path(__file__).parent.parent
 
 # 融合策略字典（和 d_model_test.py 相同）
 fusion_dict = {
-    'concat_compress': 'yolo11x-dseg-concat-compress.yaml',
-    'weighted_fusion': 'yolo11x-dseg-weighted-fusion.yaml',
-    'cross_attn': 'yolo11x-dseg-crossattn.yaml',
-    'id': 'yolo11x-dseg-id.yaml'
+    'concat_compress':  'yolo11x-dseg-concat-compress.yaml',
+    'weighted_fusion':  'yolo11x-dseg-weighted-fusion.yaml',
+    'cross_attn':       'yolo11x-dseg-crossattn.yaml',
+    'id':               'yolo11x-dseg-id.yaml'
 }
 
 # 模型配置（和 d_model_test.py 相同）
-model_yaml = project_root / 'dual_yolo' / 'models' / fusion_dict['cross_attn']  # 使用交叉注意力融合
+fusion_name = 'cross_attn'
+model_yaml = project_root / 'dual_yolo' / 'models' / fusion_dict[fusion_name]  # 使用交叉注意力融合
 model_pt = project_root / 'dual_yolo' / 'weights' / 'dual_yolo11x.pt'
 
 # 数据配置（使用6通道拼接数据）
@@ -30,11 +31,12 @@ model_dual.info(verbose=True)
 print("开始训练双模态YOLO模型...")
 results = model_dual.train(
     data=str(data_config),
-    device="cuda:0",
+    device="cuda",
     epochs=10,
     imgsz=1504,
-    batch=4,
-    name='d_modal_train',
+    batch=1,
+    name=f'd_modal_train_{fusion_name}',
+    project=project_root / 'dual_yolo' / 'runs' / 'segment' / f'dual_modal_train_{fusion_name}',
 )
 
 print("训练完成！")
