@@ -257,7 +257,7 @@ def generate_evaluation_chart(metrics, total_images, save_dir, fusion_name):
            width=bar_width, color='C0', alpha=0.9)
     ax1.bar(x_positions[1], np.mean(metrics['iou_list']), 
            yerr=np.std(metrics['iou_list']), width=bar_width, color='C1', alpha=0.9)
-    ax1.set_ylabel('比例')
+    ax1.set_ylabel('Ratio')
     ax1.set_ylim([0, 1])
     
     # 高度差异
@@ -266,10 +266,10 @@ def generate_evaluation_chart(metrics, total_images, save_dir, fusion_name):
            yerr=np.std(metrics['height_upper_diff']), width=bar_width, color='C2', alpha=0.9)
     ax2.bar(x_positions[3], np.mean(metrics['height_lower_diff']), 
            yerr=np.std(metrics['height_lower_diff']), width=bar_width, color='C3', alpha=0.9)
-    ax2.set_ylabel('像素差异')
+    ax2.set_ylabel('Pixel Difference')
     
-    plt.xticks(x_positions, ['检测率', 'IoU', '上表面差异', '下表面差异'])
-    plt.title('双模态YOLO模型评估结果', fontsize=14)
+    plt.xticks(x_positions, ['Detection Rate', 'IoU', 'Upper Diff', 'Lower Diff'])
+    plt.title('Dual-Modal YOLO Evaluation Results', fontsize=14)
     plt.grid(axis='y', linestyle='--', alpha=0.7)
     plt.tight_layout()
     
