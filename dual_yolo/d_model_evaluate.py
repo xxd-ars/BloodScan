@@ -141,23 +141,23 @@ def evaluate_dual_yolo_model(fusion_name = 'crossattn'):
 def process_single_image(npy_file, test_images_dir, model, results_dir, metrics):
     """处理单个图像的评估"""
     try:
-        # 加载数据
-        dual_tensor = np.load(test_images_dir / npy_file)
-        if dual_tensor.shape[-1] == 6:
-            dual_tensor = dual_tensor.transpose(2, 0, 1)
-        dual_tensor = torch.from_numpy(dual_tensor).unsqueeze(0).float()
+        # 加载数据 (完全使用numpy处理，与测试脚本保持一致)
+        dual_array = np.load(test_images_dir / npy_file)
+        if dual_array.shape[-1] == 6:
+            dual_array = dual_array.transpose(2, 0, 1)
         
-        # 获取可视化图像 (使用测试验证的Method 1方法)
-        # 直接从numpy数组提取蓝光通道
-        dual_array = dual_tensor[0].numpy()  # [6, H, W]
+        # 获取可视化图像 (与测试脚本完全相同的Method 1)
         blue_channels = dual_array[:3, :, :]  # 前3个通道是蓝光
         blue_image = blue_channels.transpose(1, 2, 0)  # CHW -> HWC
         
-        # 检查数据范围并适当缩放 (与测试中Method 1相同的逻辑)
+        # 检查数据范围并适当缩放 (与测试脚本完全相同)
         if blue_image.max() <= 1.0:
             annotated_image = np.clip(blue_image * 255, 0, 255).astype(np.uint8)
         else:
             annotated_image = np.clip(blue_image, 0, 255).astype(np.uint8)
+        
+        # 为模型推理准备torch tensor
+        dual_tensor = torch.from_numpy(dual_array).unsqueeze(0).float()
         
         # 查找JSON标注
         json_data = find_json_annotation(npy_file)
