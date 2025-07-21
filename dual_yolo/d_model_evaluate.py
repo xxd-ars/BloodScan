@@ -73,16 +73,21 @@ def extract_annotation_points(json_data):
 
 def visualize_results(annotated_image, pred_points=None, true_points=None, save_path=None):
     """可视化预测结果和真实标注"""
+    # 注意：cv2使用BGR格式，但matplotlib使用RGB格式
     if pred_points is not None:
+        # 绿色轮廓线 (BGR格式: B=0, G=255, R=0)
         cv2.polylines(annotated_image, pred_points.reshape((-1, 1, 2)), 
                      isClosed=True, color=(0, 255, 0), thickness=5)
     
     if true_points is not None:
+        # 红色点位 (BGR格式: B=0, G=0, R=255)
         for point in true_points:
-            cv2.circle(annotated_image, tuple(point), radius=5, color=(255, 0, 0), thickness=-1)
+            cv2.circle(annotated_image, tuple(point), radius=5, color=(0, 0, 255), thickness=-1)
     
     if save_path:
-        plt.imsave(save_path, annotated_image)
+        # 保存时转换为RGB格式
+        rgb_image = cv2.cvtColor(annotated_image, cv2.COLOR_BGR2RGB)
+        plt.imsave(save_path, rgb_image)
 
 
 def evaluate_dual_yolo_model():
@@ -143,8 +148,10 @@ def process_single_image(npy_file, test_images_dir, model, results_dir, metrics)
             dual_tensor = dual_tensor.transpose(2, 0, 1)
         dual_tensor = torch.from_numpy(dual_tensor).unsqueeze(0).float()
         
-        # 获取可视化图像
+        # 获取可视化图像 (修复颜色通道顺序)
         blue_image = dual_tensor[0, :3, :, :].permute(1, 2, 0).numpy()
+        # 确保颜色通道正确 - 从BGR转换为RGB
+        blue_image = blue_image[:, :, ::-1]  # BGR -> RGB
         annotated_image = (blue_image * 255).astype(np.uint8)
         
         # 查找JSON标注
