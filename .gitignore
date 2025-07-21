@@ -15,7 +15,6 @@
 *.bmp
 *.txt
 *.pyc
-*.png
 *.pptx
 
 /img
@@ -24,4 +23,5 @@
 /yolo_seg/datasets
 /yolo_seg/runs
 /yolo_seg/weights
-/runs
+
+.DS_Store
