@@ -127,29 +127,6 @@ def evaluate_dual_yolo_model(fusion_name='crossattn', debug=False):
     
     print(f"评估图像数量: {len(npy_files)}")
     
-    if debug and len(npy_files) > 0:
-        # 测试第一个文件的详细信息
-        first_file = npy_files[0]
-        print(f"🔍 测试第一个文件: {first_file}")
-        
-        # 检查数据
-        dual_tensor = np.load(test_images / first_file)
-        print(f"  数据形状: {dual_tensor.shape}")
-        print(f"  数据类型: {dual_tensor.dtype}")
-        print(f"  数据范围: [{dual_tensor.min():.3f}, {dual_tensor.max():.3f}]")
-        
-        # 检查JSON标注
-        json_data = find_json_annotation(first_file)
-        if json_data:
-            print(f"  ✅ JSON标注文件找到")
-            true_points = extract_annotation_points(json_data)
-            if true_points is not None:
-                print(f"  ✅ 提取到{len(true_points)}个标注点")
-            else:
-                print(f"  ❌ 标注点提取失败")
-        else:
-            print(f"  ❌ JSON标注文件未找到")
-    
     # 评估指标
     metrics = {
         'iou_list': [],
