@@ -91,7 +91,7 @@ def visualize_results(annotated_image, pred_points=None, true_points=None, save_
         plt.imsave(save_path, rgb_image)
 
 
-def evaluate_dual_yolo_model(fusion_name='crossattn'):
+def evaluate_dual_yolo_model(fusion_name='crossattn', debug=False):
     """主评估函数"""
     # 配置参数
     project_root = Path(__file__).parent.parent
@@ -104,15 +104,51 @@ def evaluate_dual_yolo_model(fusion_name='crossattn'):
     eval_results_dir = project_root / 'dual_yolo' / 'evaluation_results' / f'{fusion_name}'
     eval_results_dir.mkdir(exist_ok=True)
     
+    # 检查路径是否存在
+    if debug:
+        print(f"🔍 调试信息：")
+        print(f"  模型配置文件: {model_yaml} ({'✅存在' if model_yaml.exists() else '❌不存在'})")
+        print(f"  模型权重文件: {model_pt} ({'✅存在' if model_pt.exists() else '❌不存在'})")
+        print(f"  测试图像目录: {test_images} ({'✅存在' if test_images.exists() else '❌不存在'})")
+    
     # 加载模型
     print("加载双模态YOLO模型...")
-    model = YOLO(model_yaml).load(model_pt)
+    try:
+        model = YOLO(model_yaml).load(model_pt)
+        if debug:
+            print(f"✅ 模型加载成功")
+    except Exception as e:
+        print(f"❌ 模型加载失败: {e}")
+        return
     
     # 获取测试文件列表（只评估_0后缀的原始图像）
     npy_files = sorted([f for f in os.listdir(test_images) 
                        if f.endswith('_0.npy')])
     
     print(f"评估图像数量: {len(npy_files)}")
+    
+    if debug and len(npy_files) > 0:
+        # 测试第一个文件的详细信息
+        first_file = npy_files[0]
+        print(f"🔍 测试第一个文件: {first_file}")
+        
+        # 检查数据
+        dual_tensor = np.load(test_images / first_file)
+        print(f"  数据形状: {dual_tensor.shape}")
+        print(f"  数据类型: {dual_tensor.dtype}")
+        print(f"  数据范围: [{dual_tensor.min():.3f}, {dual_tensor.max():.3f}]")
+        
+        # 检查JSON标注
+        json_data = find_json_annotation(first_file)
+        if json_data:
+            print(f"  ✅ JSON标注文件找到")
+            true_points = extract_annotation_points(json_data)
+            if true_points is not None:
+                print(f"  ✅ 提取到{len(true_points)}个标注点")
+            else:
+                print(f"  ❌ 标注点提取失败")
+        else:
+            print(f"  ❌ JSON标注文件未找到")
     
     # 评估指标
     metrics = {
@@ -132,7 +168,8 @@ def evaluate_dual_yolo_model(fusion_name='crossattn'):
     
     # 打印和保存结果
     print_evaluation_results(metrics, len(npy_files))
-    generate_evaluation_chart(metrics, len(npy_files), eval_results_dir, fusion_name)
+    if metrics["iou_list"]:  # 只有在有检测结果时才生成图表
+        generate_evaluation_chart(metrics, len(npy_files), eval_results_dir, fusion_name)
     
     print(f"\n评估完成！结果保存在 {eval_results_dir}")
 
@@ -165,7 +202,16 @@ def process_single_image(npy_file, test_images_dir, model, results_dir, metrics)
         
         # 模型推理
         results = model(model_input, imgsz=1504, device="cuda:0", verbose=False)
-        bloodzone_detections = [i for i, cls_id in enumerate(results[0].boxes.cls.cpu().numpy()) if cls_id == 1]
+        
+        # 检查模型输出
+        if hasattr(results[0], 'boxes') and results[0].boxes is not None:
+            if len(results[0].boxes) > 0:
+                all_classes = results[0].boxes.cls.cpu().numpy()
+                bloodzone_detections = [i for i, cls_id in enumerate(all_classes) if cls_id == 1]
+            else:
+                bloodzone_detections = []
+        else:
+            bloodzone_detections = []
         
         base_filename = npy_file.replace('.npy', '')
         
@@ -185,7 +231,8 @@ def process_single_image(npy_file, test_images_dir, model, results_dir, metrics)
             visualize_results(annotated_image, None, true_points, save_path)
             return False
             
-    except Exception:
+    except Exception as e:
+        print(f"处理失败 {npy_file}: {e}")
         return False
 
 
@@ -231,9 +278,18 @@ def print_evaluation_results(metrics, total_images):
     """打印评估结果"""
     print('\n=== 双模态YOLO评估结果 ===')
     print(f'检测率: {(metrics["detected_count"]/total_images)*100:.2f}%')
-    print(f'平均IoU: {np.mean(metrics["iou_list"]):.4f}')
-    print(f'上表面差异: {np.mean(metrics["height_upper_diff"]):.2f} 像素 ({np.mean(metrics["height_upper_diff_percent"])*100:.2f}%)')
-    print(f'下表面差异: {np.mean(metrics["height_lower_diff"]):.2f} 像素 ({np.mean(metrics["height_lower_diff_percent"])*100:.2f}%)')
+    
+    if metrics["iou_list"]:  # 只有在有检测结果时才计算均值
+        print(f'平均IoU: {np.mean(metrics["iou_list"]):.4f}')
+        print(f'上表面差异: {np.mean(metrics["height_upper_diff"]):.2f} 像素 ({np.mean(metrics["height_upper_diff_percent"])*100:.2f}%)')
+        print(f'下表面差异: {np.mean(metrics["height_lower_diff"]):.2f} 像素 ({np.mean(metrics["height_lower_diff_percent"])*100:.2f}%)')
+    else:
+        print('没有成功检测到任何目标，无法计算IoU和高度差异指标')
+        print('建议检查：')
+        print('- 模型文件是否存在且正确')
+        print('- 数据格式是否匹配')
+        print('- JSON标注文件是否找到')
+        print('- 模型输入数据范围和格式')
 
 
 def generate_evaluation_chart(metrics, total_images, save_dir, fusion_name):
@@ -263,4 +319,4 @@ def generate_evaluation_chart(metrics, total_images, save_dir, fusion_name):
 
 if __name__ == '__main__':
     fusion_name = 'crossattn'  # 'crossattn', 'id', 'concat_compress', 'weighted_fusion'
-    evaluate_dual_yolo_model(fusion_name=fusion_name)
+    evaluate_dual_yolo_model(fusion_name=fusion_name, debug=True)
