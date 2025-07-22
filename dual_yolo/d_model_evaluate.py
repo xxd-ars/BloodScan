@@ -75,15 +75,19 @@ def visualize_results(annotated_image, pred_points=None, true_points=None, save_
         annotated_image = annotated_image.astype(np.uint8)
     annotated_image = np.ascontiguousarray(annotated_image)
     
-    # 绘制预测轮廓
-    if pred_points is not None:
-        pred_points = np.array(pred_points, dtype=np.int32).reshape((-1, 1, 2))
-        cv2.polylines(annotated_image, [pred_points], True, (0, 255, 0), 5)
-    
-    # 绘制真实点位
+    # 绘制真实点位（红色圆点）
     if true_points is not None:
         for point in true_points:
             cv2.circle(annotated_image, tuple(map(int, point)), 5, (0, 0, 255), -1)
+
+    # 绘制预测点位（绿色十字）
+    if pred_points is not None:
+        pred_line = np.array(pred_points, dtype=np.int32).reshape((-1, 1, 2))
+        cv2.polylines(annotated_image, [pred_line], True, (255, 255, 255), 1, lineType=cv2.LINE_AA)
+        for point in pred_points:
+            x, y = int(point[0]), int(point[1])
+            cv2.line(annotated_image, (x-2, y), (x+2, y), (0, 255, 0), 2)
+            cv2.line(annotated_image, (x, y-2), (x, y+2), (0, 255, 0), 2)
     
     # 保存图像
     if save_path:
@@ -102,7 +106,7 @@ def evaluate_dual_yolo_model(fusion_name='crossattn', debug=False):
     test_images = dataset_path / 'test' / 'images'
     
     eval_results_dir = project_root / 'dual_yolo' / 'evaluation_results' / f'{fusion_name}'
-    eval_results_dir.mkdir(exist_ok=True)
+    os.makedirs(eval_results_dir, exist_ok=True)
     
     # 检查路径是否存在
     if debug:
@@ -178,7 +182,8 @@ def process_single_image(npy_file, test_images_dir, model, results_dir, metrics)
             return False
         
         # 模型推理
-        results = model(model_input, imgsz=1504, device="cuda:0", verbose=False)
+        device = "cuda:0" if torch.cuda.is_available() else "cpu"
+        results = model(model_input, imgsz=1504, device=device, verbose=False)
         
         # 检查模型输出
         if hasattr(results[0], 'boxes') and results[0].boxes is not None:
