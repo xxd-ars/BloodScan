@@ -73,16 +73,28 @@ def extract_annotation_points(json_data):
 
 def visualize_results(annotated_image, pred_points=None, true_points=None, save_path=None):
     """可视化预测结果和真实标注"""
-    # 注意：cv2使用BGR格式，但matplotlib使用RGB格式
+    # 确保图像是正确的numpy数组格式和数据类型
+    if not isinstance(annotated_image, np.ndarray):
+        annotated_image = np.array(annotated_image)
+    
+    # 确保是uint8类型和连续内存布局
+    if annotated_image.dtype != np.uint8:
+        annotated_image = annotated_image.astype(np.uint8)
+    annotated_image = np.ascontiguousarray(annotated_image)
+    
     if pred_points is not None:
+        # 确保points是正确的数据类型和形状
+        pred_points = np.array(pred_points, dtype=np.int32)
+        pred_points = pred_points.reshape((-1, 1, 2))
         # 绿色轮廓线 (BGR格式: B=0, G=255, R=0)
-        cv2.polylines(annotated_image, pred_points.reshape((-1, 1, 2)), 
+        cv2.polylines(annotated_image, [pred_points], 
                      isClosed=True, color=(0, 255, 0), thickness=5)
     
     if true_points is not None:
         # 红色点位 (BGR格式: B=0, G=0, R=255)
         for point in true_points:
-            cv2.circle(annotated_image, tuple(point), radius=5, color=(0, 0, 255), thickness=-1)
+            point = tuple(map(int, point))  # 确保坐标是整数
+            cv2.circle(annotated_image, point, radius=5, color=(0, 0, 255), thickness=-1)
     
     if save_path:
         # 保存时转换为RGB格式
@@ -158,8 +170,11 @@ def process_single_image(npy_file, test_images_dir, model, results_dir, metrics)
         else:
             annotated_image = np.clip(blue_image, 0, 255).astype(np.uint8)
         
-        # 为模型推理准备torch tensor
-        model_input = torch.from_numpy(dual_tensor).unsqueeze(0).float()
+        # 为模型推理准备torch tensor (确保数据范围在0-1之间)
+        model_tensor = dual_tensor.copy()
+        if model_tensor.max() > 1.0:
+            model_tensor = model_tensor / 255.0  # 归一化到0-1范围
+        model_input = torch.from_numpy(model_tensor).unsqueeze(0).float()
         
         # 查找JSON标注
         json_data = find_json_annotation(npy_file)
