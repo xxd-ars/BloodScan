@@ -1,5 +1,6 @@
 import sys
 from pathlib import Path
+from tqdm import tqdm
 
 script_dir = Path(__file__).parent
 sys.path.insert(0, str(script_dir))
@@ -11,48 +12,43 @@ from d_dataset_visulize import DualModalVisualizer
 from d_dataset_postprocess import cleanup_and_rename_dataset, save_dataset_metadata
 
 def process_split(split_name, version):
-    print(f"\n{'='*50}")
-    print(f"Processing {split_name} split")
-    print(f"{'='*50}")
-    
     config = DatasetConfig(version=version, split=split_name)
     
     creator = DualModalDatasetCreator(config)
-    creator.run()
-
+    created_count = creator.run()
+    
     augmenter = DataAugmenter(config)
     augmenter.augment_dataset()
+    
+    return created_count
 
 if __name__ == "__main__":
     version = 1
     splits = ["train", "valid", "test"]
     
-    print("=" * 80)
-    print("DUAL-MODAL DATASET PROCESSING PIPELINE")
-    print("=" * 80)
+    print("🔄 DUAL-MODAL DATASET PROCESSING PIPELINE")
+    print("=" * 50)
     
-    # Process all splits
-    for split in splits:
-        process_split(split, version)
+    # Process all splits with progress bar
+    total_created = 0
+    for split in tqdm(splits, desc="Processing splits"):
+        created_count = process_split(split, version)
+        total_created += created_count
+        tqdm.write(f"✅ {split}: {created_count} files processed")
     
-    print(f"\n{'='*80}")
-    print("POST-PROCESSING: CLEANUP AND METADATA GENERATION")
-    print("=" * 80)
-    
-    # Cleanup and rename directories
+    # Post-processing
+    print("\n🔧 POST-PROCESSING...")
     config = DatasetConfig(version=version)
-    cleanup_and_rename_dataset(config.project_root, version)
     
-    # Generate dataset metadata
-    save_dataset_metadata(config)
+    with tqdm(total=2, desc="Finalizing") as pbar:
+        cleanup_and_rename_dataset(config.project_root, version)
+        pbar.update(1)
+        pbar.set_description("Cleaning up")
+        
+        save_dataset_metadata(config)
+        pbar.update(1)
+        pbar.set_description("Saving metadata")
     
-    print(f"\n{'='*80}")
-    print("DATASET PROCESSING COMPLETED SUCCESSFULLY!")
-    print(f"Final dataset location: datasets/Dual-Modal-1504-500-{version}/")
-    print("=" * 80)
-    
-    # # Optional: Visualize test split
-    # print("\nStarting visualization of test split...")
-    # test_config = DatasetConfig(version=version, split="test")
-    # visualizer = DualModalVisualizer(test_config)
-    # visualizer.run()
+    print(f"\n✅ PROCESSING COMPLETED!")
+    print(f"📊 Total files processed: {total_created}")
+    print(f"📁 Dataset location: datasets/Dual-Modal-1504-500-{version}/")

@@ -5,6 +5,7 @@ import glob
 import shutil
 from pathlib import Path
 from PIL import Image
+from tqdm import tqdm
 
 class DualModalDatasetCreator:
     def __init__(self, config):
@@ -56,22 +57,13 @@ class DualModalDatasetCreator:
             return
             
         os.makedirs(dest_labels_dir, exist_ok=True)
+        txt_files = list(source_labels_dir.glob("*.txt"))
         
-        for txt_file in source_labels_dir.glob("*.txt"):
-            # Determine the target filename (with renaming if needed)
-            original_name = txt_file.name
+        for txt_file in tqdm(txt_files, desc="Copying labels", leave=False):
             parts = txt_file.stem.split('_')
-            
-            if len(parts) > 5:
-                # Rename: keep only first 5 parts + extension
-                new_filename = '_'.join(parts[:5]) + '.txt'
-            else:
-                # Keep original name if already in correct format
-                new_filename = original_name
-            
+            new_filename = '_'.join(parts[:5]) + '.txt' if len(parts) > 5 else txt_file.name
             dest_path = dest_labels_dir / new_filename
             
-            # Copy to target directory with new name (if target doesn't exist)
             if not dest_path.exists():
                 shutil.copy2(txt_file, dest_path)
     
@@ -83,9 +75,9 @@ class DualModalDatasetCreator:
         if not jpg_files:
             return 0, 0, 0
             
-        converted_b = converted_w = failed = 0
+        converted_b = converted_w = 0
         
-        for jpg_file in jpg_files:
+        for jpg_file in tqdm(jpg_files, desc="Converting images"):
             prefix = self.extract_filename_prefix(jpg_file.name)
             
             blue_files = self.find_matching_bmp_files(prefix, self.rawdata_cropped_dir)
@@ -101,12 +93,11 @@ class DualModalDatasetCreator:
                 self.convert_bmp_to_jpg(bmp_file, dest_path)
                 converted_w += 1
                 
-        return converted_b, converted_w, failed
+        return converted_b, converted_w, 0
         
     def run(self):
         self.copy_and_rename_labels()
-        b_count, w_count, failed = self.process_conversions()
-        print(f"Converted: {b_count} blue, {w_count} white files")
+        b_count, w_count, _ = self.process_conversions()
         return b_count + w_count
 
 if __name__ == "__main__":
