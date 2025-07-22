@@ -95,12 +95,16 @@ def visualize_results(annotated_image, pred_points=None, true_points=None, save_
         plt.imsave(save_path, rgb_image)
 
 
-def evaluate_dual_yolo_model(fusion_name='crossattn', debug=False):
+def evaluate_dual_yolo_model(fusion_name, debug=False):
     """主评估函数"""
     # 配置参数
     project_root = Path(__file__).parent.parent
-    model_yaml = project_root / 'dual_yolo' / 'models' / f'yolo11x-dseg-{fusion_name}.yaml'
-    model_pt = project_root / 'dual_yolo' / 'runs' / 'segment' / f'dual_modal_train_{fusion_name}' / 'weights' / 'best.pt'
+    if fusion_name:
+        model_yaml = project_root / 'dual_yolo' / 'models' / f'yolo11x-dseg-{fusion_name}.yaml'
+        model_pt = project_root / 'dual_yolo' / 'runs' / 'segment' / f'dual_modal_train_{fusion_name}' / 'weights' / 'best.pt'
+    else:
+        model_yaml = project_root / 'dual_yolo' / 'models' / f'yolo11x-seg.yaml'
+        model_pt = project_root / 'dual_yolo' / 'weights' / 'yolo11x-seg-blue.pt'
     
     dataset_path = project_root / 'datasets' / 'Dual-Modal-1504-500-1-6ch'
     test_images = dataset_path / 'test' / 'images'

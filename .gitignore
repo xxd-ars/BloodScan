@@ -9,6 +9,7 @@
 /blue_yolo/datasets
 /blue_yolo/runs
 /blue_yolo/weights
+/dual_yolo/evaluation_results_aug
 
 *.pt
 *.zip
@@ -23,5 +24,4 @@
 /yolo_seg/datasets
 /yolo_seg/runs
 /yolo_seg/weights
-
 .DS_Store
