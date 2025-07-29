@@ -6,7 +6,7 @@ project_root = Path(__file__).parent.parent
 
 def load_and_inspect_pretrained():
     """加载预训练权重并检查结构"""
-    pretrained_path = project_root / 'yolo_seg' / 'runs' / 'segment' / 'train_blue_rawdata_1504_500_10epoch' / 'weights' / 'best.pt'
+    pretrained_path = project_root / 'blue_yolo' / 'runs' / 'segment' / 'train_blue_rawdata_1504_500_10epoch' / 'weights' / 'best.pt'
     
     if not os.path.exists(pretrained_path):
         print(f"❌ 预训练文件不存在: {pretrained_path}")

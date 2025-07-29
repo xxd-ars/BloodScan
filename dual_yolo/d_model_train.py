@@ -1,5 +1,7 @@
 import torch, sys, os
 from pathlib import Path
+import os
+os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "expandable_segments:True"
 
 # 确保使用本地修改的ultralytics代码
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
@@ -10,14 +12,14 @@ project_root = Path(__file__).parent.parent
 
 # 融合策略字典（和 d_model_test.py 相同）
 fusion_dict = {
-    'concat_compress':  'yolo11x-dseg-concat-compress.yaml',
-    'weighted_fusion':  'yolo11x-dseg-weighted-fusion.yaml',
-    'cross_attn':       'yolo11x-dseg-crossattn.yaml',
+    'concat-compress':  'yolo11x-dseg-concat-compress.yaml',
+    'weighted-fusion':  'yolo11x-dseg-weighted-fusion.yaml',
+    'crossattn':        'yolo11x-dseg-crossattn.yaml',
     'id':               'yolo11x-dseg-id.yaml'
 }
 
 # 模型配置（和 d_model_test.py 相同）
-fusion_name = 'cross_attn'
+fusion_name = 'crossattn'
 model_yaml = project_root / 'dual_yolo' / 'models' / fusion_dict[fusion_name]  # 使用交叉注意力融合
 model_pt = project_root / 'dual_yolo' / 'weights' / 'dual_yolo11x.pt'
 
@@ -31,12 +33,14 @@ model_dual.info(verbose=True)
 print("开始训练双模态YOLO模型...")
 results = model_dual.train(
     data=str(data_config),
-    device="cuda",
+    device=[0, 1, 2, 3],
     epochs=10,
     imgsz=1504,
-    batch=1,
-    name=f'd_modal_train_{fusion_name}',
-    project=project_root / 'dual_yolo' / 'runs' / 'segment' / f'dual_modal_train_{fusion_name}',
+    workers=4,
+    amp=False,
+    batch=4,
+    name=f'dual_modal_train_{fusion_name}',
+    project=project_root / 'dual_yolo' / 'runs' / 'segment',
 )
 
 print("训练完成！")
