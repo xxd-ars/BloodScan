@@ -101,6 +101,8 @@ def evaluate_dual_yolo_model(fusion_name, debug=False):
     project_root = Path(__file__).parent.parent
     if fusion_name:
         model_yaml = project_root / 'dual_yolo' / 'models' / f'yolo11x-dseg-{fusion_name}.yaml'
+        if fusion_name == 'crossattn-30epoch':
+            model_yaml = project_root / 'dual_yolo' / 'models' / f'yolo11x-dseg-crossattn.yaml'
         model_pt = project_root / 'dual_yolo' / 'runs' / 'segment' / f'dual_modal_train_{fusion_name}' / 'weights' / 'best.pt'
     else:
         model_yaml = project_root / 'dual_yolo' / 'models' / f'yolo11x-seg.yaml'
