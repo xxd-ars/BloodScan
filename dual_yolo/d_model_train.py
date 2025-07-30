@@ -19,7 +19,7 @@ fusion_dict = {
 }
 
 # 模型配置（和 d_model_test.py 相同）
-fusion_name = 'crossattn'
+fusion_name = 'weighted-fusion'
 model_yaml = project_root / 'dual_yolo' / 'models' / fusion_dict[fusion_name]  # 使用交叉注意力融合
 model_pt = project_root / 'dual_yolo' / 'weights' / 'dual_yolo11x.pt'
 
