@@ -16,21 +16,15 @@ from tqdm import tqdm
 # 添加项目根目录到路径
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 from ultralytics import YOLO
+import json
 
+# 导入数据增强策略配置
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'dual_dataset'))
+from d_dataset_config import DatasetConfig
 
-# 增强参数映射表
-AUGMENTATION_STRATEGIES = {
-    '0': {},  # 原始图像
-    '1': {'rotation': 5, 'blur': 1.5},
-    '2': {'rotation': -5, 'blur': 1.5},
-    '3': {'rotation': 5, 'exposure': 0.9},
-    '4': {'rotation': -5, 'exposure': 1.1},
-    '5': {'rotation': 10, 'brightness': 1.15, 'blur': 1.2},
-    '6': {'rotation': -10, 'brightness': 0.85, 'blur': 1.2},
-    '7': {'rotation': 5, 'exposure': 0.9, 'blur': 1.2},
-    '8': {'rotation': -5, 'exposure': 1.1, 'blur': 1.2},
-}
-
+# 获取增强参数映射表
+_config = DatasetConfig()
+AUGMENTATION_STRATEGIES = _config.strategies
 
 def get_augmentation_params(filename):
     """根据文件名获取增强参数"""
@@ -232,6 +226,10 @@ def evaluate_dual_yolo_model(fusion_name, debug=False, include_augmented=True):
     
     # 打印和保存结果
     print_evaluation_results(metrics, include_augmented)
+    
+    # 保存metrics数据到JSON文件
+    save_metrics_to_file(metrics, eval_results_dir, fusion_name)
+    
     if any(metrics[key]["iou_list"] for key in metrics):  # 只有在有检测结果时才生成图表
         generate_evaluation_chart(metrics, eval_results_dir, fusion_name)
     
@@ -423,6 +421,73 @@ def print_evaluation_results(metrics, include_augmented):
         print('- 模型输入数据范围和格式')
 
 
+def save_metrics_to_file(metrics, save_dir, fusion_name):
+    """保存metrics数据到JSON文件"""
+    # 计算统计数据
+    metrics_summary = {}
+    
+    for group_key in ['original', 'augmented']:
+        group_metrics = metrics[group_key]
+        if group_metrics['total_count'] > 0:
+            detection_rate = group_metrics['detected_count'] / group_metrics['total_count']
+            
+            if group_metrics['iou_list']:
+                iou_mean = np.mean(group_metrics['iou_list'])
+                iou_std = np.std(group_metrics['iou_list'])
+                upper_diff_mean = np.mean(group_metrics['height_upper_diff'])
+                upper_diff_std = np.std(group_metrics['height_upper_diff'])
+                lower_diff_mean = np.mean(group_metrics['height_lower_diff'])
+                lower_diff_std = np.std(group_metrics['height_lower_diff'])
+                upper_diff_percent_mean = np.mean(group_metrics['height_upper_diff_percent'])
+                lower_diff_percent_mean = np.mean(group_metrics['height_lower_diff_percent'])
+            else:
+                iou_mean = iou_std = 0
+                upper_diff_mean = upper_diff_std = 0
+                lower_diff_mean = lower_diff_std = 0
+                upper_diff_percent_mean = lower_diff_percent_mean = 0
+            
+            metrics_summary[group_key] = {
+                'total_count': group_metrics['total_count'],
+                'detected_count': group_metrics['detected_count'],
+                'detection_rate': detection_rate,
+                'iou_mean': float(iou_mean),
+                'iou_std': float(iou_std),
+                'upper_diff_mean': float(upper_diff_mean),
+                'upper_diff_std': float(upper_diff_std),
+                'lower_diff_mean': float(lower_diff_mean), 
+                'lower_diff_std': float(lower_diff_std),
+                'upper_diff_percent_mean': float(upper_diff_percent_mean),
+                'lower_diff_percent_mean': float(lower_diff_percent_mean),
+                # 保存原始数据列表
+                'raw_data': {
+                    'iou_list': [float(x) for x in group_metrics['iou_list']],
+                    'height_upper_diff': [float(x) for x in group_metrics['height_upper_diff']],
+                    'height_lower_diff': [float(x) for x in group_metrics['height_lower_diff']],
+                    'height_upper_diff_percent': [float(x) for x in group_metrics['height_upper_diff_percent']],
+                    'height_lower_diff_percent': [float(x) for x in group_metrics['height_lower_diff_percent']]
+                }
+            }
+        else:
+            metrics_summary[group_key] = {
+                'total_count': 0,
+                'detected_count': 0,
+                'detection_rate': 0,
+                'iou_mean': 0, 'iou_std': 0,
+                'upper_diff_mean': 0, 'upper_diff_std': 0,
+                'lower_diff_mean': 0, 'lower_diff_std': 0,
+                'upper_diff_percent_mean': 0, 'lower_diff_percent_mean': 0,
+                'raw_data': {'iou_list': [], 'height_upper_diff': [], 'height_lower_diff': [], 
+                           'height_upper_diff_percent': [], 'height_lower_diff_percent': []}
+            }
+    
+    # 保存到JSON文件
+    metrics_file = save_dir / f'metrics_{fusion_name}.json'
+    with open(metrics_file, 'w') as f:
+        json.dump(metrics_summary, f, indent=2)
+    
+    print(f"Metrics数据已保存到: {metrics_file}")
+
+
 def generate_evaluation_chart(metrics, save_dir, fusion_name):
     """生成合并的评估对比图表"""
     fig, ax1 = plt.subplots(figsize=(12, 8))
@@ -431,9 +496,11 @@ def generate_evaluation_chart(metrics, save_dir, fusion_name):
     original_metrics = metrics['original']
     augmented_metrics = metrics['augmented']
     
-    # 提取数据
+    # 提取数据 (包括标准差)
     original_data = []
     augmented_data = []
+    original_stds = []
+    augmented_stds = []
     
     for key in ['original', 'augmented']:
         group_metrics = metrics[key]
@@ -441,22 +508,27 @@ def generate_evaluation_chart(metrics, save_dir, fusion_name):
             detection_rate = group_metrics['detected_count'] / group_metrics['total_count']
             if group_metrics['iou_list']:
                 iou_mean = np.mean(group_metrics['iou_list'])
+                iou_std = np.std(group_metrics['iou_list'])
                 upper_diff = np.mean(group_metrics['height_upper_diff'])
+                upper_diff_std = np.std(group_metrics['height_upper_diff'])
                 lower_diff = np.mean(group_metrics['height_lower_diff'])
+                lower_diff_std = np.std(group_metrics['height_lower_diff'])
             else:
-                iou_mean = 0
-                upper_diff = 0
-                lower_diff = 0
+                iou_mean = iou_std = 0
+                upper_diff = upper_diff_std = 0
+                lower_diff = lower_diff_std = 0
         else:
             detection_rate = 0
-            iou_mean = 0
-            upper_diff = 0
-            lower_diff = 0
+            iou_mean = iou_std = 0
+            upper_diff = upper_diff_std = 0
+            lower_diff = lower_diff_std = 0
         
         if key == 'original':
             original_data = [detection_rate, iou_mean, upper_diff, lower_diff]
+            original_stds = [0, iou_std, upper_diff_std, lower_diff_std]  # 检测率无标准差
         else:
             augmented_data = [detection_rate, iou_mean, upper_diff, lower_diff]
+            augmented_stds = [0, iou_std, upper_diff_std, lower_diff_std]
     
     # 设置x轴位置和宽度
     metrics_labels = ['Detection Rate', 'IoU', 'Upper Surface', 'Lower Surface']
@@ -476,26 +548,33 @@ def generate_evaluation_chart(metrics, save_dir, fusion_name):
     # 创建右侧y轴 (像素差异指标)
     ax2 = ax1.twinx()
     ax2.set_ylabel('Pixel Difference', fontsize=12)
+    ax2.set_ylim([0, 6])  # 设置右侧y轴范围为0-6
     ax2.tick_params(axis='y', labelcolor='black')
     
-    # 绘制所有4个指标的柱状图
+    # 绘制所有4个指标的柱状图 (包含标准差)
     for i, (metric_name, color) in enumerate(zip(metrics_labels, colors)):
         x_position = x_pos[i]
         
         if i < 2:  # Detection Rate 和 IoU 使用左侧y轴
             # Original数据：不透明
             ax1.bar(x_position - width/2, original_data[i], width, 
-                   color=color, alpha=0.9, label='Original' if i == 0 else "")
+                   yerr=original_stds[i] if original_stds[i] > 0 else None,
+                   color=color, alpha=0.9, label='Original' if i == 0 else "",
+                   capsize=3)
             # Augmented数据：透明
             ax1.bar(x_position + width/2, augmented_data[i], width, 
-                   color=color, alpha=0.6, label='Augmented' if i == 0 else "")
+                   yerr=augmented_stds[i] if augmented_stds[i] > 0 else None,
+                   color=color, alpha=0.6, label='Augmented' if i == 0 else "",
+                   capsize=3)
         else:  # Upper Surface 和 Lower Surface 使用右侧y轴
             # Original数据：不透明
             ax2.bar(x_position - width/2, original_data[i], width, 
-                   color=color, alpha=0.9)
+                   yerr=original_stds[i] if original_stds[i] > 0 else None,
+                   color=color, alpha=0.9, capsize=3)
             # Augmented数据：透明
             ax2.bar(x_position + width/2, augmented_data[i], width, 
-                   color=color, alpha=0.6)
+                   yerr=augmented_stds[i] if augmented_stds[i] > 0 else None,
+                   color=color, alpha=0.6, capsize=3)
     
     # 设置x轴
     ax1.set_xticks(x_pos)
