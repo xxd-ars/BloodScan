@@ -25,3 +25,5 @@
 /yolo_seg/runs
 /yolo_seg/weights
 .DS_Store
+
+/dual_yolo/runs
