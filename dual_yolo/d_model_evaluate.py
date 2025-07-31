@@ -213,7 +213,7 @@ def evaluate_dual_yolo_model(fusion_name, debug=False, include_augmented=True,
         debug: 是否启用调试模式
         include_augmented: 是否包含增强数据
         evaluate_classes: 要评估的类别列表，默认[1]保持向后兼容
-        conf_threshold: YOLO推理置信度阈值，默认0.5
+        conf_threshold: YOLO推理置信度阈值，默认0.5，直接在模型推理时应用过滤
     """
     # 配置参数
     project_root = Path(__file__).parent.parent
@@ -243,8 +243,6 @@ def evaluate_dual_yolo_model(fusion_name, debug=False, include_augmented=True,
         print(f"  模型权重文件: {model_pt} ({'✅存在' if model_pt.exists() else '❌不存在'})")
         print(f"  测试图像目录: {test_images} ({'✅存在' if test_images.exists() else '❌不存在'})")
     
-    # 加载模型
-    print("加载双模态YOLO模型...")
     try:
         model = YOLO(model_yaml).load(model_pt)
         if debug:
@@ -258,12 +256,12 @@ def evaluate_dual_yolo_model(fusion_name, debug=False, include_augmented=True,
         # 包含所有增强数据 _0-8
         npy_files = sorted([f for f in os.listdir(test_images) 
                            if f.endswith('.npy') and f.split('_')[-1].replace('.npy', '') in AUGMENTATION_STRATEGIES])
-        print(f"评估图像数量: {len(npy_files)} (包含增强数据)")
+        # print(f"评估图像数量: {len(npy_files)} (包含增强数据)")
     else:
         # 只评估原始图像 _0
         npy_files = sorted([f for f in os.listdir(test_images) 
                            if f.endswith('_0.npy')])
-        print(f"评估图像数量: {len(npy_files)} (仅原始数据)")
+        # print(f"评估图像数量: {len(npy_files)} (仅原始数据)")
     
     # 评估指标 - 分组统计
     metrics = {
@@ -293,23 +291,25 @@ def evaluate_dual_yolo_model(fusion_name, debug=False, include_augmented=True,
         suffix = npy_file.split('_')[-1].replace('.npy', '')
         is_original = (suffix == '0')
         
-        # original: 仅_0文件
-        if is_original:
-            metrics['original']['total_count'] += 1
-            success = process_single_image(npy_file, test_images, model, eval_results_dir, metrics, 'original', 
-                                         evaluate_classes, conf_threshold)
-            if success:
-                metrics['original']['detected_count'] += 1
-        
-        # augmented: 所有_0-8文件 (包含原始数据)
+        # Process for augmented group (always runs)
         metrics['augmented']['total_count'] += 1
         success_aug = process_single_image(npy_file, test_images, model, eval_results_dir, metrics, 'augmented', 
                                         evaluate_classes, conf_threshold)
         if success_aug:
             metrics['augmented']['detected_count'] += 1
+
+        # Process for original group (only for _0 files)
+        if is_original:
+            metrics['original']['total_count'] += 1
+            # We need to re-process for the 'original' metrics group, even if it's redundant,
+            # to ensure metrics are stored in the correct dictionary key.
+            success_orig = process_single_image(npy_file, test_images, model, eval_results_dir, metrics, 'original', 
+                                         evaluate_classes, conf_threshold)
+            if success_orig:
+                metrics['original']['detected_count'] += 1
     
     # 打印和保存结果
-    print_evaluation_results(metrics, include_augmented)
+    print_evaluation_results(metrics, include_augmented, fusion_name)
     
     # 保存metrics数据到JSON文件
     save_metrics_to_file(metrics, eval_results_dir, fusion_name)
@@ -326,7 +326,7 @@ def process_single_image(npy_file, test_images_dir, model, results_dir, metrics,
     
     Args:
         evaluate_classes: 要评估的类别列表
-        conf_threshold: 置信度阈值
+        conf_threshold: 置信度阈值，直接在模型推理时应用
     """
     try:
         # 加载并预处理数据
@@ -360,69 +360,79 @@ def process_single_image(npy_file, test_images_dir, model, results_dir, metrics,
         # 为可视化准备旋转后的标注点
         rotated_true_points = apply_rotation_to_points(original_true_points, rotation_angle)
         
-        # 模型推理
+        # 模型推理 - 直接在推理时设置置信度阈值
         device = "cuda:0" if torch.cuda.is_available() else "cpu"
-        results = model(model_input, imgsz=1504, device=device, verbose=False)
+        results = model(model_input, imgsz=1504,
+                        device=device, verbose=False, conf=conf_threshold)
         
-        # 检查模型输出并过滤指定类别和置信度
+        # 检查模型输出并按类别分组（置信度已在推理时过滤）
         detected_classes = {}
         if hasattr(results[0], 'boxes') and results[0].boxes is not None:
             if len(results[0].boxes) > 0:
                 all_classes = results[0].boxes.cls.cpu().numpy()
-                all_confs = results[0].boxes.conf.cpu().numpy()
                 
-                # 筛选符合条件的检测结果
-                for i, (cls_id, conf) in enumerate(zip(all_classes, all_confs)):
-                    if int(cls_id) in evaluate_classes and conf >= conf_threshold:
+                # 按类别分组检测结果
+                for i, cls_id in enumerate(all_classes):
+                    if int(cls_id) in evaluate_classes:
                         if int(cls_id) not in detected_classes:
                             detected_classes[int(cls_id)] = []
                         detected_classes[int(cls_id)].append(i)
         
         base_filename = npy_file.replace('.npy', '')
-        any_detection = False
+        # --- 新的精确检测计数逻辑 ---
+        is_successful_detection = True
+        # 检查每个期望的类别是否都只被检测到了一次
+        for class_id_to_check in evaluate_classes:
+            if detected_classes.get(class_id_to_check) is None or len(detected_classes[class_id_to_check]) != 1:
+                is_successful_detection = False
+                break # 只要有一个类别不满足条件，就判定为失败
+
+        # --- 可视化和指标计算逻辑 ---
         all_class_data = {}
         
-        # 收集所有类别的数据
+        # 步骤1: 始终准备可视化数据，无论检测是否成功
+        # 这样我们总能看到模型到底预测了什么
         for class_id in evaluate_classes:
-            # 提取该类别的标注点
             original_true_points_class = extract_annotation_points_multiclass(json_data, class_id)
             if original_true_points_class is None:
                 continue
-                
-            # 为可视化准备旋转后的标注点
+            
             rotated_true_points_class = apply_rotation_to_points(original_true_points_class, rotation_angle)
             
-            # 初始化该类别数据
+            pred_points_for_vis = None
+            if class_id in detected_classes:
+                # 即使检测失败（比如检测到2个），我们依然提取点位用于可视化
+                detections = detected_classes[class_id]
+                pred_points_for_vis = extract_prediction_points(results[0], detections)
+
             all_class_data[class_id] = {
                 'true_points': rotated_true_points_class,
-                'pred_points': None
+                'pred_points': pred_points_for_vis
             }
-            
-            if class_id in detected_classes:
-                # 提取预测结果
+
+        # 步骤2: 仅在检测成功时才计算指标
+        if is_successful_detection:
+            for class_id in evaluate_classes:
+                # 我们知道每个类别肯定都在detected_classes里，并且只有一个实例
                 detections = detected_classes[class_id]
                 pred_points = extract_prediction_points(results[0], detections)
                 pred_mask = get_prediction_mask(results[0], detections)
-                
-                # 计算指标：使用反向旋转方法
-                calculate_metrics_multiclass(
-                    original_true_points_class, pred_points, pred_mask, 
-                    rotation_angle, metrics, group_key, class_id
-                )
-                
-                # 存储预测点用于可视化
-                all_class_data[class_id]['pred_points'] = pred_points
-                any_detection = True
-        
-        # 统一可视化所有类别
-        if any_detection:
+                original_true_points_class = extract_annotation_points_multiclass(json_data, class_id)
+
+                if original_true_points_class is not None:
+                    calculate_metrics_multiclass(
+                        original_true_points_class, pred_points, pred_mask, 
+                        rotation_angle, metrics, group_key, class_id
+                    )
+
+        # 步骤3: 根据成功与否决定文件名并进行可视化
+        if is_successful_detection:
             save_path = results_dir / f'{base_filename}_evaluation.jpg'
         else:
             save_path = results_dir / f'{base_filename}_no_detection.jpg'
         
-        # 根据类别数量选择可视化方式
+        # 执行可视化
         if len(evaluate_classes) == 1:
-            # 单类别：使用向后兼容的方式
             class_id = evaluate_classes[0]
             class_data = all_class_data.get(class_id, {})
             visualize_results_single(annotated_image, 
@@ -430,10 +440,9 @@ def process_single_image(npy_file, test_images_dir, model, results_dir, metrics,
                                    class_data.get('true_points'), 
                                    save_path, class_id)
         else:
-            # 多类别：使用新的统一可视化
             visualize_results(annotated_image, all_class_data, save_path)
         
-        return any_detection
+        return is_successful_detection
             
     except Exception as e:
         print(f"处理失败 {npy_file}: {e}")
@@ -538,9 +547,9 @@ def calculate_metrics(true_points, pred_points, pred_mask, metrics):
     metrics['height_lower_diff_percent'].append(abs((true_lower - pred_lower) / true_lower))
 
 
-def print_evaluation_results(metrics, include_augmented):
+def print_evaluation_results(metrics, include_augmented, fusion_name):
     """打印分组评估结果"""
-    print('\n=== 双模态YOLO评估结果 ===')
+    print(f'\n=== {fusion_name}评估结果 ===')
     
     # 打印原始数据结果
     original_metrics = metrics['original']
@@ -756,9 +765,10 @@ def generate_evaluation_chart(metrics, save_dir, fusion_name):
 
 
 if __name__ == '__main__':
-    fusion_names = ['crossattn', ] #'crossattn', 'crossattn-30epoch', 'weighted-fusion', 'concat-compress']
+    fusion_names = ['id', 'crossattn', 'crossattn-30epoch', 'weighted-fusion', 'concat-compress']
     for fusion_name in fusion_names:
         evaluate_dual_yolo_model(fusion_name=fusion_name, 
-                             debug=True, 
+                             debug=False, 
                              include_augmented=True, 
-                             evaluate_classes=[0, 1, 2], conf_threshold=0.3)
+                             evaluate_classes=[0, 1, 2], 
+                             conf_threshold=0.72)
