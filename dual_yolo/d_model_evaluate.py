@@ -95,19 +95,61 @@ def find_json_annotation(npy_filename, json_dirs=['./data/rawdata/class1/', './d
 
 
 def extract_annotation_points(json_data):
-    """提取医生标注点位"""
+    """提取医生标注点位 - 保持向后兼容，默认提取Class 1"""
+    return extract_annotation_points_multiclass(json_data, class_id=1)
+
+
+def extract_annotation_points_multiclass(json_data, class_id):
+    """提取指定类别的医生标注点位
+    
+    Args:
+        json_data: JSON标注数据
+        class_id: 类别ID (0=血清层, 1=白膜层, 2=血浆层)
+    
+    Returns:
+        np.array: 排序后的标注点位，如果点数不足返回None
+    """
     true_points = []
-    for id, shape in enumerate(json_data.get("shapes", [])):
-        if 2 <= id <= 5:  # 白膜层4个点
-            x, y = shape["points"][0]
+    shapes = json_data.get("shapes", [])
+    
+    if class_id == 0:
+        # Class 0 (血清层): 使用点位 0,1,2,3
+        point_indices = [0, 1, 2, 3]
+        min_points = 4
+    elif class_id == 1:
+        # Class 1 (白膜层): 使用点位 2,3,4,5 - 保持现有逻辑
+        point_indices = [2, 3, 4, 5]
+        min_points = 4
+    elif class_id == 2:
+        # Class 2 (血浆层): 使用点位 4,5,6
+        point_indices = [4, 5, 6]
+        min_points = 3
+    else:
+        return None
+    
+    # 提取指定索引的点位
+    for idx in point_indices:
+        if idx < len(shapes):
+            x, y = shapes[idx]["points"][0]
+            # 应用坐标变换
             x, y = int((x - 800) * 1504/1216), int(y - 250)
             true_points.append([x, y])
     
-    return sort_points_by_angle(np.array(true_points, dtype=np.int32)) if len(true_points) >= 4 else None
+    # 检查点数是否严格匹配
+    if len(true_points) == min_points:
+        return sort_points_by_angle(np.array(true_points, dtype=np.int32))
+    else:
+        return None
 
 
-def visualize_results(annotated_image, pred_points=None, true_points=None, save_path=None):
-    """可视化结果"""
+def visualize_results(annotated_image, all_class_data, save_path=None):
+    """可视化多类别结果
+    
+    Args:
+        annotated_image: 标注图像
+        all_class_data: 所有类别数据字典 {class_id: {'pred_points': points, 'true_points': points}}
+        save_path: 保存路径
+    """
     # 确保图像格式正确
     if not isinstance(annotated_image, np.ndarray):
         annotated_image = np.array(annotated_image)
@@ -115,19 +157,35 @@ def visualize_results(annotated_image, pred_points=None, true_points=None, save_
         annotated_image = annotated_image.astype(np.uint8)
     annotated_image = np.ascontiguousarray(annotated_image)
     
-    # 绘制真实点位（红色圆点）
-    if true_points is not None:
-        for point in true_points:
-            cv2.circle(annotated_image, tuple(map(int, point)), 5, (0, 0, 255), -1)
-
-    # 绘制预测点位（绿色十字）
-    if pred_points is not None:
-        pred_line = np.array(pred_points, dtype=np.int32).reshape((-1, 1, 2))
-        cv2.polylines(annotated_image, [pred_line], True, (255, 255, 255), 1, lineType=cv2.LINE_AA)
-        for point in pred_points:
-            x, y = int(point[0]), int(point[1])
-            cv2.line(annotated_image, (x-2, y), (x+2, y), (0, 255, 0), 2)
-            cv2.line(annotated_image, (x, y-2), (x, y+2), (0, 255, 0), 2)
+    # 预测点颜色方案 (BGR格式)
+    pred_colors = {
+        0: (0, 255, 255),    # Class 0: 黄色十字
+        1: (0, 255, 0),      # Class 1: 绿色十字 (保持现有)
+        2: (255, 0, 0)       # Class 2: 蓝色十字
+    }
+    
+    # 先绘制所有真实标注点 (红色圆点)
+    for class_id, class_data in all_class_data.items():
+        true_points = class_data.get('true_points')
+        if true_points is not None:
+            for point in true_points:
+                cv2.circle(annotated_image, tuple(map(int, point)), 5, (0, 0, 255), -1)
+    
+    # 再按类别绘制预测结果
+    for class_id, class_data in all_class_data.items():
+        pred_points = class_data.get('pred_points')
+        if pred_points is not None:
+            pred_color = pred_colors.get(class_id, (0, 255, 0))  # 默认绿色
+            
+            # 绘制预测线连接 (白色细线)
+            pred_line = np.array(pred_points, dtype=np.int32).reshape((-1, 1, 2))
+            cv2.polylines(annotated_image, [pred_line], True, (255, 255, 255), 1, lineType=cv2.LINE_AA)
+            
+            # 绘制预测点十字
+            for point in pred_points:
+                x, y = int(point[0]), int(point[1])
+                cv2.line(annotated_image, (x-2, y), (x+2, y), pred_color, 2)
+                cv2.line(annotated_image, (x, y-2), (x, y+2), pred_color, 2)
     
     # 保存图像
     if save_path:
@@ -135,8 +193,28 @@ def visualize_results(annotated_image, pred_points=None, true_points=None, save_
         plt.imsave(save_path, rgb_image)
 
 
-def evaluate_dual_yolo_model(fusion_name, debug=False, include_augmented=True):
-    """主评估函数"""
+def visualize_results_single(annotated_image, pred_points=None, true_points=None, save_path=None, class_id=1):
+    """单类别可视化结果 - 保持向后兼容"""
+    all_class_data = {}
+    if true_points is not None or pred_points is not None:
+        all_class_data[class_id] = {
+            'true_points': true_points,
+            'pred_points': pred_points
+        }
+    visualize_results(annotated_image, all_class_data, save_path)
+
+
+def evaluate_dual_yolo_model(fusion_name, debug=False, include_augmented=True, 
+                            evaluate_classes=[1], conf_threshold=0.5):
+    """主评估函数
+    
+    Args:
+        fusion_name: 融合策略名称
+        debug: 是否启用调试模式
+        include_augmented: 是否包含增强数据
+        evaluate_classes: 要评估的类别列表，默认[1]保持向后兼容
+        conf_threshold: YOLO推理置信度阈值，默认0.5
+    """
     # 配置参数
     project_root = Path(__file__).parent.parent
     if fusion_name:
@@ -151,7 +229,11 @@ def evaluate_dual_yolo_model(fusion_name, debug=False, include_augmented=True):
     dataset_path = project_root / 'datasets' / 'Dual-Modal-1504-500-1-6ch'
     test_images = dataset_path / 'test' / 'images'
     
-    eval_results_dir = project_root / 'dual_yolo' / 'evaluation_results_aug' / f'{fusion_name}'
+    eval_results_name = 'evaluation_results_aug' if include_augmented else 'evaluation_results'
+    for class_id in evaluate_classes:
+        eval_results_name += f'_{class_id}'
+
+    eval_results_dir = project_root / 'dual_yolo' / eval_results_name / f'{fusion_name}'
     os.makedirs(eval_results_dir, exist_ok=True)
     
     # 检查路径是否存在
@@ -214,13 +296,15 @@ def evaluate_dual_yolo_model(fusion_name, debug=False, include_augmented=True):
         # original: 仅_0文件
         if is_original:
             metrics['original']['total_count'] += 1
-            success = process_single_image(npy_file, test_images, model, eval_results_dir, metrics, 'original')
+            success = process_single_image(npy_file, test_images, model, eval_results_dir, metrics, 'original', 
+                                         evaluate_classes, conf_threshold)
             if success:
                 metrics['original']['detected_count'] += 1
         
         # augmented: 所有_0-8文件 (包含原始数据)
         metrics['augmented']['total_count'] += 1
-        success_aug = process_single_image(npy_file, test_images, model, eval_results_dir, metrics, 'augmented')
+        success_aug = process_single_image(npy_file, test_images, model, eval_results_dir, metrics, 'augmented', 
+                                        evaluate_classes, conf_threshold)
         if success_aug:
             metrics['augmented']['detected_count'] += 1
     
@@ -236,8 +320,14 @@ def evaluate_dual_yolo_model(fusion_name, debug=False, include_augmented=True):
     print(f"\n评估完成！结果保存在 {eval_results_dir}")
 
 
-def process_single_image(npy_file, test_images_dir, model, results_dir, metrics, group_key):
-    """处理单个图像评估"""
+def process_single_image(npy_file, test_images_dir, model, results_dir, metrics, group_key, 
+                        evaluate_classes=[1], conf_threshold=0.5):
+    """处理单个图像评估
+    
+    Args:
+        evaluate_classes: 要评估的类别列表
+        conf_threshold: 置信度阈值
+    """
     try:
         # 加载并预处理数据
         dual_tensor = np.load(test_images_dir / npy_file)
@@ -274,38 +364,76 @@ def process_single_image(npy_file, test_images_dir, model, results_dir, metrics,
         device = "cuda:0" if torch.cuda.is_available() else "cpu"
         results = model(model_input, imgsz=1504, device=device, verbose=False)
         
-        # 检查模型输出
+        # 检查模型输出并过滤指定类别和置信度
+        detected_classes = {}
         if hasattr(results[0], 'boxes') and results[0].boxes is not None:
             if len(results[0].boxes) > 0:
                 all_classes = results[0].boxes.cls.cpu().numpy()
-                bloodzone_detections = [i for i, cls_id in enumerate(all_classes) if cls_id == 1]
-            else:
-                bloodzone_detections = []
-        else:
-            bloodzone_detections = []
+                all_confs = results[0].boxes.conf.cpu().numpy()
+                
+                # 筛选符合条件的检测结果
+                for i, (cls_id, conf) in enumerate(zip(all_classes, all_confs)):
+                    if int(cls_id) in evaluate_classes and conf >= conf_threshold:
+                        if int(cls_id) not in detected_classes:
+                            detected_classes[int(cls_id)] = []
+                        detected_classes[int(cls_id)].append(i)
         
         base_filename = npy_file.replace('.npy', '')
+        any_detection = False
+        all_class_data = {}
         
-        if bloodzone_detections:
-            # 提取预测结果
-            pred_points = extract_prediction_points(results[0], bloodzone_detections)
-            pred_mask = get_prediction_mask(results[0], bloodzone_detections)
+        # 收集所有类别的数据
+        for class_id in evaluate_classes:
+            # 提取该类别的标注点
+            original_true_points_class = extract_annotation_points_multiclass(json_data, class_id)
+            if original_true_points_class is None:
+                continue
+                
+            # 为可视化准备旋转后的标注点
+            rotated_true_points_class = apply_rotation_to_points(original_true_points_class, rotation_angle)
             
-            # 计算指标：使用反向旋转方法
-            calculate_metrics_with_rotation(
-                original_true_points, pred_points, pred_mask, 
-                rotation_angle, metrics, group_key
-            )
+            # 初始化该类别数据
+            all_class_data[class_id] = {
+                'true_points': rotated_true_points_class,
+                'pred_points': None
+            }
             
-            # 保存可视化结果：使用旋转后的标注点
+            if class_id in detected_classes:
+                # 提取预测结果
+                detections = detected_classes[class_id]
+                pred_points = extract_prediction_points(results[0], detections)
+                pred_mask = get_prediction_mask(results[0], detections)
+                
+                # 计算指标：使用反向旋转方法
+                calculate_metrics_multiclass(
+                    original_true_points_class, pred_points, pred_mask, 
+                    rotation_angle, metrics, group_key, class_id
+                )
+                
+                # 存储预测点用于可视化
+                all_class_data[class_id]['pred_points'] = pred_points
+                any_detection = True
+        
+        # 统一可视化所有类别
+        if any_detection:
             save_path = results_dir / f'{base_filename}_evaluation.jpg'
-            visualize_results(annotated_image, pred_points, rotated_true_points, save_path)
-            return True
         else:
-            # 未检测到的情况：使用旋转后的标注点进行可视化
             save_path = results_dir / f'{base_filename}_no_detection.jpg'
-            visualize_results(annotated_image, None, rotated_true_points, save_path)
-            return False
+        
+        # 根据类别数量选择可视化方式
+        if len(evaluate_classes) == 1:
+            # 单类别：使用向后兼容的方式
+            class_id = evaluate_classes[0]
+            class_data = all_class_data.get(class_id, {})
+            visualize_results_single(annotated_image, 
+                                   class_data.get('pred_points'), 
+                                   class_data.get('true_points'), 
+                                   save_path, class_id)
+        else:
+            # 多类别：使用新的统一可视化
+            visualize_results(annotated_image, all_class_data, save_path)
+        
+        return any_detection
             
     except Exception as e:
         print(f"处理失败 {npy_file}: {e}")
@@ -330,28 +458,59 @@ def get_prediction_mask(result, bloodzone_detections):
 
 
 def calculate_metrics_with_rotation(original_true_points, pred_points, pred_mask, rotation_angle, metrics, group_key):
-    """使用反向旋转方法计算评估指标"""
+    """使用反向旋转方法计算评估指标 - 保持向后兼容，默认为Class 1"""
+    calculate_metrics_multiclass(original_true_points, pred_points, pred_mask, rotation_angle, 
+                                metrics, group_key, class_id=1)
+
+
+def calculate_metrics_multiclass(original_true_points, pred_points, pred_mask, rotation_angle, 
+                                metrics, group_key, class_id):
+    """使用反向旋转方法计算多类别评估指标
+    
+    Args:
+        original_true_points: 原始标注点位
+        pred_points: 预测点位
+        pred_mask: 预测掩码（暂时保留，用于IoU计算）
+        rotation_angle: 旋转角度
+        metrics: 指标字典
+        group_key: 分组键名
+        class_id: 类别ID
+    """
     # 将预测点反向旋转到原始坐标系
     pred_points_original = apply_rotation_to_points(pred_points, -rotation_angle)
     
     # 在原始坐标系中计算高度差异
     pred_heights = np.sort(pred_points_original[:, 1])
     true_heights = np.sort(original_true_points[:, 1])
-    # 预测点数量多（十几个），取前后2个均值；真实点只有4个，取首末1个
-    pred_upper, pred_lower = np.mean(pred_heights[:2]), np.mean(pred_heights[-2:])
-    true_upper, true_lower = np.mean(true_heights[:1]), np.mean(true_heights[-1:])
     
-    # 计算IoU：在原始坐标系中
-    true_mask = np.zeros((1504, 1504), dtype=np.uint8)
-    cv2.fillPoly(true_mask, [original_true_points.astype(np.int32)], 255)
+    # 根据类别采用不同的高度计算策略
+    if class_id == 0:
+        # Class 0 (血清层): 4个点，取前后2个均值
+        pred_upper, pred_lower = np.mean(pred_heights[:2]), np.mean(pred_heights[-2:])
+        true_upper, true_lower = np.mean(true_heights[:2]), np.mean(true_heights[-2:])
+    elif class_id == 1:
+        # Class 1 (白膜层): 4个点，预测点数量多（十几个），取前后2个均值；真实点只有4个，取首末1个
+        pred_upper, pred_lower = np.mean(pred_heights[:2]), np.mean(pred_heights[-2:])
+        true_upper, true_lower = np.mean(true_heights[:2]), np.mean(true_heights[-2:])
+    elif class_id == 2:
+        # Class 2 (血浆层): 3-4个点，取前后2个均值
+        pred_upper, pred_lower = np.mean(pred_heights[:2]), np.mean(pred_heights[-2:])
+        true_upper, true_lower = np.mean(true_heights[:2]), np.mean(true_heights[-1:])
+    else:
+        return  # 未知类别，跳过
     
-    pred_mask_original = np.zeros((1504, 1504), dtype=np.uint8)
-    cv2.fillPoly(pred_mask_original, [pred_points_original.astype(np.int32)], 255)
-    
-    iou = calculate_iou(true_mask, pred_mask_original)
-    
-    # 记录指标到对应分组
-    metrics[group_key]['iou_list'].append(iou)
+    # 计算IoU：只对Class 0和Class 1计算，Class 2跳过（三角形IoU无意义）
+    if class_id in [0, 1]:
+        true_mask = np.zeros((1504, 1504), dtype=np.uint8)
+        cv2.fillPoly(true_mask, [original_true_points.astype(np.int32)], 255)
+        
+        pred_mask_original = np.zeros((1504, 1504), dtype=np.uint8)
+        cv2.fillPoly(pred_mask_original, [pred_points_original.astype(np.int32)], 255)
+        
+        iou = calculate_iou(true_mask, pred_mask_original)
+        
+        # 记录IoU到对应分组
+        metrics[group_key]['iou_list'].append(iou)
     metrics[group_key]['height_upper_diff'].append(abs(true_upper - pred_upper))
     metrics[group_key]['height_lower_diff'].append(abs(true_lower - pred_lower))
     metrics[group_key]['height_upper_diff_percent'].append(abs((true_upper - pred_upper) / true_upper))
@@ -548,7 +707,7 @@ def generate_evaluation_chart(metrics, save_dir, fusion_name):
     # 创建右侧y轴 (像素差异指标)
     ax2 = ax1.twinx()
     ax2.set_ylabel('Pixel Difference', fontsize=12)
-    ax2.set_ylim([0, 6])  # 设置右侧y轴范围为0-6
+    ax2.set_ylim([0, 12.01])  # 设置右侧y轴范围为0-6
     ax2.tick_params(axis='y', labelcolor='black')
     
     # 绘制所有4个指标的柱状图 (包含标准差)
@@ -597,5 +756,9 @@ def generate_evaluation_chart(metrics, save_dir, fusion_name):
 
 
 if __name__ == '__main__':
-    for fusion_name in ['crossattn', 'crossattn-30epoch', 'id', 'concat-compress', 'weighted-fusion']: 
-        evaluate_dual_yolo_model(fusion_name=fusion_name, debug=True, include_augmented=True)
+    fusion_names = ['crossattn', ] #'crossattn', 'crossattn-30epoch', 'weighted-fusion', 'concat-compress']
+    for fusion_name in fusion_names:
+        evaluate_dual_yolo_model(fusion_name=fusion_name, 
+                             debug=True, 
+                             include_augmented=True, 
+                             evaluate_classes=[0, 1, 2], conf_threshold=0.3)
