@@ -15,11 +15,12 @@ fusion_dict = {
     'concat-compress':  'yolo11x-dseg-concat-compress.yaml',
     'weighted-fusion':  'yolo11x-dseg-weighted-fusion.yaml',
     'crossattn':        'yolo11x-dseg-crossattn.yaml',
+    'crossattn-precise':'yolo11x-dseg-crossattn-precise.yaml',
     'id':               'yolo11x-dseg-id.yaml'
 }
 
 # 模型配置（和 d_model_test.py 相同）
-fusion_name = 'weighted-fusion'
+fusion_name = 'crossattn-precise'
 model_yaml = project_root / 'dual_yolo' / 'models' / fusion_dict[fusion_name]  # 使用交叉注意力融合
 model_pt = project_root / 'dual_yolo' / 'weights' / 'dual_yolo11x.pt'
 
@@ -34,7 +35,7 @@ print("开始训练双模态YOLO模型...")
 results = model_dual.train(
     data=str(data_config),
     device=[0, 1, 2, 3],
-    epochs=10,
+    epochs=30,
     imgsz=1504,
     workers=4,
     amp=False,

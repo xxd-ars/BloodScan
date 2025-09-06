@@ -64,7 +64,7 @@ def generate_evaluation_chart_from_file(metrics_file, output_path=None):
     # 创建右侧y轴 (像素差异指标)
     ax2 = ax1.twinx()
     ax2.set_ylabel('Pixel Difference', fontsize=12)
-    ax2.set_ylim([0, 6])  # 设置右侧y轴范围为0-6
+    ax2.set_ylim([0, 12.01])  # 设置右侧y轴范围为0-6
     ax2.tick_params(axis='y', labelcolor='black')
     
     # 绘制所有4个指标的柱状图 (包含标准差)

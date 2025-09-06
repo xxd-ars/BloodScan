@@ -28,3 +28,5 @@
 .DS_Store
 
 /dual_yolo/runs
+
+/src/utils/config.ini

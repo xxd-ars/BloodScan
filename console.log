@@ -1,0 +1,90 @@
+2025-08-29 03:08:02 INFO     __main__ -> 找到 7 个文档文件
+2025-08-29 03:08:02 INFO     __main__ -> 成功读取 BGF-YOLO.pdf 的内容
+2025-08-29 03:08:02 INFO     __main__ -> 成功读取 CMAF-Net.pdf 的内容
+2025-08-29 03:08:02 INFO     __main__ -> 成功读取 RCS-YOLO.pdf 的内容
+2025-08-29 03:08:02 INFO     __main__ -> 成功读取 A2FSeg.pdf 的内容
+2025-08-29 03:08:03 INFO     __main__ -> 成功读取 LaiEn.pdf 的内容
+2025-08-29 03:08:03 INFO     __main__ -> 成功读取 CAISeg.pdf 的内容
+2025-08-29 03:08:03 INFO     __main__ -> 成功读取 BioSAM.pdf 的内容
+2025-08-29 03:08:17 INFO     __main__ -> 找到 7 个文档文件
+2025-08-29 03:08:18 INFO     __main__ -> 成功读取 BGF-YOLO.pdf 的内容
+2025-08-29 03:08:18 INFO     __main__ -> 成功读取 CMAF-Net.pdf 的内容
+2025-08-29 03:08:18 INFO     __main__ -> 成功读取 RCS-YOLO.pdf 的内容
+2025-08-29 03:08:18 INFO     __main__ -> 成功读取 A2FSeg.pdf 的内容
+2025-08-29 03:08:18 INFO     __main__ -> 成功读取 LaiEn.pdf 的内容
+2025-08-29 03:08:19 INFO     __main__ -> 成功读取 CAISeg.pdf 的内容
+2025-08-29 03:08:19 INFO     __main__ -> 成功读取 BioSAM.pdf 的内容
+2025-08-29 03:18:46 INFO     __main__ -> 找到 2 个文档文件
+2025-08-29 03:18:46 INFO     __main__ -> 成功读取 A2FSeg.pdf 的内容
+2025-08-29 03:18:46 INFO     __main__ -> 成功读取 LaiEn.pdf 的内容
+2025-08-29 03:25:05 INFO     __main__ -> 找到 2 个文档文件
+2025-08-29 03:25:05 INFO     __main__ -> 成功读取 A2FSeg.pdf 的内容
+2025-08-29 03:25:06 INFO     __main__ -> 成功读取 LaiEn.pdf 的内容
+2025-08-29 03:26:06 INFO     __main__ -> 找到 2 个文档文件
+2025-08-29 03:26:06 INFO     __main__ -> 成功读取 A2FSeg.pdf 的内容
+2025-08-29 03:26:06 INFO     __main__ -> 成功读取 LaiEn.pdf 的内容
+2025-08-29 03:26:07 INFO     llm -> ✅ 文件上传成功: file-W2vaGo61iXctw39rXUF2fm
+2025-08-29 03:26:08 INFO     llm -> ✅ Batch 任务创建成功: batch_68b0ad500d88819089cd77754a9e9c2c
+2025-08-29 03:26:08 INFO     llm -> ⏳ Batch 任务状态: validating
+2025-08-29 03:27:08 INFO     llm -> ⏳ Batch 任务状态: validating
+2025-08-29 03:28:09 INFO     llm -> ⏳ Batch 任务状态: in_progress: 1 完成 - 0 失败 - 1 等待中 - 2 总数
+2025-08-29 03:29:09 INFO     llm -> ⏳ Batch 任务状态: completed
+2025-08-29 03:29:11 INFO     llm -> ✅ 任务完成, 下载结果: file-RkgjSPxobZzqd86ECcbqH8
+2025-08-29 03:29:11 INFO     llm -> 🪙 任务消耗 27106 + 2702 Token
+2025-08-29 03:29:11 INFO     llm -> 💵 任务消耗 0.037914 USD
+2025-08-29 03:43:46 INFO     __main__ -> 找到 5 个文档文件
+2025-08-29 03:43:46 INFO     __main__ -> 成功读取 BGF-YOLO.pdf 的内容
+2025-08-29 03:43:46 INFO     __main__ -> 成功读取 CMAF-Net.pdf 的内容
+2025-08-29 03:43:46 INFO     __main__ -> 成功读取 RCS-YOLO.pdf 的内容
+2025-08-29 03:43:46 INFO     __main__ -> 成功读取 CAISeg.pdf 的内容
+2025-08-29 03:43:47 INFO     __main__ -> 成功读取 BioSAM.pdf 的内容
+2025-08-29 03:43:48 INFO     llm -> ✅ 文件上传成功: file-XJuuBinSvDWFVzgEyumztM
+2025-08-29 03:43:49 INFO     llm -> ✅ Batch 任务创建成功: batch_68b0b1745fe8819085696f361d2c56b8
+2025-08-29 03:43:49 INFO     llm -> ⏳ Batch 任务状态: validating
+2025-08-29 03:44:49 INFO     llm -> ⏳ Batch 任务状态: validating
+2025-08-29 03:45:49 INFO     llm -> ⏳ Batch 任务状态: in_progress: 0 完成 - 0 失败 - 5 等待中 - 5 总数
+2025-08-29 03:46:50 INFO     llm -> ⏳ Batch 任务状态: in_progress: 0 完成 - 0 失败 - 5 等待中 - 5 总数
+2025-08-29 03:47:50 INFO     llm -> ⏳ Batch 任务状态: in_progress: 3 完成 - 0 失败 - 2 等待中 - 5 总数
+2025-08-29 03:48:50 INFO     llm -> ⏳ Batch 任务状态: completed
+2025-08-29 03:48:51 INFO     llm -> ✅ 任务完成, 下载结果: file-3VyfFuqT8fBQk2WGe3ccPh
+2025-08-29 03:48:51 INFO     llm -> 🪙 任务消耗 98511 + 5610 Token
+2025-08-29 03:48:51 INFO     llm -> 💵 任务消耗 0.120951 USD
+2025-08-29 19:41:15 INFO     __main__ -> 找到 1 个文档文件
+2025-08-29 19:41:15 INFO     __main__ -> 成功读取 CMAF-Net.pdf 的内容
+2025-08-29 19:41:16 INFO     llm -> ✅ 文件上传成功: file-Vg14BuZ2xpLp16MicMrw7N
+2025-08-29 19:41:17 INFO     llm -> ✅ Batch 任务创建成功: batch_68b191dca48881909ad47e493ae63a73
+2025-08-29 19:41:17 INFO     llm -> ⏳ Batch 任务状态: validating
+2025-08-29 19:42:17 INFO     llm -> ⏳ Batch 任务状态: validating
+2025-08-29 19:43:18 INFO     llm -> ⏳ Batch 任务状态: in_progress: 0 完成 - 0 失败 - 1 等待中 - 1 总数
+2025-08-29 19:44:18 INFO     llm -> ⏳ Batch 任务状态: in_progress: 0 完成 - 0 失败 - 1 等待中 - 1 总数
+2025-08-29 19:45:18 INFO     llm -> ⏳ Batch 任务状态: in_progress: 0 完成 - 0 失败 - 1 等待中 - 1 总数
+2025-08-29 19:46:18 INFO     llm -> ⏳ Batch 任务状态: in_progress: 0 完成 - 0 失败 - 1 等待中 - 1 总数
+2025-08-29 19:47:19 INFO     llm -> ⏳ Batch 任务状态: in_progress: 0 完成 - 0 失败 - 1 等待中 - 1 总数
+2025-08-29 19:48:19 INFO     llm -> ⏳ Batch 任务状态: in_progress: 0 完成 - 0 失败 - 1 等待中 - 1 总数
+2025-08-29 19:49:19 INFO     llm -> ⏳ Batch 任务状态: in_progress: 0 完成 - 0 失败 - 1 等待中 - 1 总数
+2025-08-29 19:50:19 INFO     llm -> ⏳ Batch 任务状态: in_progress: 0 完成 - 0 失败 - 1 等待中 - 1 总数
+2025-08-29 19:51:19 INFO     llm -> ⏳ Batch 任务状态: in_progress: 0 完成 - 0 失败 - 1 等待中 - 1 总数
+2025-08-29 19:52:20 INFO     llm -> ⏳ Batch 任务状态: in_progress: 0 完成 - 0 失败 - 1 等待中 - 1 总数
+2025-08-29 19:53:20 INFO     llm -> ⏳ Batch 任务状态: in_progress: 0 完成 - 0 失败 - 1 等待中 - 1 总数
+2025-08-29 19:54:20 INFO     llm -> ⏳ Batch 任务状态: in_progress: 0 完成 - 0 失败 - 1 等待中 - 1 总数
+2025-08-29 19:55:21 INFO     llm -> ⏳ Batch 任务状态: in_progress: 0 完成 - 0 失败 - 1 等待中 - 1 总数
+2025-08-29 19:56:21 INFO     llm -> ⏳ Batch 任务状态: in_progress: 0 完成 - 0 失败 - 1 等待中 - 1 总数
+2025-08-29 19:57:21 INFO     llm -> ⏳ Batch 任务状态: in_progress: 0 完成 - 0 失败 - 1 等待中 - 1 总数
+2025-08-29 19:58:21 INFO     llm -> ⏳ Batch 任务状态: in_progress: 0 完成 - 0 失败 - 1 等待中 - 1 总数
+2025-08-29 19:59:22 INFO     llm -> ⏳ Batch 任务状态: in_progress: 0 完成 - 0 失败 - 1 等待中 - 1 总数
+2025-08-29 20:00:22 INFO     llm -> ⏳ Batch 任务状态: in_progress: 0 完成 - 0 失败 - 1 等待中 - 1 总数
+2025-08-29 20:01:22 INFO     llm -> ⏳ Batch 任务状态: in_progress: 0 完成 - 0 失败 - 1 等待中 - 1 总数
+2025-08-29 20:05:51 INFO     llm -> ⏳ Batch 任务状态: completed
+2025-08-29 20:05:51 INFO     llm -> ✅ 任务完成, 下载结果: file-EwpkfCA2yXSriptxj7KTXH
+2025-08-29 20:05:51 INFO     llm -> 🪙 任务消耗 28062 + 816 Token
+2025-08-29 20:05:51 INFO     llm -> 💵 任务消耗 0.031326 USD
+2025-08-29 20:36:26 INFO     __main__ -> 找到 1 个文档文件
+2025-08-29 20:36:27 INFO     __main__ -> 成功读取 BioSAM.pdf 的内容
+2025-08-29 20:36:28 INFO     llm -> ✅ 文件上传成功: file-6caPDTJgG2MiJDa5T81y4g
+2025-08-29 20:36:28 INFO     llm -> ✅ Batch 任务创建成功: batch_68b19ecc85908190b71ec910d81fd44a
+2025-08-29 20:36:29 INFO     llm -> ⏳ Batch 任务状态: validating
+2025-08-29 20:37:29 INFO     llm -> ⏳ Batch 任务状态: validating
+2025-08-29 20:38:29 INFO     llm -> ⏳ Batch 任务状态: completed
+2025-08-29 20:38:30 INFO     llm -> ✅ 任务完成, 下载结果: file-1XGdrbhdsx1d6feAfAPAfV
+2025-08-29 20:38:30 INFO     llm -> 🪙 任务消耗 15733 + 1052 Token
+2025-08-29 20:38:30 INFO     llm -> 💵 任务消耗 0.019941 USD

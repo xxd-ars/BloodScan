@@ -177,6 +177,11 @@ class CrossModalAttention(nn.Module):
         self.token_size = token_size
         self.neighbor_size = neighbor_size
         
+        # 可视化相关属性
+        self.enable_visualization = False
+        self.attention_maps = None
+        self.last_input_size = None
+        
         # Projection layers: 将特征投影到Query、Key、Value空间
         self.q_proj = nn.Conv2d(c1, c1, 1) # Blue  light -> Query
         self.k_proj = nn.Conv2d(c1, c1, 1) # White light -> Key
@@ -204,6 +209,10 @@ class CrossModalAttention(nn.Module):
         """
         blue_feat, white_feat = x
         B, C, H, W = blue_feat.shape
+        
+        # 保存输入尺寸用于可视化
+        if self.enable_visualization:
+            self.last_input_size = (H, W)
         
         # ============================================================================
         # 步骤1：特征投影 - 生成Query、Key、Value
@@ -338,6 +347,10 @@ class CrossModalAttention(nn.Module):
         # 含义：对于每个蓝光token，它的邻域白光tokens的重要性权重总和为1
         attn = F.softmax(attn, dim=-1)  # [B, num_tokens, C, num_neighbors]
         
+        # 保存注意力权重用于可视化
+        if self.enable_visualization:
+            self.attention_maps = attn.detach().cpu()
+        
         # ========================================================================
         # 子步骤3：加权求和 - 实现特征增强的核心操作
         # ========================================================================
@@ -358,6 +371,62 @@ class CrossModalAttention(nn.Module):
         
         # 重塑回原始Token网格格式
         return enhanced_token.reshape(B, num_h, num_w, C, token_dim)
+    
+    def get_attention_spatial_map(self, target_size=None):
+        """
+        将Token级注意力权重映射到原始图像空间
+        
+        Args:
+            target_size (tuple): 目标图像尺寸 (H, W)，默认使用last_input_size
+            
+        Returns:
+            torch.Tensor: 空间注意力图 [B, H, W] 或 None（如果未启用可视化）
+        """
+        if not self.enable_visualization or self.attention_maps is None:
+            return None
+        
+        if target_size is None:
+            target_size = self.last_input_size
+        
+        if target_size is None:
+            return None
+        
+        H, W = target_size
+        B, num_tokens, C, num_neighbors = self.attention_maps.shape
+        
+        # 计算Token网格尺寸
+        pad_h = (self.token_size - H % self.token_size) % self.token_size
+        pad_w = (self.token_size - W % self.token_size) % self.token_size
+        H_pad, W_pad = H + pad_h, W + pad_w
+        num_h, num_w = H_pad // self.token_size, W_pad // self.token_size
+        
+        # 对注意力权重进行平均聚合：[B, num_tokens, C, num_neighbors] -> [B, num_tokens]
+        # 聚合策略：对通道和邻域维度求平均，得到每个token位置的整体注意力强度
+        attn_avg = self.attention_maps.mean(dim=(2, 3))  # [B, num_tokens]
+        
+        # 重塑为Token网格：[B, num_tokens] -> [B, num_h, num_w]
+        attn_grid = attn_avg.reshape(B, num_h, num_w)
+        
+        # 上采样到像素空间：[B, num_h, num_w] -> [B, H_pad, W_pad]
+        attn_spatial = F.interpolate(
+            attn_grid.unsqueeze(1),  # 添加通道维度 [B, 1, num_h, num_w]
+            size=(H_pad, W_pad),
+            mode='bilinear',
+            align_corners=False
+        ).squeeze(1)  # 移除通道维度 [B, H_pad, W_pad]
+        
+        # 裁剪到原始尺寸
+        if pad_h > 0 or pad_w > 0:
+            attn_spatial = attn_spatial[:, :H, :W]
+        
+        return attn_spatial
+    
+    def enable_attention_visualization(self, enable=True):
+        """启用/禁用注意力可视化"""
+        self.enable_visualization = enable
+        if not enable:
+            self.attention_maps = None
+            self.last_input_size = None
 
 
 class MultiLayerCrossModalAttention(nn.Module):

@@ -765,10 +765,11 @@ def generate_evaluation_chart(metrics, save_dir, fusion_name):
 
 
 if __name__ == '__main__':
-    fusion_names = ['id', 'crossattn', 'crossattn-30epoch', 'weighted-fusion', 'concat-compress']
+    fusion_names = ['crossattn-precise']
+    # fusion_names = ['id', 'crossattn', 'crossattn-30epoch', 'weighted-fusion', 'concat-compress']
     for fusion_name in fusion_names:
         evaluate_dual_yolo_model(fusion_name=fusion_name, 
-                             debug=False, 
+                             debug=True, 
                              include_augmented=True, 
                              evaluate_classes=[0, 1, 2], 
-                             conf_threshold=0.72)
+                             conf_threshold=0.50)
