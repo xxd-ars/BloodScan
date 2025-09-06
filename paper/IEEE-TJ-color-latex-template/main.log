@@ -1,0 +1,1175 @@
+This is pdfTeX, Version 3.141592653-2.6-1.40.22 (MiKTeX 21.6) (preloaded format=pdflatex 2021.9.21)  13 JUN 2023 13:58
+entering extended mode
+**A:/data/WMSx1/template_latex/TAC/TAC-from-selector_20230613/main.tex
+(A:/data/WMSx1/template_latex/TAC/TAC-from-selector_20230613/main.tex
+LaTeX2e <2021-06-01>
+L3 programming layer <2021-06-01>
+(A:/data/WMSx1/template_latex/TAC/TAC-from-selector_20230613\ieeecolor.cls
+
+LaTeX Warning: You have requested document class `ieeecolor',
+               but the document class provides `IEEEtran'.
+
+Document Class: IEEEtran 2002/11/18 revision V1.6b by Michael Shell
+-- See the "IEEEtran_HOWTO" manual for usage information.
+-- The source comments contain changelog notes.
+(C:\Program Files\MiKTeX\tex/latex/graphics\color.sty
+Package: color 2020/02/24 v1.2b Standard LaTeX Color (DPC)
+
+(C:\Program Files\MiKTeX\tex/latex/graphics-cfg\color.cfg
+File: color.cfg 2016/01/02 v1.6 sample color configuration
+)
+Package color Info: Driver file: pdftex.def on input line 149.
+
+(C:\Program Files\MiKTeX\tex/latex/graphics-def\pdftex.def
+File: pdftex.def 2020/10/05 v1.2a Graphics/color driver for pdftex
+))
+\@draftversionrule=\dimen138
+\@IEEEtrantmpdimenA=\dimen139
+\@IEEEtrantmpdimenB=\dimen140
+\@IEEEtrantmpcountA=\count182
+\@IEEEtrantmpcountB=\count183
+\@IEEEtrantmptoksA=\toks16
+LaTeX Font Info:    Trying to load font information for OT1+ptm on input line 8
+34.
+
+(C:\Users\ctran\AppData\Roaming\MiKTeX\tex/latex/psnfss\ot1ptm.fd
+File: ot1ptm.fd 2001/06/04 font definitions for OT1/ptm.
+)
+\@IEEEnormalsizefontbaselineskip=\skip47
+
+-- This is a 10 point document.
+\normalsizebaselineskip=\skip48
+\normaljot=\skip49
+LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <5> not available
+(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 1180.
+LaTeX Font Info:    Font shape `OT1/ptm/bx/it' in size <5> not available
+(Font)              Font shape `OT1/ptm/b/it' tried instead on input line 1180.
+
+LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <7> not available
+(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 1180.
+LaTeX Font Info:    Font shape `OT1/ptm/bx/it' in size <7> not available
+(Font)              Font shape `OT1/ptm/b/it' tried instead on input line 1180.
+
+LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <8> not available
+(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 1180.
+LaTeX Font Info:    Font shape `OT1/ptm/bx/it' in size <8> not available
+(Font)              Font shape `OT1/ptm/b/it' tried instead on input line 1180.
+
+LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <9> not available
+(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 1180.
+LaTeX Font Info:    Font shape `OT1/ptm/bx/it' in size <9> not available
+(Font)              Font shape `OT1/ptm/b/it' tried instead on input line 1180.
+
+LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <10> not available
+(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 1180.
+LaTeX Font Info:    Font shape `OT1/ptm/bx/it' in size <10> not available
+(Font)              Font shape `OT1/ptm/b/it' tried instead on input line 1180.
+
+LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <11> not available
+(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 1180.
+LaTeX Font Info:    Font shape `OT1/ptm/bx/it' in size <11> not available
+(Font)              Font shape `OT1/ptm/b/it' tried instead on input line 1180.
+
+LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <12> not available
+(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 1180.
+LaTeX Font Info:    Font shape `OT1/ptm/bx/it' in size <12> not available
+(Font)              Font shape `OT1/ptm/b/it' tried instead on input line 1180.
+
+LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <17> not available
+(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 1180.
+LaTeX Font Info:    Font shape `OT1/ptm/bx/it' in size <17> not available
+(Font)              Font shape `OT1/ptm/b/it' tried instead on input line 1180.
+
+LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <20> not available
+(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 1180.
+LaTeX Font Info:    Font shape `OT1/ptm/bx/it' in size <20> not available
+(Font)              Font shape `OT1/ptm/b/it' tried instead on input line 1180.
+
+LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <24> not available
+(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 1180.
+LaTeX Font Info:    Font shape `OT1/ptm/bx/it' in size <24> not available
+(Font)              Font shape `OT1/ptm/b/it' tried instead on input line 1180.
+
+\IEEEilabelindentA=\dimen141
+\IEEEilabelindentB=\dimen142
+\IEEEilabelindent=\dimen143
+\IEEEelabelindent=\dimen144
+\IEEEdlabelindent=\dimen145
+\labelindent=\dimen146
+\IEEEiednormlabelsep=\dimen147
+\IEEEiedmathlabelsep=\dimen148
+\IEEEiedtopsep=\skip50
+\c@section=\count184
+\c@subsection=\count185
+\c@subsubsection=\count186
+\c@paragraph=\count187
+\c@IEEEsubequation=\count188
+\abovecaptionskip=\skip51
+\belowcaptionskip=\skip52
+\figbox=\box50
+\c@figure=\count189
+\c@query=\count190
+\c@qry=\count191
+\c@nquery=\count192
+\c@tquery=\count193
+\c@equery=\count194
+\c@eqry=\count195
+\c@edquery=\count196
+\c@etquery=\count197
+\c@table=\count198
+\@IEEEeqnnumcols=\count199
+\@IEEEeqncolcnt=\count266
+\firstpagerule=\skip53
+\logowidth=\skip54
+\@IEEEtmpitemindent=\dimen149
+\c@biography=\count267
+\c@edbiography=\count268
+LaTeX Info: Redefining \sf on input line 4869.
+\@IEEEtranrubishbin=\box51
+) (A:/data/WMSx1/template_latex/TAC/TAC-from-selector_20230613\generic.sty)
+(C:\Users\ctran\AppData\Roaming\MiKTeX\tex/latex/cite\cite.sty
+LaTeX Info: Redefining \cite on input line 302.
+LaTeX Info: Redefining \nocite on input line 332.
+Package: cite 2015/02/27  v 5.5
+)
+(C:\Program Files\MiKTeX\tex/latex/amsmath\amsmath.sty
+Package: amsmath 2021/04/20 v2.17j AMS math features
+\@mathmargin=\skip55
+
+For additional information on amsmath, use the `?' option.
+(C:\Program Files\MiKTeX\tex/latex/amsmath\amstext.sty
+Package: amstext 2000/06/29 v2.01 AMS text
+
+(C:\Program Files\MiKTeX\tex/latex/amsmath\amsgen.sty
+File: amsgen.sty 1999/11/30 v2.0 generic functions
+\@emptytoks=\toks17
+\ex@=\dimen150
+))
+(C:\Program Files\MiKTeX\tex/latex/amsmath\amsbsy.sty
+Package: amsbsy 1999/11/29 v1.2d Bold Symbols
+\pmbraise@=\dimen151
+)
+(C:\Program Files\MiKTeX\tex/latex/amsmath\amsopn.sty
+Package: amsopn 2016/03/08 v2.02 operator names
+)
+\inf@bad=\count269
+LaTeX Info: Redefining \frac on input line 234.
+\uproot@=\count270
+\leftroot@=\count271
+LaTeX Info: Redefining \overline on input line 399.
+\classnum@=\count272
+\DOTSCASE@=\count273
+LaTeX Info: Redefining \ldots on input line 496.
+LaTeX Info: Redefining \dots on input line 499.
+LaTeX Info: Redefining \cdots on input line 620.
+\Mathstrutbox@=\box52
+\strutbox@=\box53
+\big@size=\dimen152
+LaTeX Font Info:    Redeclaring font encoding OML on input line 743.
+LaTeX Font Info:    Redeclaring font encoding OMS on input line 744.
+\macc@depth=\count274
+\c@MaxMatrixCols=\count275
+\dotsspace@=\muskip16
+\c@parentequation=\count276
+\dspbrk@lvl=\count277
+\tag@help=\toks18
+\row@=\count278
+\column@=\count279
+\maxfields@=\count280
+\andhelp@=\toks19
+\eqnshift@=\dimen153
+\alignsep@=\dimen154
+\tagshift@=\dimen155
+\tagwidth@=\dimen156
+\totwidth@=\dimen157
+\lineht@=\dimen158
+\@envbody=\toks20
+\multlinegap=\skip56
+\multlinetaggap=\skip57
+\mathdisplay@stack=\toks21
+LaTeX Info: Redefining \[ on input line 2923.
+LaTeX Info: Redefining \] on input line 2924.
+)
+(C:\Program Files\MiKTeX\tex/latex/amsfonts\amssymb.sty
+Package: amssymb 2013/01/14 v3.01 AMS font symbols
+
+(C:\Program Files\MiKTeX\tex/latex/amsfonts\amsfonts.sty
+Package: amsfonts 2013/01/14 v3.01 Basic AMSFonts support
+\symAMSa=\mathgroup4
+\symAMSb=\mathgroup5
+LaTeX Font Info:    Redeclaring math symbol \hbar on input line 98.
+LaTeX Font Info:    Overwriting math alphabet `\mathfrak' in version `bold'
+(Font)                  U/euf/m/n --> U/euf/b/n on input line 106.
+))
+(C:\Users\ctran\AppData\Roaming\MiKTeX\tex/latex/algorithms\algorithmic.sty
+Package: algorithmic 2009/08/24 v0.1 Document Style `algorithmic'
+
+(C:\Program Files\MiKTeX\tex/latex/base\ifthen.sty
+Package: ifthen 2020/11/24 v1.1c Standard LaTeX ifthen package (DPC)
+)
+(C:\Program Files\MiKTeX\tex/latex/graphics\keyval.sty
+Package: keyval 2014/10/28 v1.15 key=value parser (DPC)
+\KV@toks@=\toks22
+)
+\c@ALC@unique=\count281
+\c@ALC@line=\count282
+\c@ALC@rem=\count283
+\c@ALC@depth=\count284
+\ALC@tlm=\skip58
+\algorithmicindent=\skip59
+)
+(C:\Program Files\MiKTeX\tex/latex/graphics\graphicx.sty
+Package: graphicx 2020/12/05 v1.2c Enhanced LaTeX Graphics (DPC,SPQR)
+
+(C:\Program Files\MiKTeX\tex/latex/graphics\graphics.sty
+Package: graphics 2021/03/04 v1.4d Standard LaTeX Graphics (DPC,SPQR)
+
+(C:\Program Files\MiKTeX\tex/latex/graphics\trig.sty
+Package: trig 2016/01/03 v1.10 sin cos tan (DPC)
+)
+(C:\Program Files\MiKTeX\tex/latex/graphics-cfg\graphics.cfg
+File: graphics.cfg 2016/06/04 v1.11 sample graphics configuration
+)
+Package graphics Info: Driver file: pdftex.def on input line 107.
+)
+\Gin@req@height=\dimen159
+\Gin@req@width=\dimen160
+)
+(C:\Users\ctran\AppData\Roaming\MiKTeX\tex/latex/algorithms\algorithm.sty
+Package: algorithm 2009/08/24 v0.1 Document Style `algorithm' - floating enviro
+nment
+
+(C:\Users\ctran\AppData\Roaming\MiKTeX\tex/latex/float\float.sty
+Package: float 2001/11/08 v1.3d Float enhancements (AL)
+\c@float@type=\count285
+\float@exts=\toks23
+\float@box=\box54
+\@float@everytoks=\toks24
+\@floatcapt=\box55
+)
+\@float@every@algorithm=\toks25
+\c@algorithm=\count286
+)
+(C:\Program Files\MiKTeX\tex/latex/hyperref\hyperref.sty
+Package: hyperref 2021-06-05 v7.00l Hypertext links for LaTeX
+
+(C:\Users\ctran\AppData\Roaming\MiKTeX\tex/generic/ltxcmds\ltxcmds.sty
+Package: ltxcmds 2020-05-10 v1.25 LaTeX kernel commands for general use (HO)
+)
+(C:\Program Files\MiKTeX\tex/generic/iftex\iftex.sty
+Package: iftex 2020/03/06 v1.0d TeX engine tests
+)
+(C:\Program Files\MiKTeX\tex/generic/pdftexcmds\pdftexcmds.sty
+Package: pdftexcmds 2020-06-27 v0.33 Utility functions of pdfTeX for LuaTeX (HO
+)
+
+(C:\Users\ctran\AppData\Roaming\MiKTeX\tex/generic/infwarerr\infwarerr.sty
+Package: infwarerr 2019/12/03 v1.5 Providing info/warning/error messages (HO)
+)
+Package pdftexcmds Info: \pdf@primitive is available.
+Package pdftexcmds Info: \pdf@ifprimitive is available.
+Package pdftexcmds Info: \pdfdraftmode found.
+)
+(C:\Users\ctran\AppData\Roaming\MiKTeX\tex/generic/kvsetkeys\kvsetkeys.sty
+Package: kvsetkeys 2019/12/15 v1.18 Key value parser (HO)
+)
+(C:\Users\ctran\AppData\Roaming\MiKTeX\tex/generic/kvdefinekeys\kvdefinekeys.st
+y
+Package: kvdefinekeys 2019-12-19 v1.6 Define keys (HO)
+) (C:\Users\ctran\AppData\Roaming\MiKTeX\tex/generic/pdfescape\pdfescape.sty
+Package: pdfescape 2019/12/09 v1.15 Implements pdfTeX's escape features (HO)
+)
+(C:\Users\ctran\AppData\Roaming\MiKTeX\tex/latex/hycolor\hycolor.sty
+Package: hycolor 2020-01-27 v1.10 Color options for hyperref/bookmark (HO)
+)
+(C:\Users\ctran\AppData\Roaming\MiKTeX\tex/latex/letltxmacro\letltxmacro.sty
+Package: letltxmacro 2019/12/03 v1.6 Let assignment for LaTeX macros (HO)
+)
+(C:\Users\ctran\AppData\Roaming\MiKTeX\tex/latex/auxhook\auxhook.sty
+Package: auxhook 2019-12-17 v1.6 Hooks for auxiliary files (HO)
+)
+(C:\Users\ctran\AppData\Roaming\MiKTeX\tex/latex/kvoptions\kvoptions.sty
+Package: kvoptions 2020-10-07 v3.14 Key value format for package options (HO)
+)
+\@linkdim=\dimen161
+\Hy@linkcounter=\count287
+\Hy@pagecounter=\count288
+
+(C:\Program Files\MiKTeX\tex/latex/hyperref\pd1enc.def
+File: pd1enc.def 2021-06-05 v7.00l Hyperref: PDFDocEncoding definition (HO)
+Now handling font encoding PD1 ...
+... no UTF-8 mapping file for font encoding PD1
+)
+(C:\Program Files\MiKTeX\tex/latex/hyperref\hyperref-langpatches.def
+File: hyperref-langpatches.def 2021-06-05 v7.00l Hyperref: patches for babel la
+nguages
+)
+(C:\Users\ctran\AppData\Roaming\MiKTeX\tex/generic/intcalc\intcalc.sty
+Package: intcalc 2019/12/15 v1.3 Expandable calculations with integers (HO)
+)
+(C:\Users\ctran\AppData\Roaming\MiKTeX\tex/generic/etexcmds\etexcmds.sty
+Package: etexcmds 2019/12/15 v1.7 Avoid name clashes with e-TeX commands (HO)
+)
+\Hy@SavedSpaceFactor=\count289
+
+(C:\Program Files\MiKTeX\tex/latex/hyperref\puenc.def
+File: puenc.def 2021-06-05 v7.00l Hyperref: PDF Unicode definition (HO)
+Now handling font encoding PU ...
+... no UTF-8 mapping file for font encoding PU
+)
+Package hyperref Info: Hyper figures OFF on input line 4192.
+Package hyperref Info: Link nesting OFF on input line 4197.
+Package hyperref Info: Hyper index ON on input line 4200.
+Package hyperref Info: Plain pages OFF on input line 4207.
+Package hyperref Info: Backreferencing OFF on input line 4212.
+Package hyperref Info: Implicit mode ON; LaTeX internals redefined.
+Package hyperref Info: Bookmarks ON on input line 4445.
+\c@Hy@tempcnt=\count290
+
+(C:\Program Files\MiKTeX\tex/latex/url\url.sty
+\Urlmuskip=\muskip17
+Package: url 2013/09/16  ver 3.4  Verb mode for urls, etc.
+)
+LaTeX Info: Redefining \url on input line 4804.
+\XeTeXLinkMargin=\dimen162
+
+(C:\Users\ctran\AppData\Roaming\MiKTeX\tex/generic/bitset\bitset.sty
+Package: bitset 2019/12/09 v1.3 Handle bit-vector datatype (HO)
+
+(C:\Users\ctran\AppData\Roaming\MiKTeX\tex/generic/bigintcalc\bigintcalc.sty
+Package: bigintcalc 2019/12/15 v1.5 Expandable calculations on big integers (HO
+)
+))
+\Fld@menulength=\count291
+\Field@Width=\dimen163
+\Fld@charsize=\dimen164
+Package hyperref Info: Hyper figures OFF on input line 6076.
+Package hyperref Info: Link nesting OFF on input line 6081.
+Package hyperref Info: Hyper index ON on input line 6084.
+Package hyperref Info: backreferencing OFF on input line 6091.
+Package hyperref Info: Link coloring OFF on input line 6096.
+Package hyperref Info: Link coloring with OCG OFF on input line 6101.
+Package hyperref Info: PDF/A mode OFF on input line 6106.
+LaTeX Info: Redefining \ref on input line 6146.
+LaTeX Info: Redefining \pageref on input line 6150.
+
+(C:\Program Files\MiKTeX\tex/latex/base\atbegshi-ltx.sty
+Package: atbegshi-ltx 2021/01/10 v1.0c Emulation of the original atbegshi
+package with kernel methods
+)
+\Hy@abspage=\count292
+\c@Item=\count293
+\c@Hfootnote=\count294
+)
+Package hyperref Info: Driver (autodetected): hpdftex.
+
+(C:\Program Files\MiKTeX\tex/latex/hyperref\hpdftex.def
+File: hpdftex.def 2021-06-05 v7.00l Hyperref driver for pdfTeX
+
+(C:\Program Files\MiKTeX\tex/latex/base\atveryend-ltx.sty
+Package: atveryend-ltx 2020/08/19 v1.0a Emulation of the original atvery packag
+e
+with kernel methods
+)
+\Fld@listcount=\count295
+\c@bookmark@seq@number=\count296
+
+(C:\Users\ctran\AppData\Roaming\MiKTeX\tex/latex/rerunfilecheck\rerunfilecheck.
+sty
+Package: rerunfilecheck 2019/12/05 v1.9 Rerun checks for auxiliary files (HO)
+
+(C:\Users\ctran\AppData\Roaming\MiKTeX\tex/generic/uniquecounter\uniquecounter.
+sty
+Package: uniquecounter 2019/12/15 v1.4 Provide unlimited unique counter (HO)
+)
+Package uniquecounter Info: New unique counter `rerunfilecheck' on input line 2
+86.
+)
+\Hy@SectionHShift=\skip60
+)
+
+Package hyperref Warning: Unexpected value for option `hidelinks'
+(hyperref)                is ignored on input line 9.
+
+(C:\Program Files\MiKTeX\tex/latex/base\textcomp.sty
+Package: textcomp 2020/02/02 v2.0n Standard LaTeX package
+)
+(C:\Program Files\MiKTeX\tex/latex/l3backend\l3backend-pdftex.def
+File: l3backend-pdftex.def 2021-05-07 L3 backend support: PDF output (pdfTeX)
+\l__color_backend_stack_int=\count297
+\l__pdf_internal_box=\box56
+)
+No file main.aux.
+\openout1 = `main.aux'.
+
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 15.
+LaTeX Font Info:    ... okay on input line 15.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 15.
+LaTeX Font Info:    ... okay on input line 15.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 15.
+LaTeX Font Info:    ... okay on input line 15.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 15.
+LaTeX Font Info:    ... okay on input line 15.
+LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 15.
+LaTeX Font Info:    ... okay on input line 15.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 15.
+LaTeX Font Info:    ... okay on input line 15.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 15.
+LaTeX Font Info:    ... okay on input line 15.
+LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 15.
+LaTeX Font Info:    ... okay on input line 15.
+LaTeX Font Info:    Checking defaults for PU/pdf/m/n on input line 15.
+LaTeX Font Info:    ... okay on input line 15.
+(C:\Program Files\MiKTeX\tex/context/base/mkii\supp-pdf.mkii
+[Loading MPS to PDF converter (version 2006.09.02).]
+\scratchcounter=\count298
+\scratchdimen=\dimen165
+\scratchbox=\box57
+\nofMPsegments=\count299
+\nofMParguments=\count300
+\everyMPshowfont=\toks26
+\MPscratchCnt=\count301
+\MPscratchDim=\dimen166
+\MPnumerator=\count302
+\makeMPintoPDFobject=\count303
+\everyMPtoPDFconversion=\toks27
+) (C:\Program Files\MiKTeX\tex/latex/epstopdf-pkg\epstopdf-base.sty
+Package: epstopdf-base 2020-01-24 v2.11 Base part for package epstopdf
+Package epstopdf-base Info: Redefining graphics rule for `.eps' on input line 4
+85.
+
+(C:\Program Files\MiKTeX\tex/latex/00miktex\epstopdf-sys.cfg
+File: epstopdf-sys.cfg 2021/03/18 v2.0 Configuration of epstopdf for MiKTeX
+))
+Package hyperref Info: Link coloring OFF on input line 15.
+
+(C:\Program Files\MiKTeX\tex/latex/hyperref\nameref.sty
+Package: nameref 2021-04-02 v2.47 Cross-referencing by name of section
+
+(C:\Users\ctran\AppData\Roaming\MiKTeX\tex/latex/refcount\refcount.sty
+Package: refcount 2019/12/15 v3.6 Data extraction from label references (HO)
+)
+(C:\Users\ctran\AppData\Roaming\MiKTeX\tex/generic/gettitlestring\gettitlestrin
+g.sty
+Package: gettitlestring 2019/12/15 v1.6 Cleanup title references (HO)
+)
+\c@section@level=\count304
+)
+LaTeX Info: Redefining \ref on input line 15.
+LaTeX Info: Redefining \pageref on input line 15.
+LaTeX Info: Redefining \nameref on input line 15.
+\@outlinefile=\write3
+\openout3 = `main.out'.
+
+Package color Info: Redefining color nblue on input line 36.
+Package color Info: Redefining color mblue on input line 36.
+LaTeX Font Info:    Trying to load font information for OT1+phv on input line 3
+6.
+ (C:\Users\ctran\AppData\Roaming\MiKTeX\tex/latex/psnfss\ot1phv.fd
+File: ot1phv.fd 2020/03/25 scalable font definitions for OT1/phv.
+)
+LaTeX Font Info:    Font shape `OT1/phv/m/it' in size <11> not available
+(Font)              Font shape `OT1/phv/m/sl' tried instead on input line 36.
+Package color Info: Redefining color nblue on input line 36.
+Package color Info: Redefining color mblue on input line 36.
+LaTeX Font Info:    Trying to load font information for U+msa on input line 36.
+
+
+(C:\Program Files\MiKTeX\tex/latex/amsfonts\umsa.fd
+File: umsa.fd 2013/01/14 v3.01 AMS symbols A
+)
+LaTeX Font Info:    Trying to load font information for U+msb on input line 36.
+
+
+(C:\Program Files\MiKTeX\tex/latex/amsfonts\umsb.fd
+File: umsb.fd 2013/01/14 v3.01 AMS symbols B
+)
+Package color Info: Redefining color nblue on input line 37.
+Package color Info: Redefining color mblue on input line 37.
+LaTeX Font Info:    Font shape `OT1/phv/b/it' in size <9> not available
+(Font)              Font shape `OT1/phv/b/sl' tried instead on input line 37.
+Package color Info: Redefining color nblue on input line 60.
+Package color Info: Redefining color mblue on input line 60.
+
+Underfull \hbox (badness 10000) in paragraph at lines 60--62
+[]\OT1/phv/b/sl/9 Index Terms\OT1/phv/b/n/9 ---[]Enter key words or phrases in
+ []
+
+
+Underfull \hbox (badness 3679) in paragraph at lines 60--62
+\OT1/phv/b/n/9 al-pha-bet-i-cal or-der, sep-a-rated by com-mas. Us-ing the
+ []
+
+
+Underfull \hbox (badness 1629) in paragraph at lines 60--62
+\OT1/phv/b/n/9 re-quest form for free ac-cess to the IEEE The-saurus:
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 60--62
+[]$
+ []
+
+LaTeX Font Info:    Trying to load font information for T1+phv on input line 64
+.
+(C:\Users\ctran\AppData\Roaming\MiKTeX\tex/latex/psnfss\t1phv.fd
+File: t1phv.fd 2020/03/25 scalable font definitions for T1/phv.
+)
+Underfull \hbox (badness 10000) in paragraph at lines 66--76
+[]$
+ []
+
+
+Overfull \hbox (4.59573pt too wide) in paragraph at lines 66--76
+[]$
+ []
+
+
+Underfull \hbox (badness 6445) in paragraph at lines 66--76
+\OT1/ptm/m/n/10 so you can use it to pre-pare your manuscript. If
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 66--76
+\OT1/ptm/m/n/10 you would pre-fer to use L[]T[]X, down-load IEEE's
+ []
+
+
+Underfull \hbox (badness 1789) in paragraph at lines 66--76
+\OT1/ptm/m/n/10 L[]T[]Xstyle and sam-ple files from the same Web page.
+ []
+
+
+Underfull \hbox (badness 6708) in paragraph at lines 66--76
+\OT1/ptm/m/n/10 You can also ex-plore us-ing the Over-leaf ed-i-tor at
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 66--76
+[]$
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 66--76
+[]$
+ []
+
+LaTeX Font Info:    Font shape `OT1/phv/m/it' in size <10> not available
+(Font)              Font shape `OT1/phv/m/sl' tried instead on input line 84.
+
+LaTeX Warning: Reference `eq' on page 1 undefined on input line 95.
+
+
+LaTeX Warning: Reference `eq' on page 1 undefined on input line 96.
+
+
+LaTeX Warning: Reference `eq' on page 1 undefined on input line 96.
+
+
+LaTeX Warning: Reference `eq' on page 1 undefined on input line 97.
+
+Package epstopdf Info: Source file: <logo.eps>
+(epstopdf)                    date: 2023-03-10 20:09:56
+(epstopdf)                    size: 96860 bytes
+(epstopdf)             Output file: <logo-eps-converted-to.pdf>
+(epstopdf)             Command: <miktex-epstopdf --outfile=logo-eps-converted-t
+o.pdf logo.eps>
+(epstopdf)             \includegraphics on input line 117.
+runsystem(miktex-epstopdf --outfile=logo-eps-converted-to.pdf logo.eps)...execu
+ted (allowed).
+
+Package epstopdf Info: Result file: <logo-eps-converted-to.pdf>
+(epstopdf)                    date: 2023-06-13 13:58:55
+(epstopdf)                    size: 6716 bytes.
+
+
+pdfTeX warning: pdflatex (file ./logo-eps-converted-to.pdf): PDF inclusion: fou
+nd PDF version <1.7>, but at most version <1.5> allowed
+<logo-eps-converted-to.pdf, id=3, 55.20625pt x 34.1275pt>
+File: logo-eps-converted-to.pdf Graphic file (type pdf)
+<use logo-eps-converted-to.pdf>
+Package pdftex.def Info: logo-eps-converted-to.pdf  used on input line 117.
+(pdftex.def)             Requested size: 35.88362pt x 22.18259pt.
+
+Overfull \hbox (295.0pt too wide) has occurred while \output is active
+[][] 
+ []
+
+
+Underfull \hbox (badness 10000) has occurred while \output is active
+[]
+ []
+
+
+Overfull \vbox (22.5621pt too high) has occurred while \output is active []
+
+
+[1{C:/Users/ctran/AppData/Local/MiKTeX/pdftex/config/pdftex.map}
+
+
+ <./logo-eps-converted-to.pdf>]
+
+LaTeX Warning: Reference `eq' on page 2 undefined on input line 124.
+
+
+LaTeX Warning: Reference `eq' on page 2 undefined on input line 132.
+
+
+LaTeX Warning: Reference `eq' on page 2 undefined on input line 132.
+
+
+LaTeX Warning: Reference `eq' on page 2 undefined on input line 133.
+
+
+LaTeX Warning: Reference `eq' on page 2 undefined on input line 133.
+
+Package hyperref Info: bookmark level for unknown algorithm defaults to 0 on in
+put line 139.
+LaTeX Font Info:    Font shape `OT1/phv/m/it' in size <7> not available
+(Font)              Font shape `OT1/phv/m/sl' tried instead on input line 156.
+LaTeX Font Info:    Trying to load font information for OT1+pcr on input line 1
+58.
+(C:\Users\ctran\AppData\Roaming\MiKTeX\tex/latex/psnfss\ot1pcr.fd
+File: ot1pcr.fd 2001/06/04 font definitions for OT1/pcr.
+)
+LaTeX Font Info:    Trying to load font information for OMS+pcr on input line 2
+00.
+
+(C:\Users\ctran\AppData\Roaming\MiKTeX\tex/latex/psnfss\omspcr.fd
+File: omspcr.fd 
+)
+LaTeX Font Info:    Font shape `OMS/pcr/m/n' in size <9> not available
+(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 200.
+LaTeX Font Info:    Font shape `OT1/pcr/m/it' in size <9> not available
+(Font)              Font shape `OT1/pcr/m/sl' tried instead on input line 201.
+
+Overfull \hbox (8.91965pt too wide) in paragraph at lines 197--204
+ []
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 197--204
+
+ []
+
+LaTeX Font Info:    Trying to load font information for TS1+ptm on input line 2
+10.
+(C:\Users\ctran\AppData\Roaming\MiKTeX\tex/latex/psnfss\ts1ptm.fd
+File: ts1ptm.fd 2001/06/04 font definitions for TS1/ptm.
+)
+<fig1.png, id=24, 249.3315pt x 189.22694pt>
+File: fig1.png Graphic file (type png)
+<use fig1.png>
+Package pdftex.def Info: fig1.png  used on input line 239.
+(pdftex.def)             Requested size: 252.0pt x 191.25339pt.
+
+Overfull \vbox (5.0pt too high) has occurred while \output is active []
+
+ [2]
+Underfull \hbox (badness 10000) in paragraph at lines 258--260
+[]\OT1/ptm/m/n/10 IEEE styleguides are avail-able at https://journals.
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 258--260
+\OT1/ptm/m/n/10 ieeeauthorcenter.ieee.org/create-your-ieee-journal-article/
+ []
+
+LaTeX Font Info:    Font shape `OT1/phv/m/it' in size <9> not available
+(Font)              Font shape `OT1/phv/m/sl' tried instead on input line 270.
+\width=\dimen167
+
+Underfull \hbox (badness 2591) in paragraph at lines 315--316
+[]\OT1/ptm/m/n/8 1 erg/(G$\OMS/cmsy/m/n/8 $\OT1/ptm/m/n/8 g) $\OT1/cmr/m/n/8 =
+$ \OT1/ptm/m/n/8 1 emu/g $\OMS/cmsy/m/n/8 !$ \OT1/ptm/m/n/8 1
+ []
+
+
+Overfull \hbox (5.0pt too wide) in paragraph at lines 289--349
+[][]
+ []
+
+
+Overfull \vbox (5.0pt too high) has occurred while \output is active []
+
+ [3
+
+pdfTeX warning: pdflatex: pop empty color page stack 0
+
+
+pdfTeX warning: pdflatex: pop empty color page stack 0
+
+
+pdfTeX warning: pdflatex: pop empty color page stack 0
+
+
+pdfTeX warning: pdflatex: pop empty color page stack 0
+
+
+pdfTeX warning: pdflatex: pop empty color page stack 0
+ <A:/data/WMSx1/template_latex/TAC/TAC-from-selector_20230613/fig1.png (PNG cop
+y)>]
+Underfull \hbox (badness 2941) in paragraph at lines 398--403
+\OT1/ptm/m/n/10 (red/green/blue) and CMYK (cyan/magenta/yellow/black).
+ []
+
+
+Underfull \hbox (badness 2469) in paragraph at lines 404--409
+\OT1/ptm/m/n/10 color space. Grayscale im-ages should be sub-mit-ted in
+ []
+
+
+LaTeX Warning: Reference `formats' on page 4 undefined on input line 478.
+
+
+Overfull \vbox (5.0pt too high) has occurred while \output is active []
+
+ [4]
+Underfull \hbox (badness 2409) in paragraph at lines 521--528
+\OT1/ptm/m/n/10 ci-ta-tion first, fol-lowed by the orig-i-nal foreign-language
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 521--528
+\OT1/ptm/m/n/10 at https://journals.ieeeauthorcenter.ieee.org/create-your-ieee-
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 521--528
+\OT1/ptm/m/n/10 journal-article/create-the-text-of-your-article/ieee-editorial-
+
+ []
+
+
+LaTeX Warning: Reference `table' on page 5 undefined on input line 536.
+
+
+Underfull \hbox (badness 4316) in paragraph at lines 542--543
+\OT1/ptm/m/n/10 may be sub-mit-ted elec-tron-i-cally on IEEE Schol-arOne
+ []
+
+
+Underfull \hbox (badness 5533) in paragraph at lines 542--543
+\OT1/ptm/m/n/10 Manuscripts. You can get help choos-ing the cor-rect
+ []
+
+
+Underfull \hbox (badness 2875) in paragraph at lines 542--543
+\OT1/ptm/m/n/10 pub-li-ca-tion for your manuscript as well as find their
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 542--543
+\OT1/ptm/m/n/10 http://www.ieee.org/publications[]standards/publications/
+ []
+
+
+Underfull \hbox (badness 4913) in paragraph at lines 542--543
+\OT1/ptm/m/n/10 authors/authors[]submission.html. Once you have cho-sen
+ []
+
+
+Overfull \vbox (5.0pt too high) has occurred while \output is active []
+
+ [5]
+
+Package hyperref Warning: Token not allowed in a PDF string (Unicode):
+(hyperref)                removing `\vadjust' on input line 610.
+
+
+Package hyperref Warning: Token not allowed in a PDF string (Unicode):
+(hyperref)                removing `\new@ifnextchar' on input line 610.
+
+! Missing number, treated as zero.
+<to be read again> 
+                   p
+l.610 \begin{thebibliography}{00}
+                                 
+? 
+
+Underfull \hbox (badness 2368) in paragraph at lines 612--613
+[]\OT1/ptm/m/n/8 W.-K. Chen, \OT1/ptm/m/it/8 Lin-ear Net-works and Sys-tems.\OT
+1/ptm/m/n/8 Belmont, CA, USA:
+ []
+
+
+Package hyperref Warning: Token not allowed in a PDF string (Unicode):
+(hyperref)                removing `\vadjust' on input line 622.
+
+
+Package hyperref Warning: Token not allowed in a PDF string (Unicode):
+(hyperref)                removing `\new@ifnextchar' on input line 622.
+
+! Missing number, treated as zero.
+<to be read again> 
+                   p
+l.622 \begin{thebibliography}{00}
+                                 \leftskip1pc
+? 
+
+Package hyperref Warning: Token not allowed in a PDF string (Unicode):
+(hyperref)                removing `\vadjust' on input line 636.
+
+
+Package hyperref Warning: Token not allowed in a PDF string (Unicode):
+(hyperref)                removing `\new@ifnextchar' on input line 636.
+
+! Missing number, treated as zero.
+<to be read again> 
+                   p
+l.636 \begin{thebibliography}{00}
+                                 \leftskip1pc
+? 
+
+Package hyperref Warning: Token not allowed in a PDF string (Unicode):
+(hyperref)                removing `\vadjust' on input line 648.
+
+
+Package hyperref Warning: Token not allowed in a PDF string (Unicode):
+(hyperref)                removing `\new@ifnextchar' on input line 648.
+
+! Missing number, treated as zero.
+<to be read again> 
+                   p
+l.648 \begin{thebibliography}{00}
+                                 \leftskip1pc
+? 
+
+Package hyperref Warning: Token not allowed in a PDF string (Unicode):
+(hyperref)                removing `\vadjust' on input line 664.
+
+
+Package hyperref Warning: Token not allowed in a PDF string (Unicode):
+(hyperref)                removing `\new@ifnextchar' on input line 664.
+
+! Missing number, treated as zero.
+<to be read again> 
+                   p
+l.664 \begin{thebibliography}{00}
+                                 \leftskip1pc
+? 
+
+Underfull \hbox (badness 10000) in paragraph at lines 667--668
+ []\OT1/ptm/m/n/8 The Ter-a-hertz Wave eBook. ZOmega Ter-a-
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 667--668
+ \OT1/ptm/m/n/8 hertz Corp., 2014. [On-line]. Avail-able: http://dl.z-
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 667--668
+ \OT1/ptm/m/n/8 thz.com/eBook/zomega[]ebook[]pdf[]1206[]sr.pdf. Ac-cessed on:
+ []
+
+
+Underfull \hbox (badness 4429) in paragraph at lines 668--669
+ []\OT1/ptm/m/n/8 Philip B. Kur-land and Ralph Lerner, eds., \OT1/ptm/m/it/8 Th
+e Founders'
+ []
+
+
+Underfull \hbox (badness 1817) in paragraph at lines 668--669
+ \OT1/ptm/m/n/8 Ac-cessed on: Feb. 28, 2010, [On-line] Avail-able: http://press
+-
+ []
+
+
+Package hyperref Warning: Token not allowed in a PDF string (Unicode):
+(hyperref)                removing `\vadjust' on input line 679.
+
+
+Package hyperref Warning: Token not allowed in a PDF string (Unicode):
+(hyperref)                removing `\new@ifnextchar' on input line 679.
+
+! Missing number, treated as zero.
+<to be read again> 
+                   p
+l.679 \begin{thebibliography}{00}
+                                 \leftskip1pc
+? 
+
+Package hyperref Warning: Token not allowed in a PDF string (Unicode):
+(hyperref)                removing `\vadjust' on input line 692.
+
+
+Package hyperref Warning: Token not allowed in a PDF string (Unicode):
+(hyperref)                removing `\new@ifnextchar' on input line 692.
+
+! Missing number, treated as zero.
+<to be read again> 
+                   p
+l.692 \begin{thebibliography}{00}
+                                 \leftskip1pc
+? 
+
+Overfull \vbox (5.0pt too high) has occurred while \output is active []
+
+ [6]
+
+Package hyperref Warning: Token not allowed in a PDF string (Unicode):
+(hyperref)                removing `\vadjust' on input line 704.
+
+
+Package hyperref Warning: Token not allowed in a PDF string (Unicode):
+(hyperref)                removing `\new@ifnextchar' on input line 704.
+
+! Missing number, treated as zero.
+<to be read again> 
+                   p
+l.704 \begin{thebibliography}{00}
+                                 \leftskip1pc
+? 
+
+Underfull \hbox (badness 10000) in paragraph at lines 706--707
+ \OT1/ptm/m/n/8 http://www.lytera.de/Terahertz[]THz[]Spectroscopy.php?id$\OT1/c
+mr/m/n/8 =$\OT1/ptm/m/n/8 home,
+ []
+
+
+Package hyperref Warning: Token not allowed in a PDF string (Unicode):
+(hyperref)                removing `\vadjust' on input line 721.
+
+
+Package hyperref Warning: Token not allowed in a PDF string (Unicode):
+(hyperref)                removing `\new@ifnextchar' on input line 721.
+
+! Missing number, treated as zero.
+<to be read again> 
+                   p
+l.721 \begin{thebibliography}{00}
+                                 \leftskip1pc
+? 
+
+Package hyperref Warning: Token not allowed in a PDF string (Unicode):
+(hyperref)                removing `\vadjust' on input line 732.
+
+
+Package hyperref Warning: Token not allowed in a PDF string (Unicode):
+(hyperref)                removing `\new@ifnextchar' on input line 732.
+
+! Missing number, treated as zero.
+<to be read again> 
+                   p
+l.732 \begin{thebibliography}{00}
+                                 \leftskip1pc
+? 
+
+Package hyperref Warning: Token not allowed in a PDF string (Unicode):
+(hyperref)                removing `\vadjust' on input line 744.
+
+
+Package hyperref Warning: Token not allowed in a PDF string (Unicode):
+(hyperref)                removing `\new@ifnextchar' on input line 744.
+
+! Missing number, treated as zero.
+<to be read again> 
+                   p
+l.744 \begin{thebibliography}{00}
+                                 \leftskip1pc
+? 
+
+Package hyperref Warning: Token not allowed in a PDF string (Unicode):
+(hyperref)                removing `\vadjust' on input line 751.
+
+
+Package hyperref Warning: Token not allowed in a PDF string (Unicode):
+(hyperref)                removing `\new@ifnextchar' on input line 751.
+
+! Missing number, treated as zero.
+<to be read again> 
+                   p
+l.751 \begin{thebibliography}{00}
+                                 \leftskip1pc
+? 
+
+Package hyperref Warning: Token not allowed in a PDF string (Unicode):
+(hyperref)                removing `\vadjust' on input line 761.
+
+
+Package hyperref Warning: Token not allowed in a PDF string (Unicode):
+(hyperref)                removing `\new@ifnextchar' on input line 761.
+
+! Missing number, treated as zero.
+<to be read again> 
+                   p
+l.761 \begin{thebibliography}{00}
+                                 \leftskip1pc
+? 
+
+Package hyperref Warning: Token not allowed in a PDF string (Unicode):
+(hyperref)                removing `\vadjust' on input line 775.
+
+
+Package hyperref Warning: Token not allowed in a PDF string (Unicode):
+(hyperref)                removing `\new@ifnextchar' on input line 775.
+
+! Missing number, treated as zero.
+<to be read again> 
+                   p
+l.775 \begin{thebibliography}{00}
+                                 \leftskip1pc
+? 
+
+Package hyperref Warning: Token not allowed in a PDF string (Unicode):
+(hyperref)                removing `\vadjust' on input line 790.
+
+
+Package hyperref Warning: Token not allowed in a PDF string (Unicode):
+(hyperref)                removing `\new@ifnextchar' on input line 790.
+
+! Missing number, treated as zero.
+<to be read again> 
+                   p
+l.790 \begin{thebibliography}{00}
+                                 \leftskip1pc
+? 
+
+Package hyperref Warning: Token not allowed in a PDF string (Unicode):
+(hyperref)                removing `\vadjust' on input line 804.
+
+
+Package hyperref Warning: Token not allowed in a PDF string (Unicode):
+(hyperref)                removing `\new@ifnextchar' on input line 804.
+
+! Missing number, treated as zero.
+<to be read again> 
+                   p
+l.804 \begin{thebibliography}{00}
+                                 \leftskip1pc
+? 
+
+Package hyperref Warning: Token not allowed in a PDF string (Unicode):
+(hyperref)                removing `\vadjust' on input line 811.
+
+
+Package hyperref Warning: Token not allowed in a PDF string (Unicode):
+(hyperref)                removing `\new@ifnextchar' on input line 811.
+
+! Missing number, treated as zero.
+<to be read again> 
+                   p
+l.811 \begin{thebibliography}{00}
+                                 \leftskip1pc
+? 
+
+Package hyperref Warning: Token not allowed in a PDF string (Unicode):
+(hyperref)                removing `\vadjust' on input line 818.
+
+
+Package hyperref Warning: Token not allowed in a PDF string (Unicode):
+(hyperref)                removing `\new@ifnextchar' on input line 818.
+
+! Missing number, treated as zero.
+<to be read again> 
+                   p
+l.818 \begin{thebibliography}{00}
+                                 \leftskip1pc
+? 
+
+Package hyperref Warning: Token not allowed in a PDF string (Unicode):
+(hyperref)                removing `\vadjust' on input line 828.
+
+
+Package hyperref Warning: Token not allowed in a PDF string (Unicode):
+(hyperref)                removing `\new@ifnextchar' on input line 828.
+
+! Missing number, treated as zero.
+<to be read again> 
+                   p
+l.828 \begin{thebibliography}{00}
+                                 \leftskip1pc
+? 
+
+Package hyperref Warning: Token not allowed in a PDF string (Unicode):
+(hyperref)                removing `\vadjust' on input line 838.
+
+
+Package hyperref Warning: Token not allowed in a PDF string (Unicode):
+(hyperref)                removing `\new@ifnextchar' on input line 838.
+
+! Missing number, treated as zero.
+<to be read again> 
+                   p
+l.838 \begin{thebibliography}{00}
+                                 \leftskip1pc
+? 
+
+Underfull \hbox (badness 1460) in paragraph at lines 839--840
+ []\OT1/ptm/m/n/8 T. D'Martin and S. Soares, 2019, ``Code for As-sess-ment of
+ []
+
+
+Overfull \vbox (5.0pt too high) has occurred while \output is active []
+
+ [7]
+<a1.png, id=180, 225.84375pt x 282.30469pt>
+File: a1.png Graphic file (type png)
+<use a1.png>
+Package pdftex.def Info: a1.png  used on input line 842.
+(pdftex.def)             Requested size: 72.27147pt x 90.33934pt.
+File: a1.png Graphic file (type png)
+<use a1.png>
+Package pdftex.def Info: a1.png  used on input line 842.
+(pdftex.def)             Requested size: 72.27147pt x 90.33934pt.
+
+Overfull \vbox (5.0pt too high) has occurred while \output is active []
+
+ [8
+
+ <A:/data/WMSx1/template_latex/TAC/TAC-from-selector_20230613/a1.png>] (main.au
+x)
+
+LaTeX Warning: There were undefined references.
+
+
+LaTeX Warning: Label(s) may have changed. Rerun to get cross-references right.
+
+
+Package rerunfilecheck Warning: File `main.out' has changed.
+(rerunfilecheck)                Rerun to get outlines right
+(rerunfilecheck)                or use package `bookmark'.
+
+Package rerunfilecheck Info: Checksums for `main.out':
+(rerunfilecheck)             Before: <no file>
+(rerunfilecheck)             After:  DE43C49D394CBFAE455638A4CF266475;7969.
+ ) 
+Here is how much of TeX's memory you used:
+ 10592 strings out of 478864
+ 154269 string characters out of 2858517
+ 486855 words of memory out of 3000000
+ 28190 multiletter control sequences out of 15000+600000
+ 486197 words of font info for 162 fonts, out of 8000000 for 9000
+ 1141 hyphenation exceptions out of 8191
+ 60i,19n,66p,812b,443s stack positions out of 5000i,500n,10000p,200000b,80000s
+{C:/Program Files/MiKTeX/fonts/enc/dvips/base/8r.enc}<C:/Program Files/MiKTeX
+/fonts/type1/public/amsfonts/cm/cmbx10.pfb><C:/Program Files/MiKTeX/fonts/type1
+/public/amsfonts/cm/cmbx7.pfb><C:/Program Files/MiKTeX/fonts/type1/public/amsfo
+nts/cm/cmex10.pfb><C:/Program Files/MiKTeX/fonts/type1/public/amsfonts/cm/cmmi1
+0.pfb><C:/Program Files/MiKTeX/fonts/type1/public/amsfonts/cm/cmmi5.pfb><C:/Pro
+gram Files/MiKTeX/fonts/type1/public/amsfonts/cm/cmmi6.pfb><C:/Program Files/Mi
+KTeX/fonts/type1/public/amsfonts/cm/cmmi7.pfb><C:/Program Files/MiKTeX/fonts/ty
+pe1/public/amsfonts/cm/cmmi8.pfb><C:/Program Files/MiKTeX/fonts/type1/public/am
+sfonts/cm/cmr10.pfb><C:/Program Files/MiKTeX/fonts/type1/public/amsfonts/cm/cmr
+6.pfb><C:/Program Files/MiKTeX/fonts/type1/public/amsfonts/cm/cmr7.pfb><C:/Prog
+ram Files/MiKTeX/fonts/type1/public/amsfonts/cm/cmr8.pfb><C:/Program Files/MiKT
+eX/fonts/type1/public/amsfonts/cm/cmsy10.pfb><C:/Program Files/MiKTeX/fonts/typ
+e1/public/amsfonts/cm/cmsy6.pfb><C:/Program Files/MiKTeX/fonts/type1/public/ams
+fonts/cm/cmsy7.pfb><C:/Program Files/MiKTeX/fonts/type1/public/amsfonts/cm/cmsy
+8.pfb><C:/Program Files/MiKTeX/fonts/type1/public/amsfonts/cm/cmsy9.pfb><C:/Pro
+gram Files/MiKTeX/fonts/type1/public/amsfonts/symbols/msbm10.pfb><C:/Program Fi
+les/MiKTeX/fonts/type1/urw/courier/ucrr8a.pfb><C:/Program Files/MiKTeX/fonts/ty
+pe1/urw/courier/ucrro8a.pfb><C:/Program Files/MiKTeX/fonts/type1/urw/helvetic/u
+hvb8a.pfb><C:/Program Files/MiKTeX/fonts/type1/urw/helvetic/uhvbo8a.pfb><C:/Pro
+gram Files/MiKTeX/fonts/type1/urw/helvetic/uhvr8a.pfb><C:/Program Files/MiKTeX/
+fonts/type1/urw/helvetic/uhvro8a.pfb><C:/Program Files/MiKTeX/fonts/type1/urw/t
+imes/utmb8a.pfb><C:/Program Files/MiKTeX/fonts/type1/urw/times/utmr8a.pfb><C:/P
+rogram Files/MiKTeX/fonts/type1/urw/times/utmri8a.pfb>
+Output written on main.pdf (8 pages, 457402 bytes).
+PDF statistics:
+ 332 PDF objects out of 1000 (max. 8388607)
+ 126 named destinations out of 1000 (max. 500000)
+ 28 words of extra memory for PDF output out of 10000 (max. 10000000)
+
