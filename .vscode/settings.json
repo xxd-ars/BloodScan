@@ -1,0 +1,29 @@
+﻿{
+  // 让扩展直接调用 latexmk 的绝对路径（绕过系统 PATH）
+  "latex-workshop.latex.tools": [
+    {
+      "name": "latexmk",
+      "command": "C:\\Users\\ASUS\\AppData\\Local\\Programs\\MiKTeX\\miktex\\bin\\x64\\latexmk.exe",
+      "args": [
+        "-synctex=1",
+        "-interaction=nonstopmode",
+        "-file-line-error",
+        "-pdf",
+        "-outdir=%OUTDIR%",
+        "%DOC%"
+      ]
+    }
+  ],
+  "latex-workshop.latex.recipes": [
+    { "name": "latexmk (pdf)", "tools": ["latexmk"] }
+  ],
+
+  // 指定输出目录（与你现在的命令行编译一致）
+  "latex-workshop.latex.outDir": "./paper/paper",
+
+  // 关键：把 MiKTeX 可执行目录显式加到扩展运行工具时的 PATH
+  "latex-workshop.latex.path": "C:\\Users\\ASUS\\AppData\\Local\\Programs\\MiKTeX\\miktex\\bin\\x64;${env:PATH}",
+
+  //（可选）遇到缺包时自动安装（MiKTeX）
+  "latex-workshop.latex.autoInstall.use": "always"
+}

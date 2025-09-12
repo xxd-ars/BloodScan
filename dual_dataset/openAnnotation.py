@@ -13,8 +13,8 @@ index_file = np.random.randint(0, len(json_files))
 with open(folder_path + json_files[index_file], 'r') as f:
     data = json.load(f)
 
-# with open(folder_path + '2022-03-29_084745_72_T5_2562.json', 'r') as f:
-#     data = json.load(f)
+with open(folder_path + '2022-03-28_103204_17_T5_2412.json', 'r') as f:
+    data = json.load(f)
     
 # Load image paths
 if class_name == 'class1':
