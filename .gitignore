@@ -6,9 +6,9 @@
 /MICFormer
 /weights
 
-/blue_yolo/datasets
-/blue_yolo/runs
-/blue_yolo/weights
+/single_yolo/datasets
+/single_yolo/runs
+/single_yolo/weights
 /dual_yolo/evaluation_results*
 /dual_yolo/evaluation_results
 

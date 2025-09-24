@@ -1,0 +1,204 @@
+"""
+读取evaluation_results_v2文件夹中的结果数据并生成表格可视化
+"""
+
+import os
+import json
+from pathlib import Path
+
+
+class ResultsTableGenerator:
+    def __init__(self, results_dir):
+        self.results_dir = Path(results_dir)
+        self.data = []
+
+    def load_all_results(self):
+        """加载所有结果数据"""
+        for conf_dir in self.results_dir.glob('conf_*'):
+            conf_threshold = conf_dir.name.replace('conf_', '')
+
+            for method_dir in conf_dir.iterdir():
+                if method_dir.is_dir():
+                    method_name = method_dir.name
+                    metrics_file = method_dir / f'metrics_{method_name}.json'
+
+                    if metrics_file.exists():
+                        with open(metrics_file, 'r') as f:
+                            metrics = json.load(f)
+
+                        self.data.append({
+                            'method': method_name,
+                            'conf': conf_threshold,
+                            'metrics': metrics
+                        })
+
+    def format_value_with_std(self, mean, std, decimals=2):
+        """格式化均值±标准差"""
+        if std == 0:
+            return f"{mean:.{decimals}f}"
+        else:
+            return f"{mean:.{decimals}f}±{std:.{decimals}f}"
+
+    def generate_table(self, conf_threshold='0.5'):
+        """生成指定置信度的结果表格"""
+        # 筛选指定置信度的数据
+        conf_data = [d for d in self.data if d['conf'] == conf_threshold]
+
+        if not conf_data:
+            print(f"没有找到置信度为{conf_threshold}的数据")
+            return None
+
+        # 构建表格数据
+        table_data = []
+        for item in conf_data:
+            method = item['method']
+            metrics = item['metrics']
+
+            # 血清/血浆层数据
+            sp = metrics.get('serum_plasma', {})
+            sp_det_rate = sp.get('detection_rate', 0) * 100  # 转换为百分比
+            sp_iou = self.format_value_with_std(sp.get('iou_mean', 0), sp.get('iou_std', 0), 2)
+            sp_diff_up = self.format_value_with_std(sp.get('upper_diff_mean', 0), sp.get('upper_diff_std', 0), 1)
+            sp_diff_low = self.format_value_with_std(sp.get('lower_diff_mean', 0), sp.get('lower_diff_std', 0), 1)
+
+            # 白膜层数据
+            bc = metrics.get('buffy_coat', {})
+            bc_det_rate = bc.get('detection_rate', 0) * 100  # 转换为百分比
+            bc_iou = self.format_value_with_std(bc.get('iou_mean', 0), bc.get('iou_std', 0), 2)
+            bc_diff_up = self.format_value_with_std(bc.get('upper_diff_mean', 0), bc.get('upper_diff_std', 0), 1)
+            bc_diff_low = self.format_value_with_std(bc.get('lower_diff_mean', 0), bc.get('lower_diff_std', 0), 1)
+
+            table_data.append({
+                'Method': method,
+                'SP_Detection_Rate': f"{sp_det_rate:.2f}",  # 预先格式化为字符串
+                'SP_IOU': sp_iou,
+                'SP_Diff_up': sp_diff_up,
+                'SP_Diff_low': sp_diff_low,
+                'BC_Detection_Rate': f"{bc_det_rate:.2f}",  # 预先格式化为字符串
+                'BC_IOU': bc_iou,
+                'BC_Diff_up': bc_diff_up,
+                'BC_Diff_low': bc_diff_low
+            })
+
+        # 应用格式化
+        formatted_data = self.apply_formatting(table_data)
+
+        return formatted_data
+
+    def apply_formatting(self, table_data):
+        """应用最优值加粗和次优值下划线格式"""
+        if not table_data:
+            return table_data
+
+        # 需要格式化的数值列
+        higher_better = ['SP_Detection_Rate', 'SP_IOU', 'BC_Detection_Rate', 'BC_IOU']
+        lower_better = ['SP_Diff_up', 'SP_Diff_low', 'BC_Diff_up', 'BC_Diff_low']
+
+        # 提取数值用于排序（去掉±部分和格式标记）
+        def extract_value(val):
+            if isinstance(val, str):
+                # 移除加粗和下划线标记
+                clean_val = val.replace('**', '').replace('_', '')
+                if '±' in clean_val:
+                    return float(clean_val.split('±')[0])
+                return float(clean_val)
+            return float(val)
+
+        for col in higher_better + lower_better:
+            # 获取列的所有值
+            values = [extract_value(row[col]) for row in table_data]
+
+            if col in higher_better:
+                # 值越高越好
+                sorted_indices = sorted(range(len(values)), key=lambda i: values[i], reverse=True)
+            else:
+                # 值越低越好
+                sorted_indices = sorted(range(len(values)), key=lambda i: values[i])
+
+            # 应用格式
+            for i, idx in enumerate(sorted_indices):
+                if i == 0:  # 最优值
+                    table_data[idx][col] = f"**{table_data[idx][col]}**"
+                elif i == 1:  # 次优值
+                    table_data[idx][col] = f"_{table_data[idx][col]}_"
+
+        return table_data
+
+    def save_table(self, table_data, conf_threshold='0.5'):
+        """保存表格"""
+        if not table_data:
+            return
+
+        # 保存文件
+        output_file = self.results_dir / f'results_table_conf_{conf_threshold}.md'
+
+        with open(output_file, 'w', encoding='utf-8') as f:
+            f.write(f"# Evaluation Results (Confidence = {conf_threshold})\n\n")
+
+            # 写入表头
+            f.write("| Method | Serum/Plasma | | | | Buffy Coat | | | |\n")
+            f.write("|--------|--------------|----|----|----|-----------|----|----|----|")
+            f.write("\n")
+            f.write("| | Detection Rate | IOU | Diff_up | Diff_low | Detection Rate | IOU | Diff_up | Diff_low |\n")
+            f.write("|--------|----------------|-----|---------|----------|----------------|-----|---------|----------|\n")
+
+            # 写入数据行
+            for row in table_data:
+                f.write(f"| {row['Method']} | {row['SP_Detection_Rate']} | {row['SP_IOU']} | {row['SP_Diff_up']} | {row['SP_Diff_low']} | {row['BC_Detection_Rate']} | {row['BC_IOU']} | {row['BC_Diff_up']} | {row['BC_Diff_low']} |\n")
+
+            f.write(f"\n\n**Note**: **Bold** = Best, _Italic_ = Second Best\n")
+
+        print(f"表格已保存到: {output_file}")
+        return output_file
+
+    def print_table(self, table_data, conf_threshold='0.5'):
+        """打印表格到控制台"""
+        if not table_data:
+            return
+
+        print(f"\n=== Evaluation Results (Confidence = {conf_threshold}) ===")
+        print(f"{'Method':<20} {'SP_DetRate':<12} {'SP_IOU':<15} {'SP_DiffUp':<12} {'SP_DiffLow':<12} {'BC_DetRate':<12} {'BC_IOU':<15} {'BC_DiffUp':<12} {'BC_DiffLow':<12}")
+        print("-" * 140)
+
+        for row in table_data:
+            print(f"{row['Method']:<20} {row['SP_Detection_Rate']:<12} {row['SP_IOU']:<15} {row['SP_Diff_up']:<12} {row['SP_Diff_low']:<12} {row['BC_Detection_Rate']:<12} {row['BC_IOU']:<15} {row['BC_Diff_up']:<12} {row['BC_Diff_low']:<12}")
+
+        print("\nNote: **Bold** = Best, _Italic_ = Second Best")
+
+    def generate_all_tables(self):
+        """生成所有置信度的表格"""
+        conf_thresholds = list(set([d['conf'] for d in self.data]))
+
+        for conf in sorted(conf_thresholds):
+            table_data = self.generate_table(conf)
+            if table_data is not None:
+                self.save_table(table_data, conf)
+                self.print_table(table_data, conf)
+                print("\n" + "="*80)
+
+
+def main():
+    """主函数"""
+    # 设置结果目录路径
+    results_dir = Path(__file__).parent / 'evaluation_results_v2'
+
+    if not results_dir.exists():
+        print(f"结果目录不存在: {results_dir}")
+        return
+
+    # 创建表格生成器
+    generator = ResultsTableGenerator(results_dir)
+
+    # 加载数据
+    generator.load_all_results()
+
+    if not generator.data:
+        print("没有找到任何评估结果数据")
+        return
+
+    # 生成所有表格
+    generator.generate_all_tables()
+
+
+if __name__ == '__main__':
+    main()

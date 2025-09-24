@@ -10,7 +10,25 @@ from ultralytics import YOLO
 # 项目根目录
 project_root = Path(__file__).parent.parent
 
-# 融合策略字典（和 d_model_test.py 相同）
+# ==================== 训练配置 ====================
+# 训练模式选择
+TRAIN_MODE = 'pretrained'  # 'scratch', 'pretrained', 'freeze_backbone'
+
+# 融合策略选择
+FUSION_NAME = 'weighted-fusion'  # 支持所有融合策略
+
+# 训练参数
+TRAIN_CONFIG = {
+    'epochs': 30,
+    'batch': 4,
+    'imgsz': 1504,
+    'workers': 4,
+    'amp': False,
+    'device': [0, 1, 2, 3],
+}
+# =====================================================
+
+# 融合策略字典
 fusion_dict = {
     'concat-compress':  'yolo11x-dseg-concat-compress.yaml',
     'weighted-fusion':  'yolo11x-dseg-weighted-fusion.yaml',
@@ -19,30 +37,74 @@ fusion_dict = {
     'id':               'yolo11x-dseg-id.yaml'
 }
 
-# 模型配置（和 d_model_test.py 相同）
-fusion_name = 'crossattn-precise'
-model_yaml = project_root / 'dual_yolo' / 'models' / fusion_dict[fusion_name]  # 使用交叉注意力融合
-model_pt = project_root / 'dual_yolo' / 'weights' / 'dual_yolo11x.pt'
+def freeze_backbone_layers(model):
+    """冻结backbone层(0-21)，只训练head层"""
+    frozen_count = 0
+    total_count = 0
 
-# 数据配置（使用6通道拼接数据）
-data_config = project_root / 'datasets' / 'Dual-Modal-1504-500-1-6ch' / 'data.yaml'
+    for name, param in model.model.named_parameters():
+        total_count += 1
+        if 'model.' in name:
+            try:
+                layer_num = int(name.split('.')[1])
+                # 冻结backbone_b (0-10) 和 backbone_w (11-21)
+                if 0 <= layer_num <= 21:
+                    param.requires_grad = False
+                    frozen_count += 1
+            except (ValueError, IndexError):
+                pass
 
-# 加载模型（和 d_model_test.py 相同）
-model_dual = YOLO(model_yaml).load(model_pt)
-model_dual.info(verbose=True)
+    print(f"✅ 已冻结 {frozen_count}/{total_count} 个参数 (backbone layers)")
+    return model
 
-print("开始训练双模态YOLO模型...")
-results = model_dual.train(
-    data=str(data_config),
-    device=[0, 1, 2, 3],
-    epochs=30,
-    imgsz=1504,
-    workers=4,
-    amp=False,
-    batch=4,
-    name=f'dual_modal_train_{fusion_name}',
-    project=project_root / 'dual_yolo' / 'runs' / 'segment',
-)
+def setup_model(mode, fusion_name):
+    """根据训练模式设置模型"""
+    model_yaml = project_root / 'dual_yolo' / 'models' / fusion_dict[fusion_name]
+    model_pt = project_root / 'dual_yolo' / 'weights' / 'dual_yolo11x.pt'
 
-print("训练完成！")
-print(f"训练结果: {results}")
+    print(f"* 训练模式: {mode}")
+    print(f"* 融合策略: {fusion_name}")
+
+    if mode == 'scratch':
+        print("* 从零开始训练")
+        model = YOLO(model_yaml)
+
+    elif mode == 'pretrained':
+        print("* 使用预训练权重")
+        if not os.path.exists(model_pt):
+            print(f"* 预训练权重不存在: {model_pt}")
+            return None
+        model = YOLO(model_yaml).load(model_pt)
+
+    elif mode == 'freeze_backbone':
+        print("* 使用预训练权重 + 冻结backbone")
+        if not os.path.exists(model_pt):
+            print(f"* 预训练权重不存在: {model_pt}")
+            return None
+        model = YOLO(model_yaml).load(model_pt)
+        model = freeze_backbone_layers(model)
+
+    return model
+
+def main():
+    """主训练函数"""
+    # 数据配置
+    data_config = project_root / 'datasets' / 'Dual-Modal-1504-500-1-6ch' / 'data.yaml'
+
+    # 设置模型
+    model = setup_model(TRAIN_MODE, FUSION_NAME)
+    model.info(verbose=True)
+
+    # 开始训练
+    print("\n* 开始训练双模态YOLO模型...")
+    results = model.train(
+        data=str(data_config),
+        name=f'dual_modal_{TRAIN_MODE}_{FUSION_NAME}',
+        project=project_root / 'dual_yolo' / 'runs' / 'segment',
+        **TRAIN_CONFIG
+    )
+
+    print(f"* 训练结果: {results}")
+
+if __name__ == "__main__":
+    main()

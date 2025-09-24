@@ -19,8 +19,8 @@ from ultralytics import YOLO
 import json
 
 # 导入数据增强策略配置
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'dual_dataset'))
-from d_dataset_config import DatasetConfig
+# sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'dual_dataset'))
+from dual_dataset.d_dataset_config import DatasetConfig
 
 # 获取增强参数映射表
 _config = DatasetConfig()
@@ -765,8 +765,8 @@ def generate_evaluation_chart(metrics, save_dir, fusion_name):
 
 
 if __name__ == '__main__':
-    fusion_names = ['crossattn-precise']
-    # fusion_names = ['id', 'crossattn', 'crossattn-30epoch', 'weighted-fusion', 'concat-compress']
+    # fusion_names = ['crossattn-precise']
+    fusion_names = ['id', 'crossattn', 'crossattn-30epoch', 'crossattn-precise', 'weighted-fusion', 'concat-compress']
     for fusion_name in fusion_names:
         evaluate_dual_yolo_model(fusion_name=fusion_name, 
                              debug=True, 

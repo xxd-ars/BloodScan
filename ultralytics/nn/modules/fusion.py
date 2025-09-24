@@ -102,8 +102,8 @@ class WeightedFusion(nn.Module):
             nn.Sigmoid()  # Sigmoid归一化
         )
         
-        # Learnable temperature parameter
-        self.temperature = nn.Parameter(torch.ones(1))
+        # Learnable temperature parameter with conservative initialization
+        self.temperature = nn.Parameter(torch.ones(1) * 0.5)
         
         # Output projection if needed
         if c1 != c2:
@@ -114,36 +114,45 @@ class WeightedFusion(nn.Module):
     def forward(self, x):
         """
         Forward pass of WeightedFusion.
-        
+
         Args:
             x (list): List containing two feature tensors [blue_feat, white_feat].
-            
+
         Returns:
             torch.Tensor: Fused feature tensor with adaptive weighting.
         """
         blue_feat, white_feat = x
-        
-        # Concatenate features for weight prediction
-        concat_feat = torch.cat([blue_feat, white_feat], dim=1)
-        
+
+        # Feature normalization
+        blue_feat_norm = F.layer_norm(blue_feat, blue_feat.shape[1:])
+        white_feat_norm = F.layer_norm(white_feat, white_feat.shape[1:])
+
+        # Concatenate normalized features for weight prediction
+        concat_feat = torch.cat([blue_feat_norm, white_feat_norm], dim=1)
+
         # Predict spatial-aware weights
         spatial_weight = self.spatial_conv1(concat_feat)
         spatial_weight = self.spatial_conv2(spatial_weight)
         spatial_weight = self.spatial_out(spatial_weight)
-        
+
         # Predict global content-aware weight
         global_feat = self.global_pool(concat_feat)
         global_weight = self.global_conv(global_feat)
         global_weight = self.global_out(global_weight)
-        
-        # Combine spatial and global weights with temperature scaling
-        final_weight = spatial_weight * global_weight * self.temperature
-        
-        # Apply weighted fusion: w * blue + (1-w) * white
-        fused_feat = final_weight * blue_feat + (1 - final_weight) * white_feat
-        
+
+        # Combine spatial and global weights with temperature scaling and constraints
+        temperature_clamped = torch.clamp(self.temperature, 0.1, 2.0)
+        final_weight = spatial_weight * global_weight * temperature_clamped
+        final_weight = torch.clamp(final_weight, 0.1, 0.9)  # Prevent extreme values
+
+        # Apply weighted fusion with normalized features
+        fused_feat = final_weight * blue_feat_norm + (1 - final_weight) * white_feat_norm
+
+        # Residual connection with blue modality as base
+        enhanced_feat = fused_feat + 0.3 * blue_feat_norm
+
         # Apply output projection
-        return self.proj(fused_feat)
+        return self.proj(enhanced_feat)
 
 
 class CrossModalAttention(nn.Module):
