@@ -13,27 +13,15 @@ BLUE_SOURCE = PROJECT_ROOT / "single_yolo" / "runs" / "single_blue_scratch" / "w
 WHITE_SOURCE = PROJECT_ROOT / "single_yolo" / "runs" / "single_white_scratch" / "weights" / "best.pt"
 OUTPUT_PATH = PROJECT_ROOT / "dual_yolo" / "weights" / "dual_yolo11x_bw.pt"
 
-# 如需自定义路径，可修改下方变量
+# ==== 手动配置区域 ====
 BLUE_OVERRIDE: Optional[Path] = None
 WHITE_OVERRIDE: Optional[Path] = None
 MODEL_YAML: Path = DEFAULT_MODEL
 OUTPUT_OVERRIDE: Optional[Path] = None
+# ==== 手动配置结束 ====
 
-HEAD_MAPPING = {
-    11: 25,
-    12: 26,
-    13: 27,
-    14: 28,
-    15: 29,
-    16: 30,
-    17: 31,
-    18: 32,
-    19: 33,
-    20: 34,
-    21: 35,
-    22: 36,
-    23: 37,
-}
+BACKBONE_MAX_LAYER = 10
+WHITE_OFFSET = 11
 
 
 def normalize(path: Path) -> Path:
@@ -61,7 +49,11 @@ def assign(target: Dict[str, torch.Tensor], key: str, value: torch.Tensor) -> bo
     return True
 
 
-def copy_blue_backbone(state: Dict[str, torch.Tensor], target: Dict[str, torch.Tensor]) -> Tuple[int, int]:
+def copy_backbone(
+    state: Dict[str, torch.Tensor],
+    target: Dict[str, torch.Tensor],
+    layer_offset: int = 0,
+) -> Tuple[int, int]:
     success = fail = 0
     for key, value in state.items():
         if not key.startswith("model."):
@@ -71,49 +63,11 @@ def copy_blue_backbone(state: Dict[str, torch.Tensor], target: Dict[str, torch.T
             layer_id = int(parts[1])
         except ValueError:
             continue
-        if layer_id > 10:
+        if layer_id > BACKBONE_MAX_LAYER:
             continue
-        if assign(target, key, value):
-            success += 1
-        else:
-            fail += 1
-    return success, fail
-
-
-def copy_blue_head(state: Dict[str, torch.Tensor], target: Dict[str, torch.Tensor]) -> Tuple[int, int]:
-    success = fail = 0
-    for key, value in state.items():
-        if not key.startswith("model."):
-            continue
-        parts = key.split(".")
-        try:
-            layer_id = int(parts[1])
-        except ValueError:
-            continue
-        if layer_id not in HEAD_MAPPING:
-            continue
-        mapped_layer = HEAD_MAPPING[layer_id]
-        target_key = key.replace(f"model.{layer_id}.", f"model.{mapped_layer}.")
-        if assign(target, target_key, value):
-            success += 1
-        else:
-            fail += 1
-    return success, fail
-
-
-def copy_white_backbone(state: Dict[str, torch.Tensor], target: Dict[str, torch.Tensor]) -> Tuple[int, int]:
-    success = fail = 0
-    for key, value in state.items():
-        if not key.startswith("model."):
-            continue
-        parts = key.split(".")
-        try:
-            layer_id = int(parts[1])
-        except ValueError:
-            continue
-        if layer_id > 10:
-            continue
-        target_key = key.replace(f"model.{layer_id}.", f"model.{layer_id + 11}.")
+        target_key = key if layer_offset == 0 else key.replace(
+            f"model.{layer_id}.", f"model.{layer_id + layer_offset}."
+        )
         if assign(target, target_key, value):
             success += 1
         else:
@@ -138,9 +92,8 @@ def main() -> None:
     model = YOLO(model_yaml)
     dual_state = model.model.state_dict()
 
-    b_backbone_s, b_backbone_f = copy_blue_backbone(blue_state, dual_state)
-    b_head_s, b_head_f = copy_blue_head(blue_state, dual_state)
-    w_backbone_s, w_backbone_f = copy_white_backbone(white_state, dual_state)
+    blue_success, blue_fail = copy_backbone(blue_state, dual_state, layer_offset=0)
+    white_success, white_fail = copy_backbone(white_state, dual_state, layer_offset=WHITE_OFFSET)
 
     model.model.load_state_dict(dual_state)
     checkpoint = {
@@ -152,10 +105,10 @@ def main() -> None:
     }
     torch.save(checkpoint, output_path)
 
-    copied = b_backbone_s + b_head_s + w_backbone_s
-    skipped = b_backbone_f + b_head_f + w_backbone_f
+    copied = blue_success + white_success
+    skipped = blue_fail + white_fail
 
-    print("✅ 已生成双模态预训练权重")
+    print("✅ 已生成双模态 backbone 预训练权重")
     print(f"   blue source : {blue_path}")
     print(f"   white source: {white_path}")
     print(f"   output      : {output_path}")
