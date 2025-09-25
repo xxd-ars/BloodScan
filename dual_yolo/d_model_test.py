@@ -11,19 +11,20 @@ fusion_dict = {
     'concat_compress': 'yolo11x-dseg-concat-compress.yaml',
     'weighted_fusion': 'yolo11x-dseg-weighted-fusion.yaml',
     'cross_attn': 'yolo11x-dseg-crossattn.yaml',
-    'id': 'yolo11x-dseg-id.yaml'
+    'id_blue': 'yolo11x-dseg-id.yaml',
+    'id_white': 'yolo11x-dseg-id.yaml',
 }
-model_yaml = project_root / 'dual_yolo' / 'models' / fusion_dict['cross_attn']
-model_pt = project_root / 'runs' / 'segment' / 'dual_modal_train10' / 'weights' / 'best.pt'
-# model_pt = project_root / 'dual_yolo' / 'weights' / 'dual_yolo11x.pt'
+fusion_name = 'id_white'  # 'concat_compress', 'weighted_fusion', 'cross_attn', 'id_blue', 'id_white'
+model_yaml = project_root / 'dual_yolo' / 'models' / fusion_dict[fusion_name]
+model_pt = project_root / 'dual_yolo' / 'runs' / 'segment' / f'dual_modal_train_{fusion_name}' / 'weights' / 'best.pt'
 
 model_dual = YOLO(model_yaml).load(model_pt)
 model_dual.info(verbose=True)
 
 # 加载蓝光和白光图像
 project_root = Path(__file__).parent.parent
-img_path_b = project_root / 'datasets' / 'Dual-Modal-1504-500-1' / 'test' / 'images_b' / '2022-03-28_103204_17_T5_2412_0.jpg'
-img_path_w = project_root / 'datasets' / 'Dual-Modal-1504-500-1' / 'test' / 'images_w' / '2022-03-28_103204_17_T3_2410_0.jpg'
+img_path_b = project_root / 'datasets' / 'Dual-Modal-1504-500-1' / 'images_b' / 'test' / '2022-03-28_103204_17_T5_2412_0.jpg'
+img_path_w = project_root / 'datasets' / 'Dual-Modal-1504-500-1' / 'images_w' / 'test' / '2022-03-28_103204_17_T3_2410_0.jpg'
 image_b = Image.open(img_path_b).convert('RGB')
 image_w = Image.open(img_path_w).convert('RGB')
 print(f"原图尺寸 (白光): {image_w.size}")

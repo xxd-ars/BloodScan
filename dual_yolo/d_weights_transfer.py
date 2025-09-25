@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 from pathlib import Path
 from typing import Dict, Optional, Tuple
+import os, sys
 
 import torch
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 from ultralytics import YOLO
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
@@ -12,12 +14,11 @@ DEFAULT_SOURCES: Dict[str, Path] = {
     "white": PROJECT_ROOT / "single_yolo" / "runs" / "single_white_scratch" / "weights" / "best.pt",
 }
 DEFAULT_OUTPUTS: Dict[str, Path] = {
-    "blue": PROJECT_ROOT / "dual_yolo" / "weights" / "dual_blue_from_single.pt",
-    "white": PROJECT_ROOT / "dual_yolo" / "weights" / "dual_white_from_single.pt",
+    "blue"  : PROJECT_ROOT / "dual_yolo" / "runs" / "segment" / "dual_modal_train_id_blue"  / "weights" / "best.pt",
+    "white" : PROJECT_ROOT / "dual_yolo" / "runs" / "segment" / "dual_modal_train_id_white" / "weights" / "best.pt",
 }
-
 # ===== 手动配置区域 =====
-MODE: str = "blue"          # 可选 "blue" 或 "white"
+MODE: str = "white"          # 可选 "blue" 或 "white"
 SOURCE: Optional[Path] = None  # 指定单模态权重路径，留空则使用 DEFAULT_SOURCES[MODE]
 OUTPUT: Optional[Path] = None  # 指定输出路径，留空则使用 DEFAULT_OUTPUTS[MODE]
 MODEL_YAML: Path = DEFAULT_MODEL  # 双模态模型结构文件
