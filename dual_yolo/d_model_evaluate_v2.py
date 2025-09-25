@@ -70,9 +70,6 @@ class DualYOLOEvaluatorV2:
                 model_yaml = self.project_root / 'dual_yolo' / 'models' / f'yolo11x-dseg-{self.fusion_name}.yaml'
 
             model_pt = self.project_root / 'dual_yolo' / 'runs' / 'segment' / f'dual_modal_train_{self.fusion_name}' / 'weights' / 'best.pt'
-        else:
-            model_yaml = self.project_root / 'dual_yolo' / 'models' / f'yolo11x-seg.yaml'
-            model_pt = self.project_root / 'dual_yolo' / 'weights' / 'yolo11x-seg-blue.pt'
 
         try:
             self.model = YOLO(model_yaml).load(model_pt)
