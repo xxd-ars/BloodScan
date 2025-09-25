@@ -1,15 +1,17 @@
 #!/usr/bin/env python3
 from pathlib import Path
 from typing import Dict, Optional, Tuple
+import os, sys
 
 import torch
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 from ultralytics import YOLO
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
-DEFAULT_MODEL = PROJECT_ROOT / "dual_yolo" / "models" / "yolo11x-dseg-id.yaml"
+DEFAULT_MODEL = PROJECT_ROOT / "dual_yolo" / "models" / "yolo11x-dseg-id-blue.yaml"
 BLUE_SOURCE = PROJECT_ROOT / "single_yolo" / "runs" / "single_blue_scratch" / "weights" / "best.pt"
 WHITE_SOURCE = PROJECT_ROOT / "single_yolo" / "runs" / "single_white_scratch" / "weights" / "best.pt"
-OUTPUT_PATH = PROJECT_ROOT / "dual_yolo" / "weights" / "dual_blue_white_from_single.pt"
+OUTPUT_PATH = PROJECT_ROOT / "dual_yolo" / "weights" / "dual_yolo11x_bw.pt"
 
 # 如需自定义路径，可修改下方变量
 BLUE_OVERRIDE: Optional[Path] = None

@@ -16,7 +16,7 @@ import cv2
 
 # Load a model
 # model = YOLO("tests/yolo_seg/weights/best_augmented5.pt")
-model = YOLO("tests/yolo_seg/runs/segment/train3_640/weights/best.pt")
+model = YOLO("single_yolo/runs/single_white_scratch/weights/best.pt")
 
 # Predict with the model
 ipath = "./tests/yolo_seg/datasets/Blood-Scan-Cropped-1/test/images/2022-03-28_103204_1_T5_2348_bmp_jpg.rf.e015458a82d1291596e001037efab85e.jpg"

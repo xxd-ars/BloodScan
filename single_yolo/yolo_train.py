@@ -15,7 +15,7 @@ if platform.system() == 'Windows':
         'batch': 1,
         'imgsz': 1504,
         
-        'amp': False,
+        'amp': True,
         'device': 0,
     }
 elif platform.system() == 'Linux':

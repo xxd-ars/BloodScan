@@ -14,8 +14,8 @@ DEFAULT_SOURCES: Dict[str, Path] = {
     "white": PROJECT_ROOT / "single_yolo" / "runs" / "single_white_scratch" / "weights" / "best.pt",
 }
 DEFAULT_OUTPUTS: Dict[str, Path] = {
-    "blue"  : PROJECT_ROOT / "dual_yolo" / "runs" / "segment" / "dual_modal_train_id_blue"  / "weights" / "best.pt",
-    "white" : PROJECT_ROOT / "dual_yolo" / "runs" / "segment" / "dual_modal_train_id_white" / "weights" / "best.pt",
+    "blue"  : PROJECT_ROOT / "dual_yolo" / "runs" / "segment" / "dual_modal_train_id-blue"  / "weights" / "best.pt",
+    "white" : PROJECT_ROOT / "dual_yolo" / "runs" / "segment" / "dual_modal_train_id-white" / "weights" / "best.pt",
 }
 # ===== 手动配置区域 =====
 MODE: str = "white"          # 可选 "blue" 或 "white"

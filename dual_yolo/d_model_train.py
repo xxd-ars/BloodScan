@@ -15,15 +15,15 @@ project_root = Path(__file__).parent.parent
 TRAIN_MODE = 'pretrained'  # 'scratch', 'pretrained', 'freeze_backbone'
 
 # 融合策略选择
-FUSION_NAME = 'weighted-fusion'  # 支持所有融合策略
+FUSION_NAME = 'crossattn'  # 支持所有融合策略
 
 # 训练参数
 TRAIN_CONFIG = {
     'epochs': 30,
     'batch': 4,
     'imgsz': 1504,
-    'workers': 4,
-    'amp': False,
+    
+    'amp': True,
     'device': [0, 1, 2, 3],
 }
 # =====================================================
@@ -34,7 +34,8 @@ fusion_dict = {
     'weighted-fusion':  'yolo11x-dseg-weighted-fusion.yaml',
     'crossattn':        'yolo11x-dseg-crossattn.yaml',
     'crossattn-precise':'yolo11x-dseg-crossattn-precise.yaml',
-    'id':               'yolo11x-dseg-id.yaml'
+    'id-blue':          'yolo11x-dseg-id-blue.yaml',
+    'id-white':         'yolo11x-dseg-id-white.yaml',
 }
 
 def freeze_backbone_layers(model):
@@ -60,7 +61,7 @@ def freeze_backbone_layers(model):
 def setup_model(mode, fusion_name):
     """根据训练模式设置模型"""
     model_yaml = project_root / 'dual_yolo' / 'models' / fusion_dict[fusion_name]
-    model_pt = project_root / 'dual_yolo' / 'weights' / 'dual_yolo11x.pt'
+    model_pt = project_root / 'dual_yolo' / 'weights' / 'dual_yolo11x_bw.pt'
 
     print(f"* 训练模式: {mode}")
     print(f"* 融合策略: {fusion_name}")
