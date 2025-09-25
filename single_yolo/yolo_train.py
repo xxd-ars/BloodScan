@@ -1,4 +1,4 @@
-import sys, os, shutil, yaml, platform
+import sys, os, shutil, yaml, platform, json
 from pathlib import Path
 from ultralytics import YOLO
 
@@ -6,7 +6,7 @@ from ultralytics import YOLO
 project_root = Path(__file__).parent.parent
 
 # ==================== 单模态训练配置 ====================
-MODALITY = 'white'        # 'blue', 'white'
+MODALITY = 'blue'        # 'blue', 'white'
 USE_PRETRAINED = False   # True: 加载蓝光权重, False: 从头训练
 
 if platform.system() == 'Windows':
@@ -24,11 +24,11 @@ elif platform.system() == 'Linux':
         'batch': 8,
         'imgsz': 1504,
 
-        'workers': 4,
-        'amp': False,
+        'amp': True,
         'device': [0, 1, 2, 3],
     }
 # ========================================================
+print(json.dumps(TRAIN_CONFIG, indent=4, ensure_ascii=False))
 
 def setup_model(use_pretrained):
     """设置模型：选择是否使用预训练权重"""
