@@ -32,12 +32,15 @@ class ResultsTableGenerator:
                             'metrics': metrics
                         })
 
-    def format_value_with_std(self, mean, std, decimals=2):
+    def format_value_with_std(self, mean, std, decimals=2, format_type='latex'):
         """格式化均值±标准差"""
         if std == 0:
             return f"{mean:.{decimals}f}"
         else:
-            return f"{mean:.{decimals}f}±{std:.{decimals}f}"
+            if format_type == 'latex':
+                return f"{mean:.{decimals}f}$\\pm${std:.{decimals}f}"
+            else:
+                return f"{mean:.{decimals}f}±{std:.{decimals}f}"
 
     def generate_table(self, conf_threshold='0.5'):
         """生成指定置信度的结果表格"""
@@ -57,16 +60,16 @@ class ResultsTableGenerator:
             # 血清/血浆层数据
             sp = metrics.get('serum_plasma', {})
             sp_det_rate = sp.get('detection_rate', 0) * 100  # 转换为百分比
-            sp_iou = self.format_value_with_std(sp.get('iou_mean', 0), sp.get('iou_std', 0), 2)
-            sp_diff_up = self.format_value_with_std(sp.get('upper_diff_mean', 0), sp.get('upper_diff_std', 0), 1)
-            sp_diff_low = self.format_value_with_std(sp.get('lower_diff_mean', 0), sp.get('lower_diff_std', 0), 1)
+            sp_iou = self.format_value_with_std(sp.get('iou_mean', 0), sp.get('iou_std', 0), 2, 'latex')
+            sp_diff_up = self.format_value_with_std(sp.get('upper_diff_mean', 0), sp.get('upper_diff_std', 0), 1, 'latex')
+            sp_diff_low = self.format_value_with_std(sp.get('lower_diff_mean', 0), sp.get('lower_diff_std', 0), 1, 'latex')
 
             # 白膜层数据
             bc = metrics.get('buffy_coat', {})
             bc_det_rate = bc.get('detection_rate', 0) * 100  # 转换为百分比
-            bc_iou = self.format_value_with_std(bc.get('iou_mean', 0), bc.get('iou_std', 0), 2)
-            bc_diff_up = self.format_value_with_std(bc.get('upper_diff_mean', 0), bc.get('upper_diff_std', 0), 1)
-            bc_diff_low = self.format_value_with_std(bc.get('lower_diff_mean', 0), bc.get('lower_diff_std', 0), 1)
+            bc_iou = self.format_value_with_std(bc.get('iou_mean', 0), bc.get('iou_std', 0), 2, 'latex')
+            bc_diff_up = self.format_value_with_std(bc.get('upper_diff_mean', 0), bc.get('upper_diff_std', 0), 1, 'latex')
+            bc_diff_low = self.format_value_with_std(bc.get('lower_diff_mean', 0), bc.get('lower_diff_std', 0), 1, 'latex')
 
             table_data.append({
                 'Method': method,
@@ -81,11 +84,46 @@ class ResultsTableGenerator:
             })
 
         # 应用格式化
-        formatted_data = self.apply_formatting(table_data)
+        formatted_data = self.apply_formatting(table_data, format_type='latex')
+
+        # 按指定顺序排序
+        method_order = [
+            'Yolo11-Blue', 'Yolo11-White', 'Dual Yolo Concat', 'Dual Yolo Weighted',
+            'Dual Yolo CrossAttn', 'Dual Yolo CrossAttn (30 Epochs)', 'Dual Yolo (Our Best)'
+        ]
+
+        # 创建方法名到显示名的映射
+        method_map = {
+            'id-blue': 'Yolo11-Blue',
+            'id-white': 'Yolo11-White',
+            'id_blue': 'Yolo11-Blue',
+            'id_white': 'Yolo11-White',
+            'id': 'Yolo11-Blue',
+            'concat-compress': 'Dual Yolo Concat',
+            'weighted-fusion': 'Dual Yolo Weighted',
+            'crossattn': 'Dual Yolo CrossAttn',
+            'crossattn-precise': 'Dual Yolo (Our Best)',
+            'crossattn-30epoch': 'Dual Yolo CrossAttn (30 Epochs)'
+        }
+
+        # 为每行数据添加排序键
+        for row in formatted_data:
+            display_name = method_map.get(row['Method'], row['Method'])
+            if display_name in method_order:
+                row['sort_key'] = method_order.index(display_name)
+            else:
+                row['sort_key'] = 999  # 未知方法排在最后
+
+        # 按排序键排序
+        formatted_data.sort(key=lambda x: x['sort_key'])
+
+        # 移除排序键
+        for row in formatted_data:
+            row.pop('sort_key', None)
 
         return formatted_data
 
-    def apply_formatting(self, table_data):
+    def apply_formatting(self, table_data, format_type='latex'):
         """应用最优值加粗和次优值下划线格式"""
         if not table_data:
             return table_data
@@ -97,9 +135,12 @@ class ResultsTableGenerator:
         # 提取数值用于排序（去掉±部分和格式标记）
         def extract_value(val):
             if isinstance(val, str):
-                # 移除加粗和下划线标记
-                clean_val = val.replace('**', '').replace('_', '')
-                if '±' in clean_val:
+                # 移除各种格式标记
+                clean_val = val.replace('**', '').replace('_', '').replace('\\textbf{', '').replace('}', '').replace('\\underline{', '')
+                # 处理LaTeX格式的±符号
+                if '$\\pm$' in clean_val:
+                    return float(clean_val.split('$\\pm$')[0])
+                elif '±' in clean_val:
                     return float(clean_val.split('±')[0])
                 return float(clean_val)
             return float(val)
@@ -117,10 +158,16 @@ class ResultsTableGenerator:
 
             # 应用格式
             for i, idx in enumerate(sorted_indices):
-                if i == 0:  # 最优值
-                    table_data[idx][col] = f"**{table_data[idx][col]}**"
-                elif i == 1:  # 次优值
-                    table_data[idx][col] = f"_{table_data[idx][col]}_"
+                if format_type == 'latex':
+                    if i == 0:  # 最优值
+                        table_data[idx][col] = f"\\textbf{{{table_data[idx][col]}}}"
+                    elif i == 1:  # 次优值
+                        table_data[idx][col] = f"\\underline{{{table_data[idx][col]}}}"
+                else:  # markdown格式
+                    if i == 0:  # 最优值
+                        table_data[idx][col] = f"**{table_data[idx][col]}**"
+                    elif i == 1:  # 次优值
+                        table_data[idx][col] = f"_{table_data[idx][col]}_"
 
         return table_data
 
@@ -129,10 +176,66 @@ class ResultsTableGenerator:
         if not table_data:
             return
 
-        # 保存文件
-        output_file = self.results_dir / f'results_table_conf_{conf_threshold}.md'
+        # 保存LaTeX格式
+        latex_file = self.results_dir / f'results_table_conf_{conf_threshold}.tex'
 
-        with open(output_file, 'w', encoding='utf-8') as f:
+        with open(latex_file, 'w', encoding='utf-8') as f:
+            f.write(f"% Evaluation Results (Confidence = {conf_threshold})\n")
+            for i, row in enumerate(table_data):
+                # 映射方法名
+                method_map = {
+                    'id-blue': 'Yolo11-Blue',
+                    'id-white': 'Yolo11-White',
+                    'id_blue': 'Yolo11-Blue',
+                    'id_white': 'Yolo11-White',
+                    # 'id': 'Yolo11-Blue',  # 假设id指的是蓝光单模态
+                    'concat-compress': 'Dual Yolo Concat',
+                    'weighted-fusion': 'Dual Yolo Weighted',
+                    'crossattn': 'Dual Yolo CrossAttn',
+                    'crossattn-precise': 'Dual Yolo (Our Best)',
+                    'crossattn-30epoch': 'Dual Yolo CrossAttn (30 Epochs)'
+                }
+
+                method_name = method_map.get(row['Method'], row['Method'])
+
+                # 判断是否为双模态方法
+                dual_methods = ['concat-compress', 'weighted-fusion', 'crossattn', 'crossattn-precise', 'crossattn-30epoch']
+                single_methods = ['id-blue', 'id-white', 'id_blue', 'id_white', 'id']
+
+                is_dual = row['Method'] in dual_methods
+                dual_symbol = '$\\checkmark$' if is_dual else '$\\times$'
+
+                # 处理数据缺失情况（根据实际情况调整）
+                sp_rate = row['SP_Detection_Rate'] if row['SP_Detection_Rate'] != '0.00' else '--'
+                sp_iou = row['SP_IOU'] if row['SP_IOU'] != '0.00' else '--'
+                sp_up = row['SP_Diff_up'] if row['SP_Diff_up'] != '0.0' else '--'
+                sp_low = row['SP_Diff_low'] if row['SP_Diff_low'] != '0.0' else '--'
+
+                # 检查是否为Our Best方法
+                is_our_best = row['Method'] == 'crossattn-precise'
+
+                # 如果是Our Best且不是第一行，在前面添加\hline
+                if is_our_best and i > 0:
+                    f.write("\\hline\n")
+
+                # 如果是Our Best，加粗方法名
+                if is_our_best:
+                    method_display = f"\\textbf{{{method_name}}}"
+                else:
+                    method_display = method_name
+
+                f.write(f"{method_display} & {dual_symbol} & {sp_rate} & {sp_iou} & {sp_up} & {sp_low} & {row['BC_Detection_Rate']} & {row['BC_IOU']} & {row['BC_Diff_up']} & {row['BC_Diff_low']}\\\\")
+
+                # 如果是Our Best，在后面添加\hline
+                if is_our_best:
+                    f.write("\n\\hline")
+
+                f.write("\n")
+
+        # 保存markdown格式
+        md_file = self.results_dir / f'results_table_conf_{conf_threshold}.md'
+
+        with open(md_file, 'w', encoding='utf-8') as f:
             f.write(f"# Evaluation Results (Confidence = {conf_threshold})\n\n")
 
             # 写入表头
@@ -148,22 +251,67 @@ class ResultsTableGenerator:
 
             f.write(f"\n\n**Note**: **Bold** = Best, _Italic_ = Second Best\n")
 
-        print(f"表格已保存到: {output_file}")
-        return output_file
+        print(f"LaTeX表格已保存到: {latex_file}")
+        print(f"Markdown表格已保存到: {md_file}")
+        return latex_file, md_file
 
     def print_table(self, table_data, conf_threshold='0.5'):
-        """打印表格到控制台"""
+        """打印LaTeX表格到控制台"""
         if not table_data:
             return
 
-        print(f"\n=== Evaluation Results (Confidence = {conf_threshold}) ===")
-        print(f"{'Method':<20} {'SP_DetRate':<12} {'SP_IOU':<15} {'SP_DiffUp':<12} {'SP_DiffLow':<12} {'BC_DetRate':<12} {'BC_IOU':<15} {'BC_DiffUp':<12} {'BC_DiffLow':<12}")
-        print("-" * 140)
+        print(f"\n=== LaTeX Table (Confidence = {conf_threshold}) ===")
 
-        for row in table_data:
-            print(f"{row['Method']:<20} {row['SP_Detection_Rate']:<12} {row['SP_IOU']:<15} {row['SP_Diff_up']:<12} {row['SP_Diff_low']:<12} {row['BC_Detection_Rate']:<12} {row['BC_IOU']:<15} {row['BC_Diff_up']:<12} {row['BC_Diff_low']:<12}")
+        for i, row in enumerate(table_data):
+            # 映射方法名
+            method_map = {
+                'id-blue': 'Yolo11-Blue',
+                'id-white': 'Yolo11-White',
+                'id_blue': 'Yolo11-Blue',
+                'id_white': 'Yolo11-White',
+                # 'id': 'Yolo11-Blue',  # 假设id指的是蓝光单模态
+                'concat-compress': 'Dual Yolo Concat',
+                'weighted-fusion': 'Dual Yolo Weighted',
+                'crossattn': 'Dual Yolo CrossAttn',
+                'crossattn-precise': 'Dual Yolo (Our Best)',
+                'crossattn-30epoch': 'Dual Yolo CrossAttn (30 Epochs)'
+            }
 
-        print("\nNote: **Bold** = Best, _Italic_ = Second Best")
+            method_name = method_map.get(row['Method'], row['Method'])
+
+            # 判断是否为双模态方法
+            dual_methods = ['concat-compress', 'weighted-fusion', 'crossattn', 'crossattn-precise', 'crossattn-30epoch']
+            single_methods = ['id-blue', 'id-white', 'id_blue', 'id_white', 'id']
+
+            is_dual = row['Method'] in dual_methods
+            dual_symbol = '$\\checkmark$' if is_dual else '$\\times$'
+
+            # 处理数据缺失情况
+            sp_rate = row['SP_Detection_Rate'] if row['SP_Detection_Rate'] != '0.00' else '--'
+            sp_iou = row['SP_IOU'] if row['SP_IOU'] != '0.00' else '--'
+            sp_up = row['SP_Diff_up'] if row['SP_Diff_up'] != '0.0' else '--'
+            sp_low = row['SP_Diff_low'] if row['SP_Diff_low'] != '0.0' else '--'
+
+            # 检查是否为Our Best方法
+            is_our_best = row['Method'] == 'crossattn-precise'
+
+            # 如果是Our Best且不是第一行，在前面添加\hline
+            if is_our_best and i > 0:
+                print("\\hline")
+
+            # 如果是Our Best，加粗方法名
+            if is_our_best:
+                method_display = f"\\textbf{{{method_name}}}"
+            else:
+                method_display = method_name
+
+            print(f"{method_display} & {dual_symbol} & {sp_rate} & {sp_iou} & {sp_up} & {sp_low} & {row['BC_Detection_Rate']} & {row['BC_IOU']} & {row['BC_Diff_up']} & {row['BC_Diff_low']}\\\\")
+
+            # 如果是Our Best，在后面添加\hline
+            if is_our_best:
+                print("\\hline")
+
+        print("\n% Note: \\textbf{} = Best, \\underline{} = Second Best")
 
     def generate_all_tables(self):
         """生成所有置信度的表格"""
@@ -180,7 +328,7 @@ class ResultsTableGenerator:
 def main():
     """主函数"""
     # 设置结果目录路径
-    results_dir = Path(__file__).parent / 'evaluation_results_v2'
+    results_dir = Path(__file__).parent / 'evaluation_results_v2_novis'
 
     if not results_dir.exists():
         print(f"结果目录不存在: {results_dir}")
@@ -196,7 +344,7 @@ def main():
         print("没有找到任何评估结果数据")
         return
 
-    # 生成所有表格
+    # 生成所有置信度的表格
     generator.generate_all_tables()
 
 

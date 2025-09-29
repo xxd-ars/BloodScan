@@ -12,10 +12,11 @@ project_root = Path(__file__).parent.parent
 
 # ==================== 训练配置 ====================
 # 训练模式选择
-TRAIN_MODE = 'pretrained'  # 'scratch', 'pretrained', 'freeze_backbone'
+TRAIN_MODE = 'scratch'  # 'scratch', 'pretrained', 'freeze_backbone'
 
 # 融合策略选择
-FUSION_NAME = 'crossattn'  # 支持所有融合策略
+# FUSION_NAME = 'crossattn'  # 支持所有融合策略
+FUSION_NAMES = ['crossattn-precise', 'crossattn', 'concat-compress', 'weighted-fusion']
 
 # 训练参数
 TRAIN_CONFIG = {
@@ -23,7 +24,7 @@ TRAIN_CONFIG = {
     'batch': 4,
     'imgsz': 1504,
     
-    'amp': True,
+    'amp': False,
     'device': [0, 1, 2, 3],
 }
 # =====================================================
@@ -88,24 +89,25 @@ def setup_model(mode, fusion_name):
     return model
 
 def main():
-    """主训练函数"""
-    # 数据配置
-    data_config = project_root / 'datasets' / 'Dual-Modal-1504-500-1-6ch' / 'data.yaml'
+    for FUSION_NAME in FUSION_NAMES:
+        """主训练函数"""
+        # 数据配置
+        data_config = project_root / 'datasets' / 'Dual-Modal-1504-500-1-6ch' / 'data.yaml'
 
-    # 设置模型
-    model = setup_model(TRAIN_MODE, FUSION_NAME)
-    model.info(verbose=True)
+        # 设置模型
+        model = setup_model(TRAIN_MODE, FUSION_NAME)
+        model.info(verbose=True)
 
-    # 开始训练
-    print("\n* 开始训练双模态YOLO模型...")
-    results = model.train(
-        data=str(data_config),
-        name=f'dual_modal_{TRAIN_MODE}_{FUSION_NAME}',
-        project=project_root / 'dual_yolo' / 'runs' / 'segment',
-        **TRAIN_CONFIG
-    )
+        # 开始训练
+        print("\n* 开始训练双模态YOLO模型...")
+        results = model.train(
+            data=str(data_config),
+            name=f'dual_modal_{TRAIN_MODE}_{FUSION_NAME}',
+            project=project_root / 'dual_yolo' / 'runs' / 'segment',
+            **TRAIN_CONFIG
+        )
 
-    print(f"* 训练结果: {results}")
+        print(f"* 训练结果: {results}")
 
 if __name__ == "__main__":
     main()

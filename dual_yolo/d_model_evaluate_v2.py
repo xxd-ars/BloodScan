@@ -69,7 +69,7 @@ class DualYOLOEvaluatorV2:
             else:
                 model_yaml = self.project_root / 'dual_yolo' / 'models' / f'yolo11x-dseg-{self.fusion_name}.yaml'
 
-            model_pt = self.project_root / 'dual_yolo' / 'runs' / 'segment' / f'dual_modal_train_{self.fusion_name}' / 'weights' / 'best.pt'
+            model_pt = self.project_root / 'dual_yolo' / 'runs' / 'segment' / f'dual_modal_pretrained_{self.fusion_name}' / 'weights' / 'best.pt'
 
         try:
             self.model = YOLO(model_yaml).load(model_pt)
@@ -246,7 +246,7 @@ class DualYOLOEvaluatorV2:
                 return False
 
             # 模型推理
-            device = "cuda:0" if torch.cuda.is_available() else "cpu"
+            device = "cuda:3" if torch.cuda.is_available() else "cpu"
             results = self.model(model_input, imgsz=1504, device=device, verbose=False, conf=self.conf_threshold)
 
             # 检测结果分组
@@ -461,9 +461,9 @@ class DualYOLOEvaluatorV2:
 
 def main():
     """主函数"""
-    fusion_names = ['id-white', 'id-blue']
+    fusion_names = ['id-white', 'id-blue', 'crossattn', 'crossattn-precise', 'weighted-fusion', 'concat-compress']
     # fusion_names = ['crossattn-precise', 'crossattn-30epoch', 'weighted-fusion', 'concat-compress', 'id']
-    conf_thresholds = [0.6, 0.7]
+    conf_thresholds = [0.5, 0.6, 0.65, 0.7, 0.75, 0.8]
 
     for fusion_name in fusion_names:
         for conf_threshold in conf_thresholds:
