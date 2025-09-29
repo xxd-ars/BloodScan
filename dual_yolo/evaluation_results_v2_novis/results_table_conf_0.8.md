@@ -1,0 +1,16 @@
+# Evaluation Results (Confidence = 0.8)
+
+| Method | Serum/Plasma | | | | Buffy Coat | | | |
+|--------|--------------|----|----|----|-----------|----|----|----|
+| | Detection Rate | IOU | Diff_up | Diff_low | Detection Rate | IOU | Diff_up | Diff_low |
+|--------|----------------|-----|---------|----------|----------------|-----|---------|----------|
+| id-blue | 99.72 | \underline{0.98$\pm$0.01} | 4.1$\pm$3.2 | 3.6$\pm$2.6 | \textbf{79.17} | \underline{0.79$\pm$0.06} | 4.3$\pm$2.7 | 2.6$\pm$1.9 |
+| id-white | \underline{100.00} | 0.97$\pm$0.01 | \textbf{3.9$\pm$3.8} | 3.7$\pm$2.9 | \underline{69.17} | 0.76$\pm$0.07 | 4.7$\pm$3.3 | 2.5$\pm$2.0 |
+| concat-compress | 99.17 | 0.97$\pm$0.01 | 4.4$\pm$3.2 | 4.2$\pm$3.8 | 9.17 | \textbf{0.80$\pm$0.04} | 3.5$\pm$2.4 | 2.7$\pm$1.5 |
+| weighted-fusion | 98.89 | 0.97$\pm$0.01 | \underline{4.0$\pm$2.9} | \textbf{3.5$\pm$2.6} | 45.28 | 0.78$\pm$0.05 | 3.9$\pm$2.4 | 2.4$\pm$1.5 |
+| crossattn | 90.56 | 0.97$\pm$0.01 | 4.2$\pm$4.4 | 5.3$\pm$6.9 | 0.00 | 0.00 | \textbf{0.0} | \textbf{0.0} |
+| crossattn-30epoch | \textbf{100.00} | \textbf{0.98$\pm$0.01} | 4.7$\pm$4.5 | \underline{3.6$\pm$2.8} | 58.06 | 0.78$\pm$0.06 | 4.7$\pm$3.2 | 2.6$\pm$1.9 |
+| crossattn-precise | 85.28 | 0.97$\pm$0.01 | 4.9$\pm$4.4 | 3.9$\pm$5.1 | 0.00 | 0.00 | \underline{0.0} | \underline{0.0} |
+
+
+**Note**: **Bold** = Best, _Italic_ = Second Best

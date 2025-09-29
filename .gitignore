@@ -10,8 +10,9 @@
 /single_yolo/datasets
 /single_yolo/runs
 /single_yolo/weights
-/dual_yolo/evaluation_results*
+/dual_yolo/evaluation_results_aug*
 /dual_yolo/evaluation_results
+/dual_yolo/evaluation_results_v2
 
 *.pt
 *.zip
