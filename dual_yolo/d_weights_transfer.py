@@ -10,15 +10,15 @@ from ultralytics import YOLO
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_MODEL = PROJECT_ROOT / "dual_yolo" / "models" / "yolo11x-dseg-id.yaml"
 DEFAULT_SOURCES: Dict[str, Path] = {
-    "blue": PROJECT_ROOT / "single_yolo" / "runs" / "single_blue_scratch" / "weights" / "best.pt",
-    "white": PROJECT_ROOT / "single_yolo" / "runs" / "single_white_scratch" / "weights" / "best.pt",
+    "blue": PROJECT_ROOT / "single_yolo" / "runs" / "segment"/ "single_blue_scratch" / "weights" / "best.pt",
+    "white": PROJECT_ROOT / "single_yolo" / "runs" / "segment"/ "single_white_scratch" / "weights" / "best.pt",
 }
 DEFAULT_OUTPUTS: Dict[str, Path] = {
-    "blue"  : PROJECT_ROOT / "dual_yolo" / "runs" / "segment" / "dual_modal_train_id-blue"  / "weights" / "best.pt",
-    "white" : PROJECT_ROOT / "dual_yolo" / "runs" / "segment" / "dual_modal_train_id-white" / "weights" / "best.pt",
+    "blue"  : PROJECT_ROOT / "dual_yolo" / "runs" / "segment" / "dual_modal_scratch_id-blue"  / "weights" / "best.pt",
+    "white" : PROJECT_ROOT / "dual_yolo" / "runs" / "segment" / "dual_modal_scratch_id-white" / "weights" / "best.pt",
 }
 # ===== 手动配置区域 =====
-MODE: str = "white"          # 可选 "blue" 或 "white"
+MODE: str = "blue"          # 可选 "blue" 或 "white"
 SOURCE: Optional[Path] = None  # 指定单模态权重路径，留空则使用 DEFAULT_SOURCES[MODE]
 OUTPUT: Optional[Path] = None  # 指定输出路径，留空则使用 DEFAULT_OUTPUTS[MODE]
 MODEL_YAML: Path = DEFAULT_MODEL  # 双模态模型结构文件

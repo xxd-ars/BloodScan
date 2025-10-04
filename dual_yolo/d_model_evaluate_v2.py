@@ -462,7 +462,8 @@ class DualYOLOEvaluatorV2:
 
 def main():
     """主函数"""
-    fusion_names = ['crossattn', 'crossattn-precise', 'weighted-fusion', 'concat-compress'] # 'id-white', 'id-blue', 
+    fusion_names = ['id-blue'] # 'id-white', 'id-blue', 
+    # fusion_names = ['crossattn', 'crossattn-precise', 'weighted-fusion', 'concat-compress'] # 'id-white', 'id-blue', 
     # fusion_names = ['crossattn-precise', 'crossattn-30epoch', 'weighted-fusion', 'concat-compress', 'id']
     conf_thresholds = [0.5, 0.6, 0.65, 0.7, 0.75, 0.8]
     train_mode = 'scratch'  # 'scratch', 'pretrained', 'freeze_backbone'
