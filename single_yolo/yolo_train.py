@@ -6,12 +6,12 @@ from ultralytics import YOLO
 project_root = Path(__file__).parent.parent
 
 # ==================== 单模态训练配置 ====================
-MODALITY = 'blue'        # 'blue', 'white'
+MODALITYs = ['blue', 'white']        # 'blue', 'white'
 USE_PRETRAINED = False   # True: 加载蓝光权重, False: 从头训练
 
 if platform.system() == 'Windows':
     TRAIN_CONFIG = {
-        'epochs': 30,
+        'epochs': 10,
         'batch': 1,
         'imgsz': 1504,
         
@@ -20,7 +20,7 @@ if platform.system() == 'Windows':
     }
 elif platform.system() == 'Linux':
     TRAIN_CONFIG = {
-        'epochs': 30,
+        'epochs': 10,
         'batch': 8,
         'imgsz': 1504,
 
@@ -134,33 +134,34 @@ def cleanup():
 
 def main():
     """主训练函数"""
-    print(f"🔧 训练模态: {MODALITY}")
-    print(f"🔧 使用预训练: {USE_PRETRAINED}")
+    for MODALITY in MODALITYs:
+        print(f"🔧 训练模态: {MODALITY}")
+        print(f"🔧 使用预训练: {USE_PRETRAINED}")
 
-    # 准备数据集
-    data_config = prepare_dataset_for_training(MODALITY)
+        # 准备数据集
+        data_config = prepare_dataset_for_training(MODALITY)
 
-    # 检查数据集是否存在
-    if not os.path.exists(data_config):
-        print(f"❌ 数据集配置不存在: {data_config}")
-        return
+        # 检查数据集是否存在
+        if not os.path.exists(data_config):
+            print(f"❌ 数据集配置不存在: {data_config}")
+            return
 
-    # 设置模型
-    model = setup_model(USE_PRETRAINED)
+        # 设置模型
+        model = setup_model(USE_PRETRAINED)
 
-    # 开始训练
-    print("🚀 开始训练单模态YOLO模型...")
-    results = model.train(
-        data=str(data_config),
-        name=f'single_{MODALITY}_{"pretrained" if USE_PRETRAINED else "scratch"}',
-        project=project_root / 'single_yolo' / 'runs' / 'segment',
-        **TRAIN_CONFIG
-    )
+        # 开始训练
+        print("🚀 开始训练单模态YOLO模型...")
+        results = model.train(
+            data=str(data_config),
+            name=f'single_{MODALITY}_{"pretrained" if USE_PRETRAINED else "scratch"}',
+            project=project_root / 'single_yolo' / 'runs' / 'segment',
+            **TRAIN_CONFIG
+        )
 
-    print("✅ 训练完成！")
-    print(f"📊 训练结果: {results}")
+        print("✅ 训练完成！")
+        print(f"📊 训练结果: {results}")
 
-    # cleanup()  # 注释掉自动清理
+        cleanup()  # 注释掉自动清理
 
 if __name__ == "__main__":
     main()

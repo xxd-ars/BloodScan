@@ -20,11 +20,12 @@ from dual_dataset.d_dataset_config import DatasetConfig
 
 
 class DualYOLOEvaluatorV2:
-    def __init__(self, fusion_name, conf_threshold=0.5):
+    def __init__(self, fusion_name, train_mode, conf_threshold=0.5):
         self.fusion_name = fusion_name
         self.conf_threshold = conf_threshold
         self.project_root = Path(__file__).parent.parent
         self.model = None
+        self.train_mode = train_mode
         self.config = DatasetConfig()
 
         # 结果保存路径
@@ -69,7 +70,7 @@ class DualYOLOEvaluatorV2:
             else:
                 model_yaml = self.project_root / 'dual_yolo' / 'models' / f'yolo11x-dseg-{self.fusion_name}.yaml'
 
-            model_pt = self.project_root / 'dual_yolo' / 'runs' / 'segment' / f'dual_modal_pretrained_{self.fusion_name}' / 'weights' / 'best.pt'
+            model_pt = self.project_root / 'dual_yolo' / 'runs' / 'segment' / f'dual_modal_{self.train_mode}_{self.fusion_name}' / 'weights' / 'best.pt'
 
         try:
             self.model = YOLO(model_yaml).load(model_pt)
@@ -378,15 +379,15 @@ class DualYOLOEvaluatorV2:
                 }
 
             save_data[group_key] = {
-                'detection_rate': group_metrics['detection_rate'],
-                'total_samples': group_metrics['total_samples'],
-                'detected_samples': group_metrics['detected_samples'],
-                'iou_mean': np.mean(group_metrics['iou_scores']) if group_metrics['iou_scores'] else 0,
-                'iou_std': np.std(group_metrics['iou_scores']) if group_metrics['iou_scores'] else 0,
-                'upper_diff_mean': np.mean(group_metrics['upper_surface_diffs']) if group_metrics['upper_surface_diffs'] else 0,
-                'upper_diff_std': np.std(group_metrics['upper_surface_diffs']) if group_metrics['upper_surface_diffs'] else 0,
-                'lower_diff_mean': np.mean(group_metrics['lower_surface_diffs']) if group_metrics['lower_surface_diffs'] else 0,
-                'lower_diff_std': np.std(group_metrics['lower_surface_diffs']) if group_metrics['lower_surface_diffs'] else 0,
+                'detection_rate': float(group_metrics['detection_rate']),
+                'total_samples': int(group_metrics['total_samples']),
+                'detected_samples': int(group_metrics['detected_samples']),
+                'iou_mean': float(np.mean(group_metrics['iou_scores'])) if group_metrics['iou_scores'] else 0.0,
+                'iou_std': float(np.std(group_metrics['iou_scores'])) if group_metrics['iou_scores'] else 0.0,
+                'upper_diff_mean': float(np.mean(group_metrics['upper_surface_diffs'])) if group_metrics['upper_surface_diffs'] else 0.0,
+                'upper_diff_std': float(np.std(group_metrics['upper_surface_diffs'])) if group_metrics['upper_surface_diffs'] else 0.0,
+                'lower_diff_mean': float(np.mean(group_metrics['lower_surface_diffs'])) if group_metrics['lower_surface_diffs'] else 0.0,
+                'lower_diff_std': float(np.std(group_metrics['lower_surface_diffs'])) if group_metrics['lower_surface_diffs'] else 0.0,
                 'raw_data': raw_data
             }
 
@@ -461,14 +462,15 @@ class DualYOLOEvaluatorV2:
 
 def main():
     """主函数"""
-    fusion_names = ['id-white', 'id-blue', 'crossattn', 'crossattn-precise', 'weighted-fusion', 'concat-compress']
+    fusion_names = ['crossattn', 'crossattn-precise', 'weighted-fusion', 'concat-compress'] # 'id-white', 'id-blue', 
     # fusion_names = ['crossattn-precise', 'crossattn-30epoch', 'weighted-fusion', 'concat-compress', 'id']
     conf_thresholds = [0.5, 0.6, 0.65, 0.7, 0.75, 0.8]
+    train_mode = 'scratch'  # 'scratch', 'pretrained', 'freeze_backbone'
 
     for fusion_name in fusion_names:
         for conf_threshold in conf_thresholds:
             print(f"\n开始评估: {fusion_name}, 置信度: {conf_threshold}")
-            evaluator = DualYOLOEvaluatorV2(fusion_name, conf_threshold)
+            evaluator = DualYOLOEvaluatorV2(fusion_name, train_mode, conf_threshold)
             evaluator.run_evaluation()
 
 

@@ -1,12 +1,18 @@
 import torch, sys, os
 from pathlib import Path
-import os
 os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "expandable_segments:True"
 
 # 确保使用本地修改的ultralytics代码
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
-from ultralytics import YOLO
+project_root_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+sys.path.insert(0, project_root_path)
+print(project_root_path)
 
+# 设置PYTHONPATH环境变量，确保DDP子进程也能找到自定义ultralytics
+os.environ['PYTHONPATH'] = project_root_path + os.pathsep + os.environ.get('PYTHONPATH', '')
+
+import ultralytics
+from ultralytics import YOLO
+print(ultralytics.__file__)
 # 项目根目录
 project_root = Path(__file__).parent.parent
 
