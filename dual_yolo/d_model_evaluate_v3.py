@@ -1,8 +1,8 @@
 """
-双模态YOLO模型评估脚本V3 - 重构版
+双模态YOLO模型评估脚本V3 - 优化版
 - 按类别独立评估（class 0, 1, 2分开统计）
-- 医学指标：Detection Rate, IoU, Surface Diff（固定conf阈值）
-- 学术指标：mAP@0.5, mAP@0.5:0.95, Precision, Recall（遍历所有conf）
+- 主要指标：Mask mAP@0.5, mAP@0.5:0.95, Precision, Recall, F1
+- 辅助指标：Detection Rate, IoU, Surface Diff
 """
 
 import torch
@@ -22,23 +22,21 @@ from ultralytics.utils.metrics import ap_per_class
 
 
 class mAPCalculator:
-    """基于Ultralytics的mAP计算器"""
+    """基于Ultralytics的Mask mAP计算器（移除Box mAP）"""
 
     def __init__(self, class_config):
         self.class_config = class_config
         self.iou_thresholds = np.linspace(0.5, 0.95, 10)
 
         # 累积数据（跨所有测试图像）
-        self.all_tp_box = []
         self.all_tp_mask = []
         self.all_conf = []
         self.all_pred_cls = []
         self.all_target_cls = []
 
-    def collect(self, tp_box, tp_mask, conf, pred_cls, target_cls):
+    def collect(self, tp_mask, conf, pred_cls, target_cls):
         """收集单张图像的检测数据"""
-        if len(tp_box) > 0:
-            self.all_tp_box.append(tp_box)
+        if len(tp_mask) > 0:
             self.all_tp_mask.append(tp_mask)
             self.all_conf.append(conf)
             self.all_pred_cls.append(pred_cls)
@@ -47,22 +45,15 @@ class mAPCalculator:
             self.all_target_cls.append(target_cls)
 
     def compute(self):
-        """计算mAP和相关指标"""
-        if not self.all_tp_box:
+        """计算Mask mAP和相关指标"""
+        if not self.all_tp_mask:
             return None
 
         # 合并所有数据
-        tp_box = np.vstack(self.all_tp_box)
         tp_mask = np.vstack(self.all_tp_mask)
         conf = np.concatenate(self.all_conf)
         pred_cls = np.concatenate(self.all_pred_cls)
         target_cls = np.concatenate(self.all_target_cls)
-
-        # 计算Box AP
-        results_box = ap_per_class(
-            tp_box, conf, pred_cls, target_cls,
-            plot=False, save_dir=Path(), names={}
-        )
 
         # 计算Mask AP
         results_mask = ap_per_class(
@@ -71,23 +62,19 @@ class mAPCalculator:
         )
 
         # 解析结果：(tp, fp, p, r, f1, ap, unique_classes, ...)
-        _, _, p_box, r_box, f1_box, ap_box, unique_classes, *_ = results_box
-        _, _, p_mask, r_mask, f1_mask, ap_mask, _, *_ = results_mask
+        _, _, p_mask, r_mask, f1_mask, ap_mask, unique_classes, *_ = results_mask
 
         # 按类别组织结果
         per_class_results = {}
         for i, class_id in enumerate(unique_classes):
             class_id = int(class_id)
             per_class_results[class_id] = {
-                'box_ap50': float(ap_box[i, 0]) if len(ap_box.shape) > 1 else 0.0,
-                'box_ap75': float(ap_box[i, 5]) if len(ap_box.shape) > 1 else 0.0,
-                'box_ap50_95': float(ap_box[i].mean()) if len(ap_box.shape) > 1 else 0.0,
                 'mask_ap50': float(ap_mask[i, 0]) if len(ap_mask.shape) > 1 else 0.0,
                 'mask_ap75': float(ap_mask[i, 5]) if len(ap_mask.shape) > 1 else 0.0,
                 'mask_ap50_95': float(ap_mask[i].mean()) if len(ap_mask.shape) > 1 else 0.0,
-                'precision': float(p_box[i]) if len(p_box) > 0 else 0.0,
-                'recall': float(r_box[i]) if len(r_box) > 0 else 0.0,
-                'f1_score': float(f1_box[i]) if len(f1_box) > 0 else 0.0
+                'precision': float(p_mask[i]) if len(p_mask) > 0 else 0.0,
+                'recall': float(r_mask[i]) if len(r_mask) > 0 else 0.0,
+                'f1_score': float(f1_mask[i]) if len(f1_mask) > 0 else 0.0
             }
 
         return per_class_results
@@ -209,24 +196,6 @@ class DualYOLOEvaluatorV3:
 
         return intersection / union if union > 0 else 0.0
 
-    def calculate_box_iou(self, box1, box2):
-        """计算Box IoU (xyxy格式)"""
-        x1_min, y1_min, x1_max, y1_max = box1
-        x2_min, y2_min, x2_max, y2_max = box2
-
-        inter_xmin = max(x1_min, x2_min)
-        inter_ymin = max(y1_min, y2_min)
-        inter_xmax = min(x1_max, x2_max)
-        inter_ymax = min(y1_max, y2_max)
-
-        inter_area = max(0, inter_xmax - inter_xmin) * max(0, inter_ymax - inter_ymin)
-
-        box1_area = (x1_max - x1_min) * (y1_max - y1_min)
-        box2_area = (x2_max - x2_min) * (y2_max - y2_min)
-
-        union_area = box1_area + box2_area - inter_area
-
-        return inter_area / union_area if union_area > 0 else 0.0
 
     def calculate_surface_diff(self, pred_points, true_points, rotation_angle):
         """计算上下表面差异"""
@@ -417,13 +386,12 @@ class DualYOLOEvaluatorV3:
         return True
 
     def _collect_map_data(self, result, true_masks, rotation_angle):
-        """收集mAP计算所需数据（允许多检测）"""
+        """收集mAP计算所需数据（只计算Mask mAP）"""
         if not hasattr(result, 'boxes') or result.boxes is None or len(result.boxes) == 0:
             # 无检测但有GT，需要记录target_cls
             if true_masks:
                 target_cls = np.array(list(true_masks.keys()))
                 self.map_calculator.collect(
-                    np.array([]).reshape(0, 10),  # 空tp_box
                     np.array([]).reshape(0, 10),  # 空tp_mask
                     np.array([]),  # 空conf
                     np.array([]),  # 空pred_cls
@@ -434,7 +402,6 @@ class DualYOLOEvaluatorV3:
         n_pred = len(result.boxes)
 
         # 提取预测信息
-        pred_boxes = result.boxes.xyxy.cpu().numpy()  # (n_pred, 4)
         pred_confs = result.boxes.conf.cpu().numpy()  # (n_pred,)
         pred_classes = result.boxes.cls.cpu().numpy().astype(int)  # (n_pred,)
 
@@ -447,25 +414,16 @@ class DualYOLOEvaluatorV3:
             pred_masks.append(mask_points)
 
         # 提取GT信息
-        gt_boxes = []
         gt_masks = []
         gt_classes = []
         for class_id, true_points in true_masks.items():
-            # 从多边形提取bbox
-            x_coords = true_points[:, 0]
-            y_coords = true_points[:, 1]
-            bbox = [x_coords.min(), y_coords.min(), x_coords.max(), y_coords.max()]
-
-            gt_boxes.append(bbox)
             gt_masks.append(true_points)
             gt_classes.append(class_id)
 
-        gt_boxes = np.array(gt_boxes)  # (n_gt, 4)
         gt_classes = np.array(gt_classes)  # (n_gt,)
 
-        # 计算TP矩阵（10个IoU阈值）
+        # 计算TP矩阵（10个IoU阈值，只计算Mask）
         iou_thresholds = np.linspace(0.5, 0.95, 10)
-        tp_box = np.zeros((n_pred, 10))
         tp_mask = np.zeros((n_pred, 10))
 
         # 按置信度排序
@@ -478,7 +436,6 @@ class DualYOLOEvaluatorV3:
                 pred_class = pred_classes[pred_idx]
 
                 # 找到同类别的GT
-                best_iou_box = 0
                 best_iou_mask = 0
                 best_gt_idx = -1
 
@@ -488,28 +445,21 @@ class DualYOLOEvaluatorV3:
                     if gt_idx in matched_gts:
                         continue
 
-                    # 计算Box IoU
-                    box_iou = self.calculate_box_iou(pred_boxes[pred_idx], gt_boxes[gt_idx])
-
                     # 计算Mask IoU
                     mask_iou = self.calculate_iou(pred_masks[pred_idx], gt_masks[gt_idx])
 
                     if mask_iou > best_iou_mask:
-                        best_iou_box = box_iou
                         best_iou_mask = mask_iou
                         best_gt_idx = gt_idx
 
-                # 判定TP（每个阈值独立判定）
-                if best_gt_idx >= 0 and best_iou_box >= iou_threshold:
-                    tp_box[pred_idx, threshold_idx] = 1
+                # 判定TP
+                if best_gt_idx >= 0 and best_iou_mask >= iou_threshold:
+                    tp_mask[pred_idx, threshold_idx] = 1
                     if threshold_idx == 0:  # 只在第一个阈值时匹配GT
                         matched_gts.add(best_gt_idx)
 
-                if best_gt_idx >= 0 and best_iou_mask >= iou_threshold:
-                    tp_mask[pred_idx, threshold_idx] = 1
-
         # 收集到mAP计算器
-        self.map_calculator.collect(tp_box, tp_mask, pred_confs, pred_classes, gt_classes)
+        self.map_calculator.collect(tp_mask, pred_confs, pred_classes, gt_classes)
 
     def run_evaluation(self):
         """运行完整评估"""
@@ -605,16 +555,15 @@ class DualYOLOEvaluatorV3:
 
             save_data['per_class_metrics'][class_key] = class_data
 
-        # 计算aggregate academic metrics
+        # 计算aggregate academic metrics（只保留Mask mAP）
         if map_results:
             all_classes_ap = list(map_results.values())
             save_data['aggregate_metrics']['academic'] = {
-                'mean_box_ap50': float(np.mean([c['box_ap50'] for c in all_classes_ap])),
-                'mean_box_ap50_95': float(np.mean([c['box_ap50_95'] for c in all_classes_ap])),
                 'mean_mask_ap50': float(np.mean([c['mask_ap50'] for c in all_classes_ap])),
                 'mean_mask_ap50_95': float(np.mean([c['mask_ap50_95'] for c in all_classes_ap])),
                 'mean_precision': float(np.mean([c['precision'] for c in all_classes_ap])),
-                'mean_recall': float(np.mean([c['recall'] for c in all_classes_ap]))
+                'mean_recall': float(np.mean([c['recall'] for c in all_classes_ap])),
+                'mean_f1': float(np.mean([c['f1_score'] for c in all_classes_ap]))
             }
 
         # 保存JSON
@@ -625,7 +574,7 @@ class DualYOLOEvaluatorV3:
         print(f"\n✅ 结果已保存到: {metrics_file}")
 
     def print_results(self):
-        """打印评估结果"""
+        """打印评估结果（优化版：Mask mAP为主，Detection Rate弱化）"""
         print(f'\n{"="*70}')
         print(f'  {self.fusion_name} 评估结果 (置信度: {self.conf_threshold})')
         print(f'{"="*70}')
@@ -639,9 +588,17 @@ class DualYOLOEvaluatorV3:
             print(f'│ Class {class_id}: {config["name"]:<10} ({config["display_name"]})' + ' ' * (68 - 20 - len(config['name']) - len(config['display_name'])) + '│')
             print(f'├{"─"*68}┤')
 
-            # 医学指标
-            print(f'│ 医学指标 (Medical Metrics - conf={self.conf_threshold})' + ' ' * 18 + '│')
-            print(f'│   总样本数: {metrics["total_samples"]:<6}                                                   │')
+            # 主要指标：Mask mAP
+            map_results = self.map_calculator.compute()
+            if map_results and class_id in map_results:
+                ap = map_results[class_id]
+                print(f'│ 主要指标 (Mask mAP & Performance)' + ' ' * 35 + '│')
+                print(f'│   mAP@0.5: {ap["mask_ap50"]:.4f}  mAP@0.5:0.95: {ap["mask_ap50_95"]:.4f}' + ' ' * 24 + '│')
+                print(f'│   Precision: {ap["precision"]:.4f}  Recall: {ap["recall"]:.4f}  F1: {ap["f1_score"]:.4f}' + ' ' * 15 + '│')
+
+            # 辅助指标：Detection Rate, IoU, Surface Diff
+            print(f'│' + ' ' * 68 + '│')
+            print(f'│ 辅助指标 (Medical Metrics - conf={self.conf_threshold})' + ' ' * 18 + '│')
             detected = metrics['detected_samples']
             total = metrics['total_samples']
             rate = metrics['detection_rate']
@@ -652,50 +609,49 @@ class DualYOLOEvaluatorV3:
                 print(f'│   上表面差异: {metrics["upper_diff_mean"]:.2f} ± {metrics["upper_diff_std"]:.2f} 像素' + ' ' * 30 + '│')
                 print(f'│   下表面差异: {metrics["lower_diff_mean"]:.2f} ± {metrics["lower_diff_std"]:.2f} 像素' + ' ' * 30 + '│')
 
-            # 学术指标
-            map_results = self.map_calculator.compute()
-            if map_results and class_id in map_results:
-                print(f'│' + ' ' * 68 + '│')
-                print(f'│ 学术指标 (Academic Metrics - YOLO Standard)' + ' ' * 24 + '│')
-                ap = map_results[class_id]
-                print(f'│   Box  mAP@0.5: {ap["box_ap50"]:.4f}  mAP@0.75: {ap["box_ap75"]:.4f}  mAP@0.5:0.95: {ap["box_ap50_95"]:.4f}' + ' ' * 7 + '│')
-                print(f'│   Mask mAP@0.5: {ap["mask_ap50"]:.4f}  mAP@0.75: {ap["mask_ap75"]:.4f}  mAP@0.5:0.95: {ap["mask_ap50_95"]:.4f}' + ' ' * 7 + '│')
-                print(f'│   Precision: {ap["precision"]:.4f}  Recall: {ap["recall"]:.4f}  F1: {ap["f1_score"]:.4f}' + ' ' * 15 + '│')
-
             print(f'└{"─"*68}┘\n')
 
         # 总体指标
         print(f'┌{"─"*68}┐')
-        print(f'│ 总体指标 (Overall Metrics)' + ' ' * 42 + '│')
+        print(f'│ 总体指标 (Overall Metrics - 跨类别平均)' + ' ' * 30 + '│')
         print(f'├{"─"*68}┤')
-
-        overall_rate = self.overall_success_count / self.total_images if self.total_images > 0 else 0.0
-        print(f'│ 医学严格标准                                                          │')
-        print(f'│   所有类别正确检测率: {overall_rate:.2%} ({self.overall_success_count}/{self.total_images})' + ' ' * (68 - 34 - len(str(self.overall_success_count)) - len(str(self.total_images))) + '│')
 
         map_results = self.map_calculator.compute()
         if map_results:
             all_classes_ap = list(map_results.values())
-            print(f'│                                                                      │')
-            print(f'│ 学术标准 (跨类别平均)                                                 │')
-            mean_box_ap50 = np.mean([c['box_ap50'] for c in all_classes_ap])
-            mean_box_ap50_95 = np.mean([c['box_ap50_95'] for c in all_classes_ap])
-            print(f'│   Mean Box  mAP@0.5: {mean_box_ap50:.4f}  mAP@0.5:0.95: {mean_box_ap50_95:.4f}' + ' ' * 20 + '│')
+            print(f'│ 主要指标 (Mask mAP)' + ' ' * 49 + '│')
             mean_mask_ap50 = np.mean([c['mask_ap50'] for c in all_classes_ap])
             mean_mask_ap50_95 = np.mean([c['mask_ap50_95'] for c in all_classes_ap])
-            print(f'│   Mean Mask mAP@0.5: {mean_mask_ap50:.4f}  mAP@0.5:0.95: {mean_mask_ap50_95:.4f}' + ' ' * 20 + '│')
+            print(f'│   mAP@0.5: {mean_mask_ap50:.4f}  mAP@0.5:0.95: {mean_mask_ap50_95:.4f}' + ' ' * 26 + '│')
             mean_prec = np.mean([c['precision'] for c in all_classes_ap])
             mean_rec = np.mean([c['recall'] for c in all_classes_ap])
-            print(f'│   Mean Precision: {mean_prec:.4f}  Mean Recall: {mean_rec:.4f}' + ' ' * 23 + '│')
+            mean_f1 = np.mean([c['f1_score'] for c in all_classes_ap])
+            print(f'│   Precision: {mean_prec:.4f}  Recall: {mean_rec:.4f}  F1: {mean_f1:.4f}' + ' ' * 15 + '│')
+
+        overall_rate = self.overall_success_count / self.total_images if self.total_images > 0 else 0.0
+        print(f'│' + ' ' * 68 + '│')
+        print(f'│ 辅助指标 (医学严格标准)' + ' ' * 45 + '│')
+        print(f'│   所有类别正确检测率: {overall_rate:.2%} ({self.overall_success_count}/{self.total_images})' + ' ' * (68 - 34 - len(str(self.overall_success_count)) - len(str(self.total_images))) + '│')
 
         print(f'└{"─"*68}┘')
+
+        # 指标说明
+        print('\n📌 指标说明:')
+        print('  主要指标:')
+        print('    - Mask mAP@0.5:0.95: 学术标准分割精度 (IoU从0.5到0.95的平均)')
+        print('    - Recall: 召回率 (避免漏检的关键指标)')
+        print('    - F1 Score: 精确率和召回率的调和平均')
+        print('  辅助指标:')
+        print('    - 检测率: 医学严格标准 (恰好检测1次的样本比例)')
+        print('    - 平均IoU: 分割质量')
+        print('    - 表面差异: 上下边界定位误差 (像素)')
 
 
 def main():
     """主函数"""
     fusion_names = ['crossattn-precise']
     # fusion_names = ['crossattn', 'crossattn-precise', 'weighted-fusion', 'concat-compress'] # 'id-white', 'id-blue', 
-    conf_thresholds = [0.7, 0.75, 0.8]
+    conf_thresholds = [0.5, 0.6, 0.65, 0.7, 0.75]
     train_mode = 'scratch'  # 'scratch', 'pretrained', 'freeze_backbone'
 
     for fusion_name in fusion_names:
