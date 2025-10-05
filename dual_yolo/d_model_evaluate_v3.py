@@ -110,7 +110,7 @@ class DualYOLOEvaluatorV3:
         }
 
         # 结果保存路径
-        self.results_dir = self.project_root / 'dual_yolo' / 'evaluation_results_v3_novis' / f'conf_{conf_threshold}' / fusion_name
+        self.results_dir = self.project_root / 'dual_yolo' / 'evaluation_results_v3' / f'conf_{conf_threshold}' / fusion_name
         self.vis_dir = self.results_dir / 'sample_visualizations'
         os.makedirs(self.results_dir, exist_ok=True)
         os.makedirs(self.vis_dir, exist_ok=True)
@@ -694,8 +694,9 @@ class DualYOLOEvaluatorV3:
 def main():
     """主函数"""
     fusion_names = ['crossattn-precise']
-    conf_thresholds = [0.5, 0.6, 0.65, 0.7, 0.75, 0.8]
-    train_mode = 'scratch'
+    # fusion_names = ['crossattn', 'crossattn-precise', 'weighted-fusion', 'concat-compress'] # 'id-white', 'id-blue', 
+    conf_thresholds = [0.7, 0.75, 0.8]
+    train_mode = 'scratch'  # 'scratch', 'pretrained', 'freeze_backbone'
 
     for fusion_name in fusion_names:
         for conf_threshold in conf_thresholds:
