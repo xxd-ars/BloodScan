@@ -20,9 +20,20 @@ class ResultsTableGenerator:
             for method_dir in conf_dir.iterdir():
                 if method_dir.is_dir():
                     method_name = method_dir.name
-                    metrics_file = method_dir / f'metrics_{method_name}.json'
 
-                    if metrics_file.exists():
+                    # 尝试多种metrics文件名模式
+                    possible_files = [
+                        method_dir / f'metrics_{method_name}.json',  # 标准命名
+                        *list(method_dir.glob('metrics_*.json'))     # 任何metrics文件
+                    ]
+
+                    metrics_file = None
+                    for f in possible_files:
+                        if f.exists():
+                            metrics_file = f
+                            break
+
+                    if metrics_file:
                         with open(metrics_file, 'r') as f:
                             metrics = json.load(f)
 
@@ -88,17 +99,22 @@ class ResultsTableGenerator:
 
         # 按指定顺序排序
         method_order = [
-            'Yolo11-Blue', 'Yolo11-White', 'Dual Yolo Concat', 'Dual Yolo Weighted',
+            'Yolo11', 'Yolo11-Blue', 'Yolo11-White', 'Yolo11-Blue-30', 'Yolo11-White-30', 'Dual Yolo Concat', 'Dual Yolo Weighted',
             'Dual Yolo CrossAttn', 'Dual Yolo CrossAttn (30 Epochs)', 'Dual Yolo (Our Best)'
         ]
 
         # 创建方法名到显示名的映射
         method_map = {
+            'id-blue-30': 'Yolo11-Blue-30',
+            'id-white-30': 'Yolo11-White-30',
+
             'id-blue': 'Yolo11-Blue',
             'id-white': 'Yolo11-White',
+
             'id_blue': 'Yolo11-Blue',
             'id_white': 'Yolo11-White',
-            'id': 'Yolo11-Blue',
+            
+            'id': 'Yolo11',
             'concat-compress': 'Dual Yolo Concat',
             'weighted-fusion': 'Dual Yolo Weighted',
             'crossattn': 'Dual Yolo CrossAttn',
@@ -184,11 +200,13 @@ class ResultsTableGenerator:
             for i, row in enumerate(table_data):
                 # 映射方法名
                 method_map = {
+                    'id-blue-30': 'Yolo11-Blue-30',
+                    'id-white-30': 'Yolo11-White-30',
                     'id-blue': 'Yolo11-Blue',
                     'id-white': 'Yolo11-White',
                     'id_blue': 'Yolo11-Blue',
                     'id_white': 'Yolo11-White',
-                    # 'id': 'Yolo11-Blue',  # 假设id指的是蓝光单模态
+                    'id': 'Yolo11',  # 假设id指的是蓝光单模态
                     'concat-compress': 'Dual Yolo Concat',
                     'weighted-fusion': 'Dual Yolo Weighted',
                     'crossattn': 'Dual Yolo CrossAttn',
@@ -200,7 +218,7 @@ class ResultsTableGenerator:
 
                 # 判断是否为双模态方法
                 dual_methods = ['concat-compress', 'weighted-fusion', 'crossattn', 'crossattn-precise', 'crossattn-30epoch']
-                single_methods = ['id-blue', 'id-white', 'id_blue', 'id_white', 'id']
+                single_methods = ['id-blue', 'id-white', 'id-blue-30', 'id-white-30', 'id_blue', 'id_white', 'id']
 
                 is_dual = row['Method'] in dual_methods
                 dual_symbol = '$\\checkmark$' if is_dual else '$\\times$'
@@ -265,11 +283,13 @@ class ResultsTableGenerator:
         for i, row in enumerate(table_data):
             # 映射方法名
             method_map = {
+                'id-blue-30': 'Yolo11-Blue-30',
+                'id-white-30': 'Yolo11-White-30',
                 'id-blue': 'Yolo11-Blue',
                 'id-white': 'Yolo11-White',
                 'id_blue': 'Yolo11-Blue',
                 'id_white': 'Yolo11-White',
-                # 'id': 'Yolo11-Blue',  # 假设id指的是蓝光单模态
+                'id': 'Yolo11',  # 假设id指的是蓝光单模态
                 'concat-compress': 'Dual Yolo Concat',
                 'weighted-fusion': 'Dual Yolo Weighted',
                 'crossattn': 'Dual Yolo CrossAttn',
