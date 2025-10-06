@@ -9,12 +9,13 @@ from ultralytics import YOLO
 project_root = Path(__file__).parent.parent
 fusion_dict = {
     'concat_compress': 'yolo11x-dseg-concat-compress.yaml',
-    'weighted_fusion': 'yolo11x-dseg-weighted-fusion.yaml',
-    'cross_attn': 'yolo11x-dseg-crossattn.yaml',
-    'id_blue': 'yolo11x-dseg-id.yaml',
-    'id_white': 'yolo11x-dseg-id.yaml',
+    'crossattn': 'yolo11x-dseg-crossattn.yaml',
+    'crossattn-precise': 'yolo11x-dseg-crossattn-precise.yaml',
+    'weighted-fusion': 'yolo11x-dseg-weighted-fusion.yaml',
+    'id-blue': 'yolo11x-dseg-id-blue.yaml',
+    'id-white': 'yolo11x-dseg-id-white.yaml',
 }
-fusion_name = 'id_white'  # 'concat_compress', 'weighted_fusion', 'cross_attn', 'id_blue', 'id_white'
+fusion_name = 'crossattn-precise'  # 'concat_compress', 'weighted-fusion', 'crossattn', 'id-blue', 'id-white'
 model_yaml = project_root / 'dual_yolo' / 'models' / fusion_dict[fusion_name]
 model_pt = project_root / 'dual_yolo' / 'runs' / 'segment' / f'dual_modal_train_{fusion_name}' / 'weights' / 'best.pt'
 

@@ -20,7 +20,7 @@ if platform.system() == 'Windows':
     }
 elif platform.system() == 'Linux':
     TRAIN_CONFIG = {
-        'epochs': 10,
+        'epochs': 5,
         'batch': 8,
         'imgsz': 1504,
 
