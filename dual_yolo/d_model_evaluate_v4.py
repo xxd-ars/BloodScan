@@ -33,7 +33,9 @@ class EvaluatorV4:
         self.model_pt = root / 'dual_yolo' / 'runs' / 'segment' / f'dual_modal_{train_mode}_{model_name}' / 'weights' / 'best.pt'
         self.dataset = root / 'datasets' / 'Dual-Modal-1504-500-1-6ch'
         self.save_dir = root / 'dual_yolo' / 'evaluation_results_v4' / f'conf_{conf_medical}' / model_name
+        self.vis_dir = self.save_dir / 'visualizations'
         self.save_dir.mkdir(parents=True, exist_ok=True)
+        self.vis_dir.mkdir(parents=True, exist_ok=True)
 
         # 数据配置
         self.config = DatasetConfig()
@@ -45,8 +47,11 @@ class EvaluatorV4:
         # 医学指标累积器 (conf=conf_medical)
         self.medical_data = {cls_id: {
             'detected_count': 0, 'total_count': 0,
-            'iou_list': [], 'upper_diff_list': [], 'lower_diff_list': []
+            'iou_list': [], 'upper_diff_list': [], 'lower_diff_list': [],
+            'raw_samples': []  # 存储每个样本的详细数据
         } for cls_id in self.classes}
+
+        self.overall_success_count = 0  # 所有类别都正确检测的图像数
 
         self.model = None
         self.device = "cuda:3" if torch.cuda.is_available() else "cpu"
@@ -133,8 +138,15 @@ class EvaluatorV4:
         # 收集学术指标数据
         self._collect_academic(results_academic[0], gt_masks)
 
-        # 收集医学指标数据
-        self._collect_medical(results_medical[0], gt_masks, angle)
+        # 收集医学指标数据并可视化
+        class_success = self._collect_medical(results_medical[0], gt_masks, angle, npy_file)
+
+        # 判断整体成功
+        if len(class_success) == len(gt_masks) and all(class_success.values()):
+            self.overall_success_count += 1
+
+        # 可视化
+        self._visualize(npy_file, img_data, results_medical[0], gt_masks, class_success)
 
     def _collect_academic(self, result, gt_masks):
         """收集学术指标数据 (用于计算mAP)"""
@@ -192,13 +204,17 @@ class EvaluatorV4:
         self.academic_data['pred_cls'].append(pred_classes)
         self.academic_data['target_cls'].append(gt_classes)
 
-    def _collect_medical(self, result, gt_masks, angle):
-        """收集医学指标数据 (检测率 + IoU + Surface Diff @ IoU≥0.5)"""
+    def _collect_medical(self, result, gt_masks, angle, npy_file):
+        """收集医学指标数据 (检测率 + IoU + Surface Diff @ IoU≥0.5)
+        返回: {cls_id: success} 字典
+        """
         # 统计每个类别的检测次数
         detected_classes = {}
         if hasattr(result, 'boxes') and result.boxes is not None:
             for i, cls_id in enumerate(result.boxes.cls.cpu().numpy().astype(int)):
                 detected_classes.setdefault(cls_id, []).append(i)
+
+        class_success = {}
 
         # 按类别评估
         for cls_id, gt_pts in gt_masks.items():
@@ -208,6 +224,7 @@ class EvaluatorV4:
             # 检查是否恰好检测1次
             if detected_classes.get(cls_id, []) != [detected_classes.get(cls_id, [None])[0]] or \
                len(detected_classes.get(cls_id, [])) != 1:
+                class_success[cls_id] = False
                 continue
 
             # 提取预测结果
@@ -217,16 +234,67 @@ class EvaluatorV4:
             # 计算IoU (用于判断是否≥0.5)
             iou = self.calc_iou(pred_pts, gt_pts)
             if iou < 0.5:
+                class_success[cls_id] = False
                 continue
+
+            # 计算表面差异
+            upper_diff, lower_diff = self.calc_surface_diff(pred_pts, gt_pts, angle)
 
             # 通过检测 (IoU≥0.5 且恰好1次)
             metrics['detected_count'] += 1
             metrics['iou_list'].append(iou)
-
-            # 计算表面差异
-            upper_diff, lower_diff = self.calc_surface_diff(pred_pts, gt_pts, angle)
             metrics['upper_diff_list'].append(upper_diff)
             metrics['lower_diff_list'].append(lower_diff)
+
+            # 记录原始样本数据
+            metrics['raw_samples'].append({
+                'filename': npy_file,
+                'iou': float(iou),
+                'upper_diff': float(upper_diff),
+                'lower_diff': float(lower_diff)
+            })
+
+            class_success[cls_id] = True
+
+        return class_success
+
+    def _visualize(self, npy_file, img_data, result, gt_masks, class_success):
+        """可视化检测结果"""
+        # 使用蓝光通道 (channels 0-2)
+        blue_img = img_data[:3][[2, 1, 0], :, :]  # BGR
+        vis_img = blue_img.transpose(1, 2, 0)
+        vis_img = np.clip(vis_img * 255 if vis_img.max() <= 1.0 else vis_img, 0, 255).astype(np.uint8)
+        vis_img = np.ascontiguousarray(vis_img)
+
+        # 颜色方案
+        colors = {0: (0, 255, 255), 1: (0, 255, 0), 2: (255, 0, 0)}  # 黄绿蓝
+
+        # 绘制GT (红色点)
+        for cls_id, gt_pts in gt_masks.items():
+            for pt in gt_pts:
+                cv2.circle(vis_img, tuple(map(int, pt)), 5, (0, 0, 255), -1)
+
+        # 绘制预测结果
+        if hasattr(result, 'boxes') and result.boxes is not None:
+            for i, cls_id in enumerate(result.boxes.cls.cpu().numpy().astype(int)):
+                if cls_id in colors:
+                    pred_pts = result[i].masks.xyn[0].copy() * 1504
+                    pred_pts_int = pred_pts.astype(np.int32).reshape((-1, 1, 2))
+
+                    # 绘制预测多边形
+                    cv2.polylines(vis_img, [pred_pts_int], True, (255, 255, 255), 1, cv2.LINE_AA)
+
+                    # 绘制预测点十字
+                    for pt in pred_pts:
+                        x, y = int(pt[0]), int(pt[1])
+                        cv2.line(vis_img, (x-3, y), (x+3, y), colors[cls_id], 2)
+                        cv2.line(vis_img, (x, y-3), (x, y+3), colors[cls_id], 2)
+
+        # 保存
+        overall_success = len(class_success) == len(gt_masks) and all(class_success.values())
+        suffix = '_success.jpg' if overall_success else '_fail.jpg'
+        save_path = self.vis_dir / f"{npy_file.replace('.npy', '')}{suffix}"
+        cv2.imwrite(str(save_path), vis_img)
 
     def compute_metrics(self):
         """计算最终指标"""
@@ -272,7 +340,8 @@ class EvaluatorV4:
                 'Upper_Diff_mean_IoU0.5_conf': float(np.mean(med['upper_diff_list'])) if med['upper_diff_list'] else 0,
                 'Upper_Diff_std_IoU0.5_conf': float(np.std(med['upper_diff_list'])) if med['upper_diff_list'] else 0,
                 'Lower_Diff_mean_IoU0.5_conf': float(np.mean(med['lower_diff_list'])) if med['lower_diff_list'] else 0,
-                'Lower_Diff_std_IoU0.5_conf': float(np.std(med['lower_diff_list'])) if med['lower_diff_list'] else 0
+                'Lower_Diff_std_IoU0.5_conf': float(np.std(med['lower_diff_list'])) if med['lower_diff_list'] else 0,
+                'raw_samples': med['raw_samples']  # 包含每个样本的详细数据
             }
 
             results['per_class_metrics'][f'class_{cls_id}_{cls_name}'] = {
@@ -283,6 +352,9 @@ class EvaluatorV4:
         # 总体指标
         all_academic = [v['academic'] for v in results['per_class_metrics'].values()]
         all_medical = [v['medical'] for v in results['per_class_metrics'].values()]
+
+        # 计算总图像数
+        total_images = self.medical_data[0]['total_count']
 
         results['aggregate_metrics'] = {
             'academic': {
@@ -297,7 +369,10 @@ class EvaluatorV4:
                 'mean_Detection_Rate': float(np.mean([m['Detection_Rate_IoU0.5_conf'] for m in all_medical])),
                 'mean_IoU': float(np.mean([m['IoU_mean_IoU0.5_conf'] for m in all_medical])),
                 'mean_Upper_Diff': float(np.mean([m['Upper_Diff_mean_IoU0.5_conf'] for m in all_medical])),
-                'mean_Lower_Diff': float(np.mean([m['Lower_Diff_mean_IoU0.5_conf'] for m in all_medical]))
+                'mean_Lower_Diff': float(np.mean([m['Lower_Diff_mean_IoU0.5_conf'] for m in all_medical])),
+                'Overall_Success_Rate': float(self.overall_success_count / total_images) if total_images > 0 else 0.0,
+                'Overall_Success_Count': int(self.overall_success_count),
+                'Total_Images': int(total_images)
             }
         }
 
@@ -361,7 +436,8 @@ class EvaluatorV4:
 def main():
     models = ['id-blue', 'id-white', 'crossattn', 'crossattn-precise',
               'weighted-fusion', 'concat-compress']
-    conf_thresholds = [0.5, 0.6, 0.65, 0.7, 0.75]
+    # 推荐使用较低conf以鼓励检测，提高召回率
+    conf_thresholds = [0.25, 0.3, 0.35, 0.4, 0.5]
     train_mode = 'pretrained'
 
     for model in models:
