@@ -635,24 +635,13 @@ class DualYOLOEvaluatorV3:
 
         print(f'└{"─"*68}┘')
 
-        # 指标说明
-        print('\n📌 指标说明:')
-        print('  主要指标:')
-        print('    - Mask mAP@0.5:0.95: 学术标准分割精度 (IoU从0.5到0.95的平均)')
-        print('    - Recall: 召回率 (避免漏检的关键指标)')
-        print('    - F1 Score: 精确率和召回率的调和平均')
-        print('  辅助指标:')
-        print('    - 检测率: 医学严格标准 (恰好检测1次的样本比例)')
-        print('    - 平均IoU: 分割质量')
-        print('    - 表面差异: 上下边界定位误差 (像素)')
-
 
 def main():
     """主函数"""
-    fusion_names = ['crossattn-precise']
-    # fusion_names = ['crossattn', 'crossattn-precise', 'weighted-fusion', 'concat-compress'] # 'id-white', 'id-blue', 
+    # fusion_names = ['crossattn-precise']
+    fusion_names = ['id-white', 'id-blue', 'crossattn', 'crossattn-precise', 'weighted-fusion', 'concat-compress']
     conf_thresholds = [0.5, 0.6, 0.65, 0.7, 0.75]
-    train_mode = 'scratch'  # 'scratch', 'pretrained', 'freeze_backbone'
+    train_mode = 'pretrained'  # 'scratch', 'pretrained', 'freeze_backbone'
 
     for fusion_name in fusion_names:
         for conf_threshold in conf_thresholds:
