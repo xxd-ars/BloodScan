@@ -1,0 +1,15 @@
+# Evaluation Results (Confidence = 0.65)
+
+| Method | Serum/Plasma | | | | | Buffy Coat | | | | |
+|--------|--------------|---|---|---|---|-----------|----|---|---|---|
+| | mAP@0.5 | Recall | IOU | Diff_up | Diff_low | mAP@0.5 | Recall | IOU | Diff_up | Diff_low |
+|--------|---------|--------|-----|---------|----------|---------|--------|-----|---------|----------|
+| id-blue | \textbf{99.50} | \textbf{100.00} | \textbf{0.98$\pm$0.01} | \textbf{4.2$\pm$2.9} | \textbf{3.4$\pm$2.2} | \textbf{99.50} | \textbf{99.17} | \underline{0.77$\pm$0.07} | 4.3$\pm$3.0 | \textbf{2.4$\pm$1.7} |
+| id-white | 99.50 | \underline{100.00} | 0.97$\pm$0.01 | 4.3$\pm$3.5 | \underline{3.6$\pm$2.7} | 96.98 | \underline{95.00} | 0.75$\pm$0.08 | 4.6$\pm$3.7 | 2.6$\pm$2.2 |
+| concat-compress | \underline{99.50} | 99.86 | 0.97$\pm$0.01 | 4.4$\pm$3.0 | 4.3$\pm$4.1 | 84.44 | 68.89 | 0.77$\pm$0.06 | \textbf{3.8$\pm$2.2} | 2.6$\pm$1.8 |
+| weighted-fusion | 99.50 | 99.44 | 0.97$\pm$0.02 | 4.5$\pm$14.5 | 3.6$\pm$2.9 | \underline{97.34} | 94.72 | 0.76$\pm$0.07 | \underline{4.0$\pm$2.3} | 2.7$\pm$1.9 |
+| crossattn | 99.10 | 98.75 | \underline{0.97$\pm$0.01} | \underline{4.2$\pm$4.2} | 5.4$\pm$6.9 | 53.06 | 6.11 | 0.77$\pm$0.06 | 4.2$\pm$2.5 | \underline{2.4$\pm$1.2} |
+| crossattn-precise | 98.32 | 96.81 | 0.97$\pm$0.03 | 4.9$\pm$4.4 | 5.5$\pm$21.1 | 50.28 | 0.56 | \textbf{0.80$\pm$0.02} | 6.4$\pm$1.3 | 4.0$\pm$1.5 |
+
+
+**Note**: **Bold** = Best, _Italic_ = Second Best
