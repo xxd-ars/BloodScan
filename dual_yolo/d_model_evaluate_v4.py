@@ -437,7 +437,7 @@ def main():
     models = ['id-blue', 'id-white', 'crossattn', 'crossattn-precise',
               'weighted-fusion', 'concat-compress']
     # 推荐使用较低conf以鼓励检测，提高召回率
-    conf_thresholds = [0.25, 0.3, 0.35, 0.4, 0.5]
+    conf_thresholds = [0.25, 0.3, 0.4, 0.5]
     train_mode = 'pretrained'
 
     for model in models:

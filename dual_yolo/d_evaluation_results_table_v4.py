@@ -280,7 +280,7 @@ def main():
     print(f"加载了 {len(generator.data)} 个结果文件")
 
     # 生成所有conf阈值的表格
-    conf_values = ['0.25', '0.3', '0.35', '0.4', '0.5']
+    conf_values = ['0.25', '0.3', '0.4', '0.5']
     for conf in conf_values:
         print(f"\n生成conf={conf}的表格...")
         generator.generate_table(conf)
