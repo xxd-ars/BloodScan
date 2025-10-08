@@ -1,5 +1,5 @@
 """
-双模态YOLO评估脚本 V5 - 终极优化版
+双模态YOLO评估脚本 V5
 - 推理1次（conf=0.001），获取所有检测结果
 - 手动过滤不同conf阈值，无需重复推理
 - 学术指标和医学指标共享同一次推理结果
@@ -481,7 +481,7 @@ def run_parallel_evaluation_v5(model_name, train_mode='pretrained', conf_thresho
                        if f.stem.split('_')[-1] in config.strategies])
 
     print(f"\n{'='*80}")
-    print(f"  多GPU并行评估 V5 (终极优化): {model_name}")
+    print(f"  多GPU并行评估 V5: {model_name}")
     print(f"  总图像数: {len(npy_files)}")
     print(f"  conf阈值: {conf_thresholds}")
     print(f"  使用GPU数: {num_gpus}")

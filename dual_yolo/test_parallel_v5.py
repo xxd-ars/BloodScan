@@ -3,7 +3,7 @@
 """
 
 import multiprocessing as mp
-from d_model_evaluate_v5_parallel import run_parallel_evaluation_v5
+from dual_yolo.d_model_evaluate_v5 import run_parallel_evaluation_v5
 
 if __name__ == '__main__':
     mp.set_start_method('spawn', force=True)
