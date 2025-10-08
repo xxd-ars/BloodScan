@@ -18,9 +18,15 @@ DEFAULT_OUTPUTS: Dict[str, Path] = {
     "white" : PROJECT_ROOT / "dual_yolo" / "runs" / "segment" / "dual_modal_scratch_id-white" / "weights" / "best.pt",
 }
 # ===== 手动配置区域 =====
-MODE: str = "blue"          # 可选 "blue" 或 "white"
-SOURCE: Optional[Path] = None  # 指定单模态权重路径，留空则使用 DEFAULT_SOURCES[MODE]
-OUTPUT: Optional[Path] = None  # 指定输出路径，留空则使用 DEFAULT_OUTPUTS[MODE]
+MODES: Tuple[str, ...] = ("blue", "white")  # 默认依次迁移蓝光与白光，可按需调整子集
+SOURCE_OVERRIDES: Dict[str, Optional[Path]] = {
+    "blue": None,   # 指定蓝光单模态权重，留空使用默认路径
+    "white": None,  # 指定白光单模态权重，留空使用默认路径
+}
+OUTPUT_OVERRIDES: Dict[str, Optional[Path]] = {
+    "blue": None,   # 指定蓝光输出权重路径，留空使用默认路径
+    "white": None,  # 指定白光输出权重路径，留空使用默认路径
+}
 MODEL_YAML: Path = DEFAULT_MODEL  # 双模态模型结构文件
 # ===== 手动配置结束 =====
 
@@ -45,6 +51,12 @@ REVERSE_HEAD_MAPPING = {new: old for old, new in HEAD_MAPPING.items()}
 def normalize_path(path: Path) -> Path:
     path = path.expanduser()
     return path if path.is_absolute() else (PROJECT_ROOT / path)
+
+
+def normalize_optional_path(path: Optional[Path]) -> Optional[Path]:
+    if path is None:
+        return None
+    return normalize_path(Path(path))
 
 
 def resolve_source(mode: str, override: Optional[Path]) -> Path:
@@ -141,14 +153,25 @@ def transfer(mode: str, source_path: Path, output_path: Path, model_yaml: Path) 
 
 
 def main() -> None:
-    mode = MODE.lower()
-    if mode not in DEFAULT_SOURCES:
-        raise ValueError(f"MODE 仅支持 'blue' 或 'white'，当前为 {MODE}")
+    if not MODES:
+        raise ValueError("MODES 至少包含一个模态，例如 ('blue', 'white')")
 
-    source_path = resolve_source(mode, SOURCE)
-    output_path = resolve_output(mode, OUTPUT)
+    modes = tuple(mode.lower() for mode in MODES)
+    unsupported = [mode for mode in modes if mode not in DEFAULT_SOURCES]
+    if unsupported:
+        raise ValueError(f"MODES 仅支持 'blue' 或 'white'，当前包含: {unsupported}")
+
     model_yaml = normalize_path(MODEL_YAML)
-    transfer(mode, source_path, output_path, model_yaml)
+
+    for mode in modes:
+        source_override = normalize_optional_path(SOURCE_OVERRIDES.get(mode))
+        output_override = normalize_optional_path(OUTPUT_OVERRIDES.get(mode))
+
+        source_path = resolve_source(mode, source_override)
+        output_path = resolve_output(mode, output_override)
+
+        print(f"\n==== 开始迁移 {mode} 权重 ====")
+        transfer(mode, source_path, output_path, model_yaml)
 
 
 if __name__ == "__main__":

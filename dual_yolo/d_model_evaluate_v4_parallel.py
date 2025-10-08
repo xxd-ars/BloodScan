@@ -36,8 +36,8 @@ class EvaluatorV4:
         self.model_yaml = root / 'dual_yolo' / 'models' / f'yolo11x-dseg-{model_name}.yaml'
         self.model_pt = root / 'dual_yolo' / 'runs' / 'segment' / f'dual_modal_{train_mode}_{model_name}' / 'weights' / 'best.pt'
         self.dataset = root / 'datasets' / 'Dual-Modal-1504-500-1-6ch'
-        self.save_dir = root / 'dual_yolo' / 'evaluation_results_v5' / f'conf_{conf_medical}' / model_name
-        self.vis_dir = self.save_dir / 'visualizations' / f'gpu_{gpu_id}'
+        self.save_dir = root / 'dual_yolo' / 'evaluation_results_v4' / f'conf_{conf_medical}' / model_name
+        self.vis_dir = self.save_dir / 'visualizations'  # 移除GPU子文件夹
         self.save_dir.mkdir(parents=True, exist_ok=True)
         self.vis_dir.mkdir(parents=True, exist_ok=True)
 
@@ -114,33 +114,37 @@ class EvaluatorV4:
 
     def eval_image(self, npy_file):
         """评估单张图像"""
+        # 加载图像和标签
         img_path = self.dataset / 'test' / 'images' / npy_file
         label_path = self.dataset / 'test' / 'labels' / npy_file.replace('.npy', '.txt')
 
         img_data = np.load(img_path)
-        if img_data.shape[-1] == 6:
-            img_data = img_data.transpose(2, 0, 1)
+        img_data = img_data.transpose(2, 0, 1) if img_data.shape[-1] == 6 else img_data
         img_tensor = torch.from_numpy(img_data / 255.0).unsqueeze(0).float()
 
+        # 获取旋转角度
         suffix = npy_file.split('_')[-1].replace('.npy', '')
         angle = self.config.strategies.get(suffix, {}).get('rotation', 0)
 
+        # 加载GT
         gt_masks = self.load_gt(Path(label_path))
         if not gt_masks:
             return
 
-        results_academic = self.model(img_tensor, imgsz=1504, device=self.device,
-                                       conf=self.conf_academic, verbose=False)
-        results_medical = self.model(img_tensor, imgsz=1504, device=self.device,
-                                      conf=self.conf_medical, verbose=False)
+        # 推理两次: 学术 (conf=0.001) + 医学 (conf=conf_medical)
+        res_academic = self.model(img_tensor, imgsz=1504, device=self.device, conf=self.conf_academic, verbose=False)[0]
+        res_medical = self.model(img_tensor, imgsz=1504, device=self.device, conf=self.conf_medical, verbose=False)[0]
 
-        self._collect_academic(results_academic[0], gt_masks)
-        class_success = self._collect_medical(results_medical[0], gt_masks, angle, npy_file)
+        # 收集指标
+        self._collect_academic(res_academic, gt_masks)
+        class_success = self._collect_medical(res_medical, gt_masks, angle, npy_file)
 
+        # 判断整体成功
         if len(class_success) == len(gt_masks) and all(class_success.values()):
             self.overall_success_count += 1
 
-        self._visualize(npy_file, img_data, results_medical[0], gt_masks, class_success)
+        # 可视化
+        self._visualize(npy_file, img_data, res_medical, gt_masks, class_success)
 
     def _collect_academic(self, result, gt_masks):
         """收集学术指标数据"""
@@ -207,33 +211,31 @@ class EvaluatorV4:
             metrics = self.medical_data[cls_id]
             metrics['total_count'] += 1
 
-            if detected_classes.get(cls_id, []) != [detected_classes.get(cls_id, [None])[0]] or \
-               len(detected_classes.get(cls_id, [])) != 1:
+            # 检查是否恰好检测1次
+            detections = detected_classes.get(cls_id, [])
+            if len(detections) != 1:
                 class_success[cls_id] = False
                 continue
 
-            det_idx = detected_classes[cls_id][0]
-            pred_pts = result[det_idx].masks.xyn[0].copy() * 1504
-
+            # 提取预测并计算IoU
+            pred_pts = result[detections[0]].masks.xyn[0].copy() * 1504
             iou = self.calc_iou(pred_pts, gt_pts)
             if iou < 0.5:
                 class_success[cls_id] = False
                 continue
 
+            # 计算表面差异并记录
             upper_diff, lower_diff = self.calc_surface_diff(pred_pts, gt_pts, angle)
-
             metrics['detected_count'] += 1
             metrics['iou_list'].append(iou)
             metrics['upper_diff_list'].append(upper_diff)
             metrics['lower_diff_list'].append(lower_diff)
-
             metrics['raw_samples'].append({
                 'filename': npy_file,
                 'iou': float(iou),
                 'upper_diff': float(upper_diff),
                 'lower_diff': float(lower_diff)
             })
-
             class_success[cls_id] = True
 
         return class_success
@@ -279,83 +281,55 @@ class EvaluatorV4:
 
 
 def worker_process(gpu_id, model_name, train_mode, conf_medical, npy_files_subset):
-    """
-    单个GPU的工作进程
-    Args:
-        gpu_id: GPU编号 (0-3)
-        model_name: 模型名称
-        train_mode: 训练模式
-        conf_medical: 医学指标置信度阈值
-        npy_files_subset: 分配给该GPU的图像文件列表
-    Returns:
-        该GPU的评估结果字典
-    """
-    # 设置环境变量，确保只使用指定GPU
+    """单个GPU的工作进程"""
+    # 进程级GPU隔离
     os.environ['CUDA_VISIBLE_DEVICES'] = str(gpu_id)
-    # 但由于设置了CUDA_VISIBLE_DEVICES，这里实际设备编号变成0
     torch.cuda.set_device(0)
 
-    # 创建评估器时使用逻辑gpu_id，但实际设备是0
+    # 创建评估器并加载模型
     evaluator = EvaluatorV4(model_name, train_mode, conf_medical, gpu_id)
-    # 修改evaluator的device为实际设备
-    evaluator.device = "cuda:0"
+    evaluator.device = "cuda:0"  # CUDA_VISIBLE_DEVICES后逻辑设备变成0
     evaluator.load_model()
 
-    print(f"GPU {gpu_id}: 开始处理 {len(npy_files_subset)} 张图像... (物理GPU={os.environ.get('CUDA_VISIBLE_DEVICES')})")
+    print(f"GPU {gpu_id}: 开始处理 {len(npy_files_subset)} 张图像...")
 
+    # 逐张评估
     for npy_file in tqdm(npy_files_subset, desc=f"GPU {gpu_id}", position=gpu_id):
         evaluator.eval_image(npy_file)
 
-    # 清理显存
     torch.cuda.empty_cache()
-
     return evaluator.get_results_dict()
 
 
 def aggregate_results(gpu_results, model_name, conf_medical, classes):
-    """
-    聚合多个GPU的评估结果
-    Args:
-        gpu_results: List[Dict] - 各GPU返回的结果字典
-        model_name: 模型名称
-        conf_medical: 医学指标置信度阈值
-        classes: 类别字典
-    Returns:
-        完整的评估指标字典
-    """
-    # 聚合学术指标数据
-    all_tp = []
-    all_conf = []
-    all_pred_cls = []
-    all_target_cls = []
-
+    """聚合多个GPU的评估结果"""
+    # 聚合学术指标
+    all_tp, all_conf, all_pred_cls, all_target_cls = [], [], [], []
     for res in gpu_results:
-        all_tp.extend(res['academic_data']['tp'])
-        all_conf.extend(res['academic_data']['conf'])
-        all_pred_cls.extend(res['academic_data']['pred_cls'])
-        all_target_cls.extend(res['academic_data']['target_cls'])
+        acad = res['academic_data']
+        all_tp.extend(acad['tp'])
+        all_conf.extend(acad['conf'])
+        all_pred_cls.extend(acad['pred_cls'])
+        all_target_cls.extend(acad['target_cls'])
 
-    # 聚合医学指标数据
-    aggregated_medical = {cls_id: {
+    # 聚合医学指标
+    agg_medical = {cls_id: {
         'detected_count': 0, 'total_count': 0,
-        'iou_list': [], 'upper_diff_list': [], 'lower_diff_list': [],
-        'raw_samples': []
+        'iou_list': [], 'upper_diff_list': [], 'lower_diff_list': [], 'raw_samples': []
     } for cls_id in classes}
 
-    overall_success_count = 0
+    overall_success_count = sum(res['overall_success_count'] for res in gpu_results)
 
     for res in gpu_results:
-        overall_success_count += res['overall_success_count']
         for cls_id in classes:
-            med = res['medical_data'][cls_id]
-            agg_med = aggregated_medical[cls_id]
-
-            agg_med['detected_count'] += med['detected_count']
-            agg_med['total_count'] += med['total_count']
-            agg_med['iou_list'].extend(med['iou_list'])
-            agg_med['upper_diff_list'].extend(med['upper_diff_list'])
-            agg_med['lower_diff_list'].extend(med['lower_diff_list'])
-            agg_med['raw_samples'].extend(med['raw_samples'])
+            src = res['medical_data'][cls_id]
+            dst = agg_medical[cls_id]
+            dst['detected_count'] += src['detected_count']
+            dst['total_count'] += src['total_count']
+            dst['iou_list'].extend(src['iou_list'])
+            dst['upper_diff_list'].extend(src['upper_diff_list'])
+            dst['lower_diff_list'].extend(src['lower_diff_list'])
+            dst['raw_samples'].extend(src['raw_samples'])
 
     # 计算学术指标
     tp = np.vstack(all_tp)
@@ -389,9 +363,9 @@ def aggregate_results(gpu_results, model_name, conf_medical, classes):
             'F1_IoU0.5': float(f1[i])
         }
 
-        med = aggregated_medical[cls_id]
+        med = agg_medical[cls_id]
         medical = {
-            'Detection_Rate_IoU0.5_conf': med['detected_count'] / med['total_count'] if med['total_count'] > 0 else 0,
+            'Detection_Rate_IoU0.5_conf': med['detected_count'] / med['total_count'] if med['total_count'] else 0,
             'IoU_mean_IoU0.5_conf': float(np.mean(med['iou_list'])) if med['iou_list'] else 0,
             'IoU_std_IoU0.5_conf': float(np.std(med['iou_list'])) if med['iou_list'] else 0,
             'Upper_Diff_mean_IoU0.5_conf': float(np.mean(med['upper_diff_list'])) if med['upper_diff_list'] else 0,
@@ -409,8 +383,7 @@ def aggregate_results(gpu_results, model_name, conf_medical, classes):
     # 总体指标
     all_academic = [v['academic'] for v in results['per_class_metrics'].values()]
     all_medical = [v['medical'] for v in results['per_class_metrics'].values()]
-
-    total_images = aggregated_medical[0]['total_count']
+    total_images = agg_medical[0]['total_count']
 
     results['aggregate_metrics'] = {
         'academic': {
