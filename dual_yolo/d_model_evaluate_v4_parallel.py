@@ -68,7 +68,7 @@ class EvaluatorV4:
             yaml_path = self.model_yaml
 
         self.model = YOLO(yaml_path).load(self.model_pt)
-        print(f"✅ GPU {self.gpu_id}: 模型加载 {self.model_name}")
+        print(f"✅ GPU {self.gpu_id}: 模型加载 {self.model_name} (device={self.device})")
 
     def load_gt(self, label_file):
         """加载GT标签"""
@@ -290,15 +290,24 @@ def worker_process(gpu_id, model_name, train_mode, conf_medical, npy_files_subse
     Returns:
         该GPU的评估结果字典
     """
-    torch.cuda.set_device(gpu_id)
+    # 设置环境变量，确保只使用指定GPU
+    os.environ['CUDA_VISIBLE_DEVICES'] = str(gpu_id)
+    # 但由于设置了CUDA_VISIBLE_DEVICES，这里实际设备编号变成0
+    torch.cuda.set_device(0)
 
+    # 创建评估器时使用逻辑gpu_id，但实际设备是0
     evaluator = EvaluatorV4(model_name, train_mode, conf_medical, gpu_id)
+    # 修改evaluator的device为实际设备
+    evaluator.device = "cuda:0"
     evaluator.load_model()
 
-    print(f"GPU {gpu_id}: 开始处理 {len(npy_files_subset)} 张图像...")
+    print(f"GPU {gpu_id}: 开始处理 {len(npy_files_subset)} 张图像... (物理GPU={os.environ.get('CUDA_VISIBLE_DEVICES')})")
 
     for npy_file in tqdm(npy_files_subset, desc=f"GPU {gpu_id}", position=gpu_id):
         evaluator.eval_image(npy_file)
+
+    # 清理显存
+    torch.cuda.empty_cache()
 
     return evaluator.get_results_dict()
 
