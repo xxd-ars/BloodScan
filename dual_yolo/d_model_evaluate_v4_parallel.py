@@ -146,9 +146,10 @@ class EvaluatorV4:
             return
 
         # 推理两次: 学术 (conf=0.001) + 医学 (conf=conf_medical)
-        # 注意：不传递device参数，让YOLO使用模型已经所在的设备
-        res_academic = self.model(img_tensor, imgsz=1504, conf=self.conf_academic, verbose=False)[0]
-        res_medical = self.model(img_tensor, imgsz=1504, conf=self.conf_medical, verbose=False)[0]
+        # 强制指定device，确保使用正确的GPU
+        with torch.cuda.device(self.device):
+            res_academic = self.model(img_tensor, imgsz=1504, conf=self.conf_academic, verbose=False)[0]
+            res_medical = self.model(img_tensor, imgsz=1504, conf=self.conf_medical, verbose=False)[0]
 
         # 收集指标
         self._collect_academic(res_academic, gt_masks)
