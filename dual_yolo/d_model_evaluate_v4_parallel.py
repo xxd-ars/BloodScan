@@ -17,7 +17,6 @@ from ultralytics.utils.metrics import ap_per_class
 import sys
 import os
 import multiprocessing as mp
-from functools import partial
 import time
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
@@ -467,13 +466,13 @@ def run_parallel_evaluation(model_name, train_mode='pretrained', conf_medical=0.
     start_time = time.time()
 
     with mp.Pool(processes=num_gpus) as pool:
-        worker_func = partial(worker_process,
-                             model_name=model_name,
-                             train_mode=train_mode,
-                             conf_medical=conf_medical)
+        # 构造完整参数列表: (gpu_id, model_name, train_mode, conf_medical, npy_files_subset)
+        worker_args = [
+            (i, model_name, train_mode, conf_medical, file_chunks[i])
+            for i in range(num_gpus)
+        ]
 
-        gpu_results = pool.starmap(worker_func,
-                                   [(i, file_chunks[i]) for i in range(num_gpus)])
+        gpu_results = pool.starmap(worker_process, worker_args)
 
     elapsed_time = time.time() - start_time
 
