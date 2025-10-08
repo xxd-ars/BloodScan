@@ -61,7 +61,7 @@ class EvaluatorV4:
         self.device = f"cuda:{gpu_id}"
 
     def load_model(self):
-        """加载模型"""
+        """加载模型并移动到指定GPU"""
         # 特殊处理: 提取基础架构名称
         if self.model_name == 'crossattn-30epoch':
             yaml_path = self.model_yaml.parent / 'yolo11x-dseg-crossattn.yaml'
@@ -74,8 +74,15 @@ class EvaluatorV4:
         else:
             yaml_path = self.model_yaml
 
+        # 加载模型
         self.model = YOLO(yaml_path).load(self.model_pt)
-        print(f"✅ GPU {self.gpu_id}: 模型加载 {self.model_name} (架构={yaml_path.name}, device={self.device})")
+
+        # 将模型移动到指定设备
+        if hasattr(self.model, 'model') and self.model.model is not None:
+            self.model.model.to(self.device)
+            print(f"✅ GPU {self.gpu_id}: 模型加载完成并移动到 {self.device} (架构={yaml_path.name})")
+        else:
+            print(f"✅ GPU {self.gpu_id}: 模型加载 {self.model_name} (架构={yaml_path.name}, 目标device={self.device})")
 
     def load_gt(self, label_file):
         """加载GT标签"""
@@ -127,7 +134,7 @@ class EvaluatorV4:
 
         img_data = np.load(img_path)
         img_data = img_data.transpose(2, 0, 1) if img_data.shape[-1] == 6 else img_data
-        img_tensor = torch.from_numpy(img_data / 255.0).unsqueeze(0).float()
+        img_tensor = torch.from_numpy(img_data / 255.0).unsqueeze(0).float().to(self.device)
 
         # 获取旋转角度
         suffix = npy_file.split('_')[-1].replace('.npy', '')
@@ -139,6 +146,7 @@ class EvaluatorV4:
             return
 
         # 推理两次: 学术 (conf=0.001) + 医学 (conf=conf_medical)
+        # YOLO内部会处理device，但我们仍然传递device参数确保一致性
         res_academic = self.model(img_tensor, imgsz=1504, device=self.device, conf=self.conf_academic, verbose=False)[0]
         res_medical = self.model(img_tensor, imgsz=1504, device=self.device, conf=self.conf_medical, verbose=False)[0]
 
@@ -289,18 +297,29 @@ class EvaluatorV4:
 
 def worker_process(gpu_id, model_name, train_mode, conf_medical, npy_files_subset):
     """单个GPU的工作进程"""
+    import os
+    print(f"[进程 {os.getpid()}] 启动，目标GPU={gpu_id}")
+
     # 设置当前进程的默认CUDA设备
     if torch.cuda.is_available():
         torch.cuda.set_device(gpu_id)
-        # 验证设备设置
         current_device = torch.cuda.current_device()
-        print(f"GPU {gpu_id}: 已设置CUDA设备 (当前设备={current_device})")
+        print(f"[GPU {gpu_id}] torch.cuda.current_device() = {current_device}")
+
+        # 测试：在当前设备上创建一个小tensor
+        test_tensor = torch.zeros(1).to(f'cuda:{gpu_id}')
+        print(f"[GPU {gpu_id}] 测试tensor设备: {test_tensor.device}")
 
     # 创建评估器并加载模型
     evaluator = EvaluatorV4(model_name, train_mode, conf_medical, gpu_id)
     evaluator.load_model()
 
-    print(f"GPU {gpu_id}: 开始处理 {len(npy_files_subset)} 张图像... (目标device={evaluator.device})")
+    # 验证模型所在设备
+    if hasattr(evaluator.model, 'model') and evaluator.model.model is not None:
+        model_device = next(evaluator.model.model.parameters()).device
+        print(f"[GPU {gpu_id}] 模型实际设备: {model_device}")
+
+    print(f"[GPU {gpu_id}] 开始处理 {len(npy_files_subset)} 张图像...")
 
     # 逐张评估
     for npy_file in tqdm(npy_files_subset, desc=f"GPU {gpu_id}", position=gpu_id):
