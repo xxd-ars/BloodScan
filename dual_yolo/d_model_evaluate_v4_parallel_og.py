@@ -62,11 +62,19 @@ class EvaluatorV4:
 
     def load_model(self):
         """加载模型"""
+        # 特殊处理: 提取基础架构名称
         if self.model_name == 'crossattn-30epoch':
             yaml_path = self.model_yaml.parent / 'yolo11x-dseg-crossattn.yaml'
+        elif self.model_name.startswith('id-blue-') and self.model_name[8:].isdigit():
+            # id-blue-数字 系列使用 id-blue 架构
+            yaml_path = self.model_yaml.parent / 'yolo11x-dseg-id-blue.yaml'
+        elif self.model_name.startswith('id-white-') and self.model_name[9:].isdigit():
+            # id-white-数字 系列使用 id-white 架构
+            yaml_path = self.model_yaml.parent / 'yolo11x-dseg-id-white.yaml'
         else:
             yaml_path = self.model_yaml
 
+        # 加载模型
         self.model = YOLO(yaml_path).load(self.model_pt)
         print(f"✅ GPU {self.gpu_id}: 模型加载 {self.model_name} (device={self.device})")
 
@@ -288,7 +296,7 @@ def worker_process(gpu_id, model_name, train_mode, conf_medical, npy_files_subse
 
     # 创建评估器并加载模型
     evaluator = EvaluatorV4(model_name, train_mode, conf_medical, gpu_id)
-    evaluator.device = "cuda:0"  # CUDA_VISIBLE_DEVICES后逻辑设备变成0
+    evaluator.device = f"cuda:{gpu_id}"
     evaluator.load_model()
 
     print(f"GPU {gpu_id}: 开始处理 {len(npy_files_subset)} 张图像...")
