@@ -293,22 +293,11 @@ def worker_process(gpu_id, model_name, train_mode, conf_medical, npy_files_subse
     """单个GPU的工作进程"""
     import os
 
-    # ✅ 关键修复：使用CUDA_VISIBLE_DEVICES进行进程级GPU隔离
-    os.environ['CUDA_VISIBLE_DEVICES'] = str(gpu_id)
-
-    print(f"[进程 {os.getpid()}] 启动，GPU隔离: CUDA_VISIBLE_DEVICES={gpu_id}")
-
-    # 设置为逻辑GPU 0（因为CUDA_VISIBLE_DEVICES已经隔离）
-    if torch.cuda.is_available():
-        torch.cuda.set_device(0)
-        print(f"[GPU {gpu_id}] 设置为逻辑设备0")
+    print(f"[进程 {os.getpid()}] 启动，使用物理GPU {gpu_id}")
 
     # 创建评估器并加载模型
     evaluator = EvaluatorV4(model_name, train_mode, conf_medical, gpu_id)
-
-    # ✅ 关键修复：在CUDA_VISIBLE_DEVICES隔离后，设备编号必须是0
-    evaluator.device = "cuda:0"
-
+    # 保持device为cuda:{gpu_id}，直接使用物理GPU编号
     evaluator.load_model()
 
     print(f"[GPU {gpu_id}] 开始处理 {len(npy_files_subset)} 张图像...")
