@@ -146,9 +146,9 @@ class EvaluatorV4:
             return
 
         # 推理两次: 学术 (conf=0.001) + 医学 (conf=conf_medical)
-        # YOLO内部会处理device，但我们仍然传递device参数确保一致性
-        res_academic = self.model(img_tensor, imgsz=1504, device=self.device, conf=self.conf_academic, verbose=False)[0]
-        res_medical = self.model(img_tensor, imgsz=1504, device=self.device, conf=self.conf_medical, verbose=False)[0]
+        # 注意：不传递device参数，让YOLO使用模型已经所在的设备
+        res_academic = self.model(img_tensor, imgsz=1504, conf=self.conf_academic, verbose=False)[0]
+        res_medical = self.model(img_tensor, imgsz=1504, conf=self.conf_medical, verbose=False)[0]
 
         # 收集指标
         self._collect_academic(res_academic, gt_masks)
@@ -321,9 +321,15 @@ def worker_process(gpu_id, model_name, train_mode, conf_medical, npy_files_subse
 
     print(f"[GPU {gpu_id}] 开始处理 {len(npy_files_subset)} 张图像...")
 
-    # 逐张评估
-    for npy_file in tqdm(npy_files_subset, desc=f"GPU {gpu_id}", position=gpu_id):
+    # 逐张评估（添加首次推理的显存检查）
+    for idx, npy_file in enumerate(tqdm(npy_files_subset, desc=f"GPU {gpu_id}", position=gpu_id)):
         evaluator.eval_image(npy_file)
+
+        # 只在第一张图像处理后检查显存
+        if idx == 0:
+            allocated = torch.cuda.memory_allocated(gpu_id) / 1024**3
+            reserved = torch.cuda.memory_reserved(gpu_id) / 1024**3
+            print(f"[GPU {gpu_id}] 第1张图像后显存: 已分配={allocated:.2f}GB, 已预留={reserved:.2f}GB")
 
     torch.cuda.empty_cache()
     return evaluator.get_results_dict()
