@@ -2,9 +2,13 @@
 测试并行评估脚本 - 单模型快速验证
 """
 
+import multiprocessing as mp
 from d_model_evaluate_v4_parallel import run_parallel_evaluation
 
 if __name__ == '__main__':
+    # 设置multiprocessing启动方式为spawn（PyTorch + CUDA必需）
+    mp.set_start_method('spawn', force=True)
+
     # 测试单个模型
     model_name = 'id-blue-2'  # 最佳模型
     train_mode = 'pretrained'

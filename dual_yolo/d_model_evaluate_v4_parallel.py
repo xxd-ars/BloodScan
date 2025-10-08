@@ -16,7 +16,7 @@ from ultralytics import YOLO
 from ultralytics.utils.metrics import ap_per_class
 import sys
 import os
-import torch.multiprocessing as mp
+import multiprocessing as mp
 import time
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
@@ -61,7 +61,7 @@ class EvaluatorV4:
         self.device = f"cuda:{gpu_id}"
 
     def load_model(self):
-        """加载模型并移动到指定GPU"""
+        """加载模型"""
         # 特殊处理: 提取基础架构名称
         if self.model_name == 'crossattn-30epoch':
             yaml_path = self.model_yaml.parent / 'yolo11x-dseg-crossattn.yaml'
@@ -74,15 +74,9 @@ class EvaluatorV4:
         else:
             yaml_path = self.model_yaml
 
-        # 加载模型
+        # 加载模型（在CUDA_VISIBLE_DEVICES隔离环境下，模型会自动加载到逻辑GPU 0）
         self.model = YOLO(yaml_path).load(self.model_pt)
-
-        # 将模型移动到指定设备
-        if hasattr(self.model, 'model') and self.model.model is not None:
-            self.model.model.to(self.device)
-            print(f"✅ GPU {self.gpu_id}: 模型加载完成并移动到 {self.device} (架构={yaml_path.name})")
-        else:
-            print(f"✅ GPU {self.gpu_id}: 模型加载 {self.model_name} (架构={yaml_path.name}, 目标device={self.device})")
+        print(f"✅ GPU {self.gpu_id}: 模型加载完成 (架构={yaml_path.name})")
 
     def load_gt(self, label_file):
         """加载GT标签"""
@@ -134,7 +128,7 @@ class EvaluatorV4:
 
         img_data = np.load(img_path)
         img_data = img_data.transpose(2, 0, 1) if img_data.shape[-1] == 6 else img_data
-        img_tensor = torch.from_numpy(img_data / 255.0).unsqueeze(0).float().to(self.device)
+        img_tensor = torch.from_numpy(img_data / 255.0).unsqueeze(0).float()
 
         # 获取旋转角度
         suffix = npy_file.split('_')[-1].replace('.npy', '')
@@ -146,10 +140,9 @@ class EvaluatorV4:
             return
 
         # 推理两次: 学术 (conf=0.001) + 医学 (conf=conf_medical)
-        # 强制指定device，确保使用正确的GPU
-        with torch.cuda.device(self.device):
-            res_academic = self.model(img_tensor, imgsz=1504, conf=self.conf_academic, verbose=False)[0]
-            res_medical = self.model(img_tensor, imgsz=1504, conf=self.conf_medical, verbose=False)[0]
+        # ✅ 传入device参数让YOLO自动处理设备分配
+        res_academic = self.model(img_tensor, imgsz=1504, device=self.device, conf=self.conf_academic, verbose=False)[0]
+        res_medical = self.model(img_tensor, imgsz=1504, device=self.device, conf=self.conf_medical, verbose=False)[0]
 
         # 收集指标
         self._collect_academic(res_academic, gt_masks)
@@ -299,38 +292,30 @@ class EvaluatorV4:
 def worker_process(gpu_id, model_name, train_mode, conf_medical, npy_files_subset):
     """单个GPU的工作进程"""
     import os
-    print(f"[进程 {os.getpid()}] 启动，目标GPU={gpu_id}")
 
-    # 设置当前进程的默认CUDA设备
+    # ✅ 关键修复：使用CUDA_VISIBLE_DEVICES进行进程级GPU隔离
+    os.environ['CUDA_VISIBLE_DEVICES'] = str(gpu_id)
+
+    print(f"[进程 {os.getpid()}] 启动，GPU隔离: CUDA_VISIBLE_DEVICES={gpu_id}")
+
+    # 设置为逻辑GPU 0（因为CUDA_VISIBLE_DEVICES已经隔离）
     if torch.cuda.is_available():
-        torch.cuda.set_device(gpu_id)
-        current_device = torch.cuda.current_device()
-        print(f"[GPU {gpu_id}] torch.cuda.current_device() = {current_device}")
-
-        # 测试：在当前设备上创建一个小tensor
-        test_tensor = torch.zeros(1).to(f'cuda:{gpu_id}')
-        print(f"[GPU {gpu_id}] 测试tensor设备: {test_tensor.device}")
+        torch.cuda.set_device(0)
+        print(f"[GPU {gpu_id}] 设置为逻辑设备0")
 
     # 创建评估器并加载模型
     evaluator = EvaluatorV4(model_name, train_mode, conf_medical, gpu_id)
-    evaluator.load_model()
 
-    # 验证模型所在设备
-    if hasattr(evaluator.model, 'model') and evaluator.model.model is not None:
-        model_device = next(evaluator.model.model.parameters()).device
-        print(f"[GPU {gpu_id}] 模型实际设备: {model_device}")
+    # ✅ 关键修复：在CUDA_VISIBLE_DEVICES隔离后，设备编号必须是0
+    evaluator.device = "cuda:0"
+
+    evaluator.load_model()
 
     print(f"[GPU {gpu_id}] 开始处理 {len(npy_files_subset)} 张图像...")
 
-    # 逐张评估（添加首次推理的显存检查）
-    for idx, npy_file in enumerate(tqdm(npy_files_subset, desc=f"GPU {gpu_id}", position=gpu_id)):
+    # 逐张评估
+    for npy_file in tqdm(npy_files_subset, desc=f"GPU {gpu_id}", position=gpu_id):
         evaluator.eval_image(npy_file)
-
-        # 只在第一张图像处理后检查显存
-        if idx == 0:
-            allocated = torch.cuda.memory_allocated(gpu_id) / 1024**3
-            reserved = torch.cuda.memory_reserved(gpu_id) / 1024**3
-            print(f"[GPU {gpu_id}] 第1张图像后显存: 已分配={allocated:.2f}GB, 已预留={reserved:.2f}GB")
 
     torch.cuda.empty_cache()
     return evaluator.get_results_dict()
@@ -479,12 +464,10 @@ def run_parallel_evaluation(model_name, train_mode='pretrained', conf_medical=0.
         for i in range(num_gpus)
     ]
 
-    # 启动多进程（使用spawn方法避免CUDA上下文fork问题）
+    # 启动多进程
     start_time = time.time()
 
-    # 使用spawn上下文
-    ctx = mp.get_context('spawn')
-    with ctx.Pool(processes=num_gpus) as pool:
+    with mp.Pool(processes=num_gpus) as pool:
         # 构造完整参数列表: (gpu_id, model_name, train_mode, conf_medical, npy_files_subset)
         worker_args = [
             (i, model_name, train_mode, conf_medical, file_chunks[i])
@@ -549,4 +532,6 @@ def main():
 
 
 if __name__ == '__main__':
+    # 设置multiprocessing启动方式为spawn（PyTorch + CUDA必需）
+    mp.set_start_method('spawn', force=True)
     main()
