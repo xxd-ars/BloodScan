@@ -16,7 +16,7 @@ from ultralytics import YOLO
 from ultralytics.utils.metrics import ap_per_class
 import sys
 import os
-import multiprocessing as mp
+import torch.multiprocessing as mp
 import time
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
@@ -289,16 +289,18 @@ class EvaluatorV4:
 
 def worker_process(gpu_id, model_name, train_mode, conf_medical, npy_files_subset):
     """单个GPU的工作进程"""
-    # 进程级GPU隔离
-    os.environ['CUDA_VISIBLE_DEVICES'] = str(gpu_id)
-    torch.cuda.set_device(0)
+    # 设置当前进程的默认CUDA设备
+    if torch.cuda.is_available():
+        torch.cuda.set_device(gpu_id)
+        # 验证设备设置
+        current_device = torch.cuda.current_device()
+        print(f"GPU {gpu_id}: 已设置CUDA设备 (当前设备={current_device})")
 
     # 创建评估器并加载模型
     evaluator = EvaluatorV4(model_name, train_mode, conf_medical, gpu_id)
-    evaluator.device = "cuda:0"  # CUDA_VISIBLE_DEVICES后逻辑设备变成0
     evaluator.load_model()
 
-    print(f"GPU {gpu_id}: 开始处理 {len(npy_files_subset)} 张图像...")
+    print(f"GPU {gpu_id}: 开始处理 {len(npy_files_subset)} 张图像... (目标device={evaluator.device})")
 
     # 逐张评估
     for npy_file in tqdm(npy_files_subset, desc=f"GPU {gpu_id}", position=gpu_id):
@@ -451,10 +453,12 @@ def run_parallel_evaluation(model_name, train_mode='pretrained', conf_medical=0.
         for i in range(num_gpus)
     ]
 
-    # 启动多进程
+    # 启动多进程（使用spawn方法避免CUDA上下文fork问题）
     start_time = time.time()
 
-    with mp.Pool(processes=num_gpus) as pool:
+    # 使用spawn上下文
+    ctx = mp.get_context('spawn')
+    with ctx.Pool(processes=num_gpus) as pool:
         # 构造完整参数列表: (gpu_id, model_name, train_mode, conf_medical, npy_files_subset)
         worker_args = [
             (i, model_name, train_mode, conf_medical, file_chunks[i])
@@ -519,6 +523,4 @@ def main():
 
 
 if __name__ == '__main__':
-    # 设置multiprocessing启动方式为spawn（PyTorch + CUDA必需）
-    mp.set_start_method('spawn', force=True)
     main()

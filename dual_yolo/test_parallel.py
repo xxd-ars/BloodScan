@@ -3,12 +3,8 @@
 """
 
 from d_model_evaluate_v4_parallel import run_parallel_evaluation
-import multiprocessing as mp
 
 if __name__ == '__main__':
-    # 必须设置spawn模式（PyTorch + CUDA要求）
-    mp.set_start_method('spawn', force=True)
-
     # 测试单个模型
     model_name = 'crossattn-precise'  # 最佳模型
     train_mode = 'pretrained'

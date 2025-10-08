@@ -149,6 +149,13 @@ class ResultsTableV4:
 
     def print_table(self, conf):
         """打印指定conf的表格"""
+        # 自动发现所有模型
+        methods = self.discover_methods(conf)
+
+        if not methods:
+            print(f"\n❌ conf={conf} 未找到任何模型结果")
+            return
+
         # 列宽定义
         col_method = 30
         col_num = 10
@@ -156,6 +163,7 @@ class ResultsTableV4:
 
         print(f"\n{'='*155}")
         print(f"Evaluation Results - conf={conf} (Academic: conf=0.001, Medical: conf={conf})")
+        print(f"Found {len(methods)} models")
         print(f"{'='*155}")
 
         # 表头 - 所有列左对齐
@@ -169,14 +177,14 @@ class ResultsTableV4:
         print(header)
         print("-" * 155)
 
-        # 按固定顺序打印每个方法 - 所有列左对齐
-        for method in self.method_order:
+        # 按自动发现的顺序打印每个方法
+        for method in methods:
             metrics = self.load_metrics(method, conf)
             if not metrics:
                 continue
 
             data = self.extract_metrics(metrics)
-            display_name = self.method_names[method]
+            display_name = self.get_display_name(method)
 
             row = (
                 f"{display_name:<{col_method}} | "
