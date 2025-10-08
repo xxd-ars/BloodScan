@@ -106,6 +106,7 @@ class ResultsTableV5:
         serum_med = serum.get('medical', {})
         plasma_med = plasma.get('medical', {})
 
+        sp_ap5095 = (serum_ac.get('AP50_95', 0) + plasma_ac.get('AP50_95', 0)) / 2 * 100
         sp_ap50 = (serum_ac.get('AP50', 0) + plasma_ac.get('AP50', 0)) / 2 * 100
         sp_recall = (serum_ac.get('Recall_IoU0.5', 0) + plasma_ac.get('Recall_IoU0.5', 0)) / 2 * 100
         sp_iou_mean = (serum_med.get('IoU_mean_IoU0.5_conf', 0) + plasma_med.get('IoU_mean_IoU0.5_conf', 0)) / 2
@@ -118,6 +119,7 @@ class ResultsTableV5:
         buffy_ac = buffy.get('academic', {})
         buffy_med = buffy.get('medical', {})
 
+        bc_ap5095 = buffy_ac.get('AP50_95', 0) * 100
         bc_ap50 = buffy_ac.get('AP50', 0) * 100
         bc_recall = buffy_ac.get('Recall_IoU0.5', 0) * 100
         bc_iou_mean = buffy_med.get('IoU_mean_IoU0.5_conf', 0)
@@ -126,11 +128,13 @@ class ResultsTableV5:
         bc_diff_low = buffy_med.get('Lower_Diff_mean_IoU0.5_conf', 0)
 
         return {
+            'sp_ap5095': sp_ap5095,
             'sp_ap50': sp_ap50,
             'sp_recall': sp_recall,
             'sp_iou': f"{sp_iou_mean:.2f}±{sp_iou_std:.2f}",
             'sp_diff_up': f"{sp_diff_up:.1f}",
             'sp_diff_low': f"{sp_diff_low:.1f}",
+            'bc_ap5095': bc_ap5095,
             'bc_ap50': bc_ap50,
             'bc_recall': bc_recall,
             'bc_iou': f"{bc_iou_mean:.2f}±{bc_iou_std:.2f}",
@@ -151,21 +155,21 @@ class ResultsTableV5:
         col_num = 10
         col_iou = 13
 
-        print(f"\n{'='*155}")
+        print(f"\n{'='*175}")
         print(f"Evaluation Results V5 - conf={conf} (Academic: conf=0.001, Medical: conf={conf})")
         print(f"Found {len(methods)} models")
-        print(f"{'='*155}")
+        print(f"{'='*175}")
 
-        # 表头
+        # 表头 - AP50-95优先，AP50第二
         header = (
             f"{'Method':<{col_method}} | "
-            f"{'SP_AP50':<{col_num}} {'SP_Recall':<{col_num}} {'SP_IoU':<{col_iou}} "
+            f"{'SP_AP5095':<{col_num}} {'SP_AP50':<{col_num}} {'SP_Recall':<{col_num}} {'SP_IoU':<{col_iou}} "
             f"{'SP_DiffUp':<{col_num}} {'SP_DiffLow':<{col_num}} | "
-            f"{'BC_AP50':<{col_num}} {'BC_Recall':<{col_num}} {'BC_IoU':<{col_iou}} "
+            f"{'BC_AP5095':<{col_num}} {'BC_AP50':<{col_num}} {'BC_Recall':<{col_num}} {'BC_IoU':<{col_iou}} "
             f"{'BC_DiffUp':<{col_num}} {'BC_DiffLow':<{col_num}}"
         )
         print(header)
-        print("-" * 155)
+        print("-" * 175)
 
         # 打印每个方法
         for method in methods:
@@ -178,14 +182,14 @@ class ResultsTableV5:
 
             row = (
                 f"{display_name:<{col_method}} | "
-                f"{data['sp_ap50']:<{col_num}.2f} {data['sp_recall']:<{col_num}.2f} {data['sp_iou']:<{col_iou}} "
+                f"{data['sp_ap5095']:<{col_num}.2f} {data['sp_ap50']:<{col_num}.2f} {data['sp_recall']:<{col_num}.2f} {data['sp_iou']:<{col_iou}} "
                 f"{data['sp_diff_up']:<{col_num}} {data['sp_diff_low']:<{col_num}} | "
-                f"{data['bc_ap50']:<{col_num}.2f} {data['bc_recall']:<{col_num}.2f} {data['bc_iou']:<{col_iou}} "
+                f"{data['bc_ap5095']:<{col_num}.2f} {data['bc_ap50']:<{col_num}.2f} {data['bc_recall']:<{col_num}.2f} {data['bc_iou']:<{col_iou}} "
                 f"{data['bc_diff_up']:<{col_num}} {data['bc_diff_low']:<{col_num}}"
             )
             print(row)
 
-        print("=" * 155)
+        print("=" * 175)
 
     def run(self):
         """运行所有conf的表格打印"""
@@ -203,7 +207,7 @@ class ResultsTableV5:
 
 
 def main():
-    results_dir = Path(__file__).parent / 'evaluation_results_v5'
+    results_dir = Path(__file__).parent / 'evaluation_results_v5_novis'
 
     if not results_dir.exists():
         print(f"❌ 结果目录不存在: {results_dir}")
