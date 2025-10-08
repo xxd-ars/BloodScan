@@ -12,8 +12,8 @@ class ResultsTableV4:
     def __init__(self, results_dir):
         self.results_dir = Path(results_dir)
 
-        # 固定方法顺序
-        self.method_order = [
+        # 固定方法顺序（不包含数字变体）
+        self.base_method_order = [
             'id-blue',
             'id-white',
             'concat-compress',
@@ -31,6 +31,67 @@ class ResultsTableV4:
             'crossattn': 'Dual Yolo CrossAttn',
             'crossattn-precise': 'Dual Yolo CrossAttn Precise'
         }
+
+    def get_display_name(self, method):
+        """获取方法的显示名称"""
+        # 优先使用映射表
+        if method in self.method_names:
+            return self.method_names[method]
+
+        # 处理 id-blue-数字 格式
+        if method.startswith('id-blue-') and method[8:].isdigit():
+            epoch = method[8:]
+            return f'Yolo11-Blue-{epoch}'
+
+        # 处理 id-white-数字 格式
+        if method.startswith('id-white-') and method[9:].isdigit():
+            epoch = method[9:]
+            return f'Yolo11-White-{epoch}'
+
+        # 默认返回原名称
+        return method
+
+    def discover_methods(self, conf):
+        """自动发现指定conf下的所有模型（包括数字变体）"""
+        conf_dir = self.results_dir / f'conf_{conf}'
+        if not conf_dir.exists():
+            return []
+
+        # 收集所有模型
+        all_methods = []
+
+        for method_dir in conf_dir.iterdir():
+            if method_dir.is_dir():
+                method = method_dir.name
+                # 检查是否有对应的metrics文件
+                if (method_dir / f'metrics_{method}.json').exists():
+                    all_methods.append(method)
+
+        # 排序: 基础模型 + 数字变体
+        sorted_methods = []
+
+        for base in self.base_method_order:
+            # 添加基础模型（如果存在）
+            if base in all_methods:
+                sorted_methods.append(base)
+
+            # 添加该基础模型的数字变体并按数字排序
+            variants = []
+
+            if base == 'id-blue':
+                variants = [m for m in all_methods if m.startswith('id-blue-') and m[8:].isdigit()]
+                variants.sort(key=lambda x: int(x[8:]))
+            elif base == 'id-white':
+                variants = [m for m in all_methods if m.startswith('id-white-') and m[9:].isdigit()]
+                variants.sort(key=lambda x: int(x[9:]))
+
+            sorted_methods.extend(variants)
+
+        # 添加任何未分类的模型
+        remaining = [m for m in all_methods if m not in sorted_methods]
+        sorted_methods.extend(sorted(remaining))
+
+        return sorted_methods
 
     def load_metrics(self, method, conf):
         """加载单个方法在指定conf下的metrics"""
