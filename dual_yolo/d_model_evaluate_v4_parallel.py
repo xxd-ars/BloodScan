@@ -511,8 +511,8 @@ def run_parallel_evaluation(model_name, train_mode='pretrained', conf_medical=0.
 
 def main():
     """批量评估入口"""
-    models = ['id-blue', 'id-white', 'crossattn', 'crossattn-precise',
-              'weighted-fusion', 'concat-compress']
+    models = ['id-blue-2', 'id-white-2', 'id-blue-3', 'id-white-3', 'id-blue-5', 'id-white-5']
+    # models = ['id-blue', 'id-white', 'crossattn', 'crossattn-precise', 'weighted-fusion', 'concat-compress']
     conf_thresholds = [0.25, 0.3, 0.4, 0.5]
     train_mode = 'pretrained'
     num_gpus = 4  # 使用4张3090
