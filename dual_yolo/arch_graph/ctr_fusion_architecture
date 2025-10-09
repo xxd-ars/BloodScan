@@ -1,0 +1,20 @@
+digraph {
+	graph [size="12,12"]
+	node [align=left fontsize=12 height=0.2 ranksep=0.1 shape=box style=filled]
+	proj_b [label="Conv2d(256, 384, kernel_size=(1, 1), stride=(1, 1))"]
+	proj_w [label="Conv2d(256, 384, kernel_size=(1, 1), stride=(1, 1))"]
+	proj_out_b [label="Sequential(
+  (0): Conv2d(256, 256, kernel_size=(1, 1), stride=(1, 1))
+  (1): LayerNorm((256, 1, 1), eps=1e-05, elementwise_affine=True)
+)"]
+	"proj_out_b.0" [label="Conv2d(256, 256, kernel_size=(1, 1), stride=(1, 1))"]
+	"proj_out_b.1" [label="LayerNorm((256, 1, 1), eps=1e-05, elementwise_affine=True)"]
+	proj_out_w [label="Sequential(
+  (0): Conv2d(256, 256, kernel_size=(1, 1), stride=(1, 1))
+  (1): LayerNorm((256, 1, 1), eps=1e-05, elementwise_affine=True)
+)"]
+	"proj_out_w.0" [label="Conv2d(256, 256, kernel_size=(1, 1), stride=(1, 1))"]
+	"proj_out_w.1" [label="LayerNorm((256, 1, 1), eps=1e-05, elementwise_affine=True)"]
+	"proj_out_b.0" -> "proj_out_b.1"
+	"proj_out_w.0" -> "proj_out_w.1"
+}
