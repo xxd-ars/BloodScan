@@ -1,0 +1,165 @@
+
+## 1. MACTFusion: Lightweight Cross Transformer for Adaptive Multimodal Medical Image Fusion
+### METHODOLOGY
+#### A. Overall Framework
+In this work, we mainly focus on the fusion of MRI with other medical images, such as CT, PET, and SPECT images. In CT–MRI fusion, we aim to preserve the texture information of MRI images while retaining the intensity information of CT images. MRI can be directly fused with CT. In PET–MRI and SPECT–MRI fusion, we expect the functional (color) information in PET/SPECT images to be maintained. PET and SPECT images first need to be converted from RGB space to YCbCr space. This conversion provides brightness information of PET and SPECT images to channel **Y**, which is then fused with MRI. The fused **Y** channel further combines with **Cb** and **Cr** channels. Finally, the YCbCr space is converted back to RGB space again to generate the fused image.
+
+It is worth noting that similar operations are performed for other biomedical image fusion tasks in this work. Generally, we expect the fused images to obtain rich textures and appropriate intensity information. Figure 2 shows the overall framework for MRI–PET fusion using the proposed **MACTFusion**.
+Let **I₁ ∈ ℝᴴ×ᵂ×ᶜ** and **I₂ ∈ ℝᴴ×ᵂ×ᶜ** represent two aligned medical images with different modalities, where **W**, **H**, and **C** denote the width, height, and number of channels, respectively. MACTFusion aims to integrate meaningful information to obtain the fusion image **I_f**. It consists of three parts: (1) feature extraction, (2) adaptive cross-modality fusion, and (3) image reconstruction.
+
+---
+
+#### 1) Feature Extraction
+
+Feature extraction includes **shallow** and **deep** feature extraction. The shallow feature extraction consists of a dense feature extractor and a **Gradient Residual Dense Block (GRDB)**.
+
+In Fig. 3, within the dense feature extractor, a 1×1 convolutional operation is used to reduce the channel dimension. Three cascaded 3×3 convolution layers follow to extract local features, and their outputs are concatenated together. Skip connections between these convolution layers help to deepen the network. The output is then fed to GRDB, which enhances fine-grained detail learning through gradient operations [30].
+
+In GRDB, the main stream deploys two 3×3 convolution layers and one 1×1 convolution layer with dense connections. The residual stream computes the gradient magnitude of features, followed by a 1×1 convolution layer to align channel dimensions. The outputs of the two streams are then combined via element-wise addition.
+
+In Fig. 4, the network structure of the **deep feature extraction module** is illustrated. It consists of a **Simple Depth-wise Separable Convolution (SD-Conv)** block and a **multi-axis attention block**. The designed SD-Conv includes two 1×1 convolution layers, a depth-wise 3×3 convolution layer, and a simple parameter-free attention module (**SimAM**) [31], [32]. Using SD-Conv together with attention further improves model generalization and trainability [28]. Moreover, placing the SD-Conv block before multi-axis attention provides another advantage: SD-Conv can act as a **positional encoding generator** [33], making the model free from explicit positional encoding layers.
+
+The proposed **multi-axis attention** is decomposed into two sparse parts — **window attention** and **grid attention** — which reduces computational complexity from quadratic to linear. Let the input feature size be **H × W × C**, where H, W, and C are the height, width, and channel number. As shown in Fig. 4, the window attention reshapes the input feature to size **(H/P × W/P, P × P, C)** by partitioning it into non-overlapping **P × P** blocks. Self-attention is then performed within these local blocks to capture local interactions. Furthermore, grid attention performs global interactions by applying self-attention along grid axes.
+
+By stacking window and grid attention blocks, both local and global interactions can be obtained. With fixed block and grid sizes, the computational cost is reduced to linear complexity.
+
+The attention mechanism is defined as:
+
+[
+\text{Attention}(Q, K, V) = \text{Softmax}\left(\frac{QK^T}{\sqrt{d}} + B\right) V
+]
+
+where **Q**, **K**, and **V** represent the query, key, and value matrices, respectively; **d** is the key dimension, and **B** is the relative positional encoding [1]. The positional encoding **B** can be generated through SD-Conv [33]. The multi-axis attention block is also equipped with a feedforward network (FFN), LayerNorm, and skip connections. We stack SD-Conv and multi-axis attention blocks sequentially to extract deep features.
+
+---
+
+#### 2) Adaptive Cross-Modality Fusion Strategy
+
+We further design a **novel adaptive cross-modality fusion strategy** to integrate features and generate fused feature **F_f**. As shown in Fig. 2, the proposed cross-modality fusion strategy consists of two parallel symmetric branches, each containing a **Spatial Adaptation Fusion Module (SAFM)** and a **Cross-Modality Fusion Transformer**. These modules exchange information between branches, aiming to integrate complementary information from different medical images.
+
+Multimodal image pairs often share latent structural similarities, yet differ in color and brightness distributions, which can easily cause interference during fusion [29]. Simply concatenating image features is therefore suboptimal. Inspired by **spatially adaptive normalization** [34]–[36], we introduce the **Spatial Adaptation Fusion Module (SAFM)** to remap feature distributions.
+
+Fig. 5 illustrates the architecture of SAFM₁ in the upper branch (SAFM₂ in the lower branch has a similar structure). In Fig. 5, **F₂** is modulated by parameters **β** and **γ** to remap its distribution to that of **F₁**. Both β and γ are initialized to zero and computed through concatenation and convolution operations of F₁ and F₂.
+
+Let the channel-wise mean and standard deviation of F₁ be **μ₁** and **σ₁**, respectively. We update β ← β + μ₁ and γ ← γ + σ₁. We then apply point-wise instance normalization to F₂ as:
+
+[
+F_2 \leftarrow \frac{F_2 - μ_2}{σ_2}
+]
+
+where **μ₂** and **σ₂** are the mean and standard deviation of F₂. The normalized F₂ is then multiplied by γ and added to β:
+
+[
+\bar{F}_2 = F_2 \odot γ + β
+]
+
+where **⊙** denotes element-wise multiplication. During training, β and γ are updated at each iteration. Thus, SAFM₁ helps F₂ approximate the distribution of F₁. Similarly, we can obtain **\bar{F}_1** via SAFM₂ in the lower branch.
+
+In the cross-modality fusion Transformer, input features of SD-Conv are modulated by SAFM to generate spatially adaptive feature maps. Since SD-Conv also generates positional encodings for the attention mechanism, SAFM refines positional coding and guides the cross Transformer to focus on the most relevant information, enhancing fusion performance.
+
+Following SAFM, we design a **Cross-Modality Fusion Transformer** to further mine and integrate both local and global interactions of multimodal features. Fig. 6 shows its architecture in the upper branch. It consists of SD-Conv blocks and **cross multi-axis attention**, which includes **cross-window attention** and **cross-grid attention**.
+
+In Fig. 6, features F₁ and (\bar{F}_2) are processed via two SD-Conv blocks respectively, and their outputs are treated as query (Q), key (K), and value (V). These are first fed into the cross-window attention to perform local interactions, obtaining an intermediate query **Q̃**. Then **Q̃**, **K**, and **V** are passed into cross-grid attention to perform global interactions. Both attentions include FFN, LayerNorm, and skip connections.
+
+The procedure can be expressed as:
+
+[
+\begin{aligned}
+F_c &= \text{CrossWindowAttention}(\text{LN}{Q,K,V}) + Q \
+Q̃ &= \text{FFN}(\text{LN}(F_c)) + F_c \
+\bar{F}_c &= \text{CrossGridAttention}(\text{LN}{Q̃,K,V}) + Q̃ \
+\tilde{F}_c &= \text{FFN}(\text{LN}(\bar{F}_c)) + \bar{F}_c
+\end{aligned}
+]
+
+where **(\tilde{F}_c)** is the output of cross-grid attention. The final output of the transformer is:
+
+[
+\tilde{F}_1 = \tilde{F}_c ⊗ T_1 + F_1
+]
+
+where **T₁ = σ(F₁)** is the output of a sigmoid function with F₁ as input. The transformer absorbs relevant features from (\bar{F}_2) that contribute to F₁. Similarly, we obtain **(\tilde{F}_2)** via the symmetric branch. Finally, we concatenate (\tilde{F}_1) and (\tilde{F}_2) to obtain the fused feature **F_f**. Concatenation is used here instead of SAFM, since SAFM primarily remaps distributions for the transformer stage. Concatenation is simple and effective for final fusion [1].
+
+---
+
+#### 3) Image Reconstruction
+
+We reconstruct the fusion image **I_f** from **F_f** using the image reconstruction module:
+
+[
+I_f = HR(F_f)
+]
+
+where **HR(·)** is the image reconstruction operator. This module contains three convolution layers with LeakyReLU activations — one 1×1 convolution and two 3×3 convolutions.
+
+---
+
+### B. Loss Function
+
+We consider the loss function from several aspects. On one hand, we define **Structural Similarity Index (SSIM)** loss and **Gradient Loss (texture loss)** to guarantee visual fidelity. On the other hand, we define an **Intensity Loss** to constrain the fusion to retain proper intensity information.
+
+#### 1) SSIM Loss
+
+SSIM measures the similarity and distortion degree between two images [38]. The SSIM loss ensures structural similarity between the fused and source images:
+
+[
+L_{SSIM} = η(1 - SSIM(I_f, I_1)) + (1 - η)(1 - SSIM(I_f, I_2))
+]
+
+where **η** controls structure preservation, set to **0.5** since both source images are equally important.
+
+#### 2) Gradient Loss
+
+Integrating texture details improves visual quality. We use gradient loss to preserve fine-grained details:
+
+[
+L_{grad} = \frac{1}{HW} | |\nabla I_f| - \max(|\nabla I_1|, |\nabla I_2|) |_1
+]
+
+where **∇** denotes the Sobel gradient operator, **|·|** denotes absolute value, **‖·‖₁** denotes L₁-norm, and **max(·)** denotes element-wise maximum.
+
+#### 3) Intensity Loss
+
+Since CT and PET/SPECT images contain significant intensity and contrast information, we define intensity loss as:
+
+[
+L_{int} = \frac{1}{HW} | I_f - \max(I_1, I_2) |_1
+]
+
+where **max(·)** denotes element-wise maximum selection, and **‖·‖₁** denotes the L₁-norm.
+
+#### 4) Total Loss
+
+Finally, the total loss is a weighted sum of the three components:
+
+[
+L = δ_1 L_{SSIM} + δ_2 L_{grad} + δ_3 L_{int}
+]
+
+where **δ₁**, **δ₂**, and **δ₃** control the trade-off between structure, texture, and intensity preservation.
+
+---
+
+## 2. Deep learning object detection for tracing the plasma portion of whole blood from images of medical sample containers
+### METHODOLOGY
+A. Motivation
+We weren’t able to find any public dataset with a sufficient number of centrifuged whole blood with plasma portion annotated samples in tubes from different manufacturers. The sample containers that hold the real blood may contain or not one or more labels glued on the container walls (such as manufacturer label, barcodes etc.). The CLSI AUTO02-A2 [43] standard provides specifications for using barcodes on tubes in the clinical laboratory, which ensures that a clearance window is available for each tube after sticking the barcodes on the tubes. The size of the clearance window depends on several factors, such as the tube width, manufacturer label width and positioning, barcode label width and positioning. If the tube is imaged only from one side, it might be the case that its contents are visually obstructed. Being able to develop and test an algorithm that detects the plasma portion of centrifuged real blood samples that works in real world high throughput laboratory scenarios made us acquire our own dataset.
+
+Figure 3. - Random stitch permutations. From each initial vertically stitched image, multiple variations are generated by virtually simulating the scan of the tube from different initial positions with respect to the camera
+
+Figure 3.
+Random stitch permutations. From each initial vertically stitched image, multiple variations are generated by virtually simulating the scan of the tube from different initial positions with respect to the camera
+
+Show All
+
+B. Image Acquisition Setup
+Patient samples comprising whole blood are stored in consumables (e.g. tubes) and then placed in racks, which can accommodate several consumables at a time. Before inserting whole blood patient samples into the tubes, they are centrifuged. The camera is positioned at the same level with the racks which are presented in front of it (side view). The camera resolution is 2,048×1,536 pixels. Each tube from a rack is presented in front of the camera. The tubes are frontally illuminated with two white LEDs positioned above and below the rack, and also back illuminated with vertical white LED strips. The back illumination LED strips improve the image quality by eliminating shadows and better highlighting the tube edges. The front illumination LEDs enable to better visualize the contents of the tubes, but also introduce reflections on the tube center, which represent a challenge that the proposed algorithm should be robust against. Each tube is gripped with a two finger gripper and approximately 360 degrees rotated within the rack. While the tube is rotating, 10 color images are acquired and stored on the cameras storage device. When storing the images on the disk, they are 90 degrees rotated to the right, due to camera mount particularities.
+
+C. Vertical Image Stitching
+In the acquired 10 color images of a tube, there is a variable number of images in which the liquid content is visible through the clearance window. The number of suitable images for doing liquids level detection depends on the size of the clearance window. While the tube is rotating, the clearance window visible in the image depends on position of the tube at the moment when the image is acquired and it has also a variable size. Running a liquid levels detection algorithm on an image that has no clearance window or a too small clearance window would result in false positive results. At this point, there are two options: develop an algorithm that determines if a particular image has a sufficient clearance window, or find an input representation that is inherently robust against the clearance window variation. Instead of constructing an algorithm that detects if the image is suitable for doing liquid levels detections, we introduce the vertical image stitching algorithm, which extracts a region of interest (ROI) of 32 pixels from each of the 10 original images. The ROI is extracted relative to the tube center (which can be detected with classical computer vision algorithms, such as edge detectors). The extracted 10 ROIs are then vertically stitched (concatenated) together and produce the vertically stitched image. Liquid levels detection can then be run on the vertically stitched image, which ensures having a clearance window to the liquid contents of the tube (as long as the tube labeling follows the CLSIAUTO02-A2 standard).
+
+D. Random Stitch Permutation
+The vertical image stitching technique preserves the sequential order in which the original images were acquired when constructing the stitched image (i.e. ROI from first trigger image is located at the top, ROI from second trigger image is right below the top ROI and so on). The clearance window in the stitched image is not always a continuous region, as it might be the case that the clearance window is split between top ROI and bottom ROI. The order in which the ROIs are used for creating the stitched image can be used as a data augmentation technique that can significantly enhance the sample visual variability in the dataset. A random integer number can be picked from 0 to 9. Based on this number, the final position in the vertical stitched image for each of the 10 original ROIs will be shifted with the random number of positions.
+
+E. Bounding Box Computation Transformation
+When doing object detection with YOLO models, the network predicts 4 coordinates, 2 of them for the bounding box center location in the image, while the other 2 represent the height and width of the bounding box. When using the vertical image stitching input representation, the 2D localization of the bounding box can be simplified into 1D by fixing the Y-axis coordinate of the bounding box to value 0 and the Y-axis coordinate of the bounding box height to value 1. By doing this modification, the complexity of the function to learn by the network through training becomes much easier.

@@ -1,0 +1,178 @@
+\section{Methodology}
+\label{sec:methodology}
+
+\subsection{Automated Acquisition System}
+
+The proposed DIUA-YOLO system comprises two integrated components: a hardware acquisition platform for dual-modality image collection and a deep learning network for blood layer detection. This section describes the automated platform design and operational workflow.
+
+\subsubsection{Mechanical Configuration and Control Architecture} As in Fig. 2, the acquisition platform employs a three-degree-of-freedom linear motion system (X-axis horizontal, Y-axis anterior-posterior, Z-axis vertical) coupled with a single-degree-of-freedom rotational gripper. The X and Y axes coordinate to traverse all positions in a standard 96-well tube rack, while the Z axis provides vertical displacement between rack height and imaging focal plane. The rotational gripper delivers controllable radial clamping force and precise angular positioning, ensuring tube stability during transport and imaging.
+
+The motion control system adopts a layered architecture. At the communication layer, RS485 serial protocol governs linear motion stepper motors, while Modbus TCP Ethernet protocol controls rotational servo motors. The application layer encapsulates atomic motor commands into composite detection routines, with thread event synchronization coordinating precise timing between mechanical motion and image acquisition. A data management layer provides SQLite database support, recording tube barcode, type, detection results, batch number, and timestamps for full traceability.
+
+\begin{figure}[!t]
+\centerline{\includegraphics[width=\columnwidth]{img/mechanics.jpg}}
+\caption{\textbf{Mechanical configuration and prototype of the automated acquisition platform.}
+Left: Three-degree-of-freedom (X–Y–Z) linear motion system coupled with a single-degree-of-freedom rotational gripper, designed for precise positioning, tube handling, and imaging.
+Right: Physical implementation of the system, including the translational-rotational manipulator, tube rack, imaging module, and control interface.}
+\label{fig mechanics}
+\end{figure}
+
+\subsubsection{Dual-Illumination Imaging System} The imaging system employs a single industrial camera integrated with dual illumination sources. A blue LED array (center wavelength ~470 nm) enhances the optical contrast of the buffy coat through increased light scattering and weak intrinsic autofluorescence, while a white LED source (color temperature ~5500 K) provides structural and color information of the overall sample. A custom mechanical fixture rigidly maintains the relative geometry among the camera, light sources, and tube gripper, thereby minimizing parallax and viewpoint variation during acquisition. Illumination control is managed by a microcontroller that drives programmable LED arrays, with the host computer synchronizing illumination switching, motor actuation, and image capture via serial communication protocols.
+
+\subsubsection{Automated Detection Workflow} A single-tube detection sequence comprises a strictly ordered set of operations: (1) The robotic arm descends along the Z-axis to the rack height, while the X-axis and the Y-axis move synchronously to position above the target test tube well; (2) The gripper closes to clamp tube, and the Z-axis ascends to lift it; (3) The X-axis translates the tube to the camera's field of view, and the Z-axis lowers it to the imaging focal plane; (4) Once arrvied, sequential dual-illumination imaging is performed: the white-light and blue-light sources are activated in turn to capture two aligned frames, while during such process, the camera–tube geometry remains mechanically fixed; (5) The rotational executor performs a 180 \degree rotation, the same dual-illumination imaging takes place to capture the full image of the sample; (6) The acquired images are processed by the cross-spectral detection model for layer localization and analysis; (7) After imaging, the Z-axis lifts, and the X-axis returns the tube to its original position; (8) The Z-axis then descends to rack height, the gripper releases the tube, and the arm resets to its initial position. Within the motion control system, event blocking at each critical node enforces sequential execution, ensuring completion of one action before the next begins, thereby eliminating potential motion conflicts.
+
+Batch detection traverses all rack positions via nested loops: the outer loop controls column selection, the inner loop controls row selection. Upon completing all tubes, the system automatically homes and increments the batch counter. This design realizes a fully automated "grasp-image-assess-release" closed loop, requiring operators only to load racks and initiate commands after homing. Upon completing the final tube, the system automatically returns to the home position and increments the batch counter. This design achieves a fully automated closed-loop workflow encompassing tube loading, imaging, analysis, and return, requiring operator intervention only for rack placement and command initialization.
+
+
+\subsection{DIUA-YOLO Network Architecture}
+
+Fig. 3 illustrates the overall architecture of the proposed DIUA-YOLO framework. The network processes dual-illumination inputs through independent feature extraction backbones, fuses multi-scale representations via cross-modal feature fusion blocks, and outputs segmentation results through YOLO segmentation heads.
+
+\subsubsection{Dual-Backbone Feature Extraction} White-light and blue-light images enter two structurally identical but parameter-independent convolutional neural network backbones based on the YOLO11 architecture. This dual-backbone design allows each modality's feature extractor to specialize in learning modality-specific representations: the white-light backbone network excels at extracting overall hierarchical structures, three-material color gradients, and texture details, while the blue-light backbone network captures the optical properties and boundary features of the buffy coat layer layer under blue illumination.
+
+The backbone architecture employs YOLO11's C3k2 block, an efficient Cross Stage Partial (CSP) design that reduces computational overhead while preserving feature extraction capability. In each backbone stage, the C3k2 block employs three consecutive convolutional layers with residual connections to capture hierarchical feature representations at varying semantic depths. This streamlined architecture achieves approximately 40\% parameter reduction compared to prior YOLO variants while maintaining detection accuracy, thereby enabling efficient dual-backbone training for our dual-illumination framework without excessive computational burden.
+
+Each backbone outputs a multi-scale feature pyramid at three levels—P3, P4, and P5—corresponding to different spatial resolutions and semantic depths. The P3 layer, with higher spatial resolution, suits detection of thin-layer structures such as the buffy coat. The P5 layer, with larger receptive fields, accommodates detection of thick layers such as serum, plasma and erythrocyte. This multi-scale design effectively captures blood layer information across varying thicknesses.
+
+Let $I_w \in \mathbb{R}^{H \times W \times 3}$ and $I_b \in \mathbb{R}^{H \times W \times 3}$ denote the white-light and blue-light input images, respectively, where $H$ and $W$ represent height and width. The dual backbones extract feature pyramids:
+
+\begin{equation}
+\{F_w^{P3}, F_w^{P4}, F_w^{P5}\} = \text{Backbone}_w(I_w)
+\end{equation}
+\begin{equation}
+\{F_b^{P3}, F_b^{P4}, F_b^{P5}\} = \text{Backbone}_b(I_b)
+\end{equation}
+
+where each feature $F \in \mathbb{R}^{h \times w \times c}$ has spatial dimensions $(h, w)$ and channel dimension $c$. These features then feed into fusion modules at each pyramid level.
+
+\subsubsection{Cross-Modal Attention Fusion}
+
+To effectively integrate complementary information from dual modalities while maintaining computational efficiency, we propose a cross-modal attention mechanism employing unidirectional queries and localized spatial matching. This fusion strategy operates independently at each pyramid level $s \in \{P3, P4, P5\}$ to align and enhance blue-light features using white-light contextual information.
+
+\textbf{Unidirectional Query Design.} Unlike conventional bidirectional attention that computes mutual interactions, our method adopts an asymmetric design: blue-light features serve as queries $Q$ to retrieve information from white-light features (keys $K$ and values $V$), while the reverse direction is omitted. Formally, for feature pair $(F_b^s, F_w^s)$ at pyramid level $s$, we compute:
+
+\begin{equation}
+Q_s = \text{Conv}_{1\times1}(F_b^s), \quad K_s = \text{Conv}_{1\times1}(F_w^s), \quad V_s = \text{Conv}_{1\times1}(F_w^s)
+\end{equation}
+
+where $Q_s, K_s, V_s \in \mathbb{R}^{B \times C \times H_s \times W_s}$, with $B$ denoting batch size, $C$ channel dimension, and $(H_s, W_s)$ spatial dimensions at level $s$. This unidirectional strategy exploits the blue-light modality's advantage in buffy coat detection to guide feature fusion, reducing attention computation by approximately 50\% compared to bidirectional schemes while maintaining detection performance.
+
+\textbf{Token-Based Spatial Partitioning.} To reduce computational complexity from $O(N^2)$ (where $N = H_s \times W_s$) to tractable levels, we partition feature maps into non-overlapping tokens of size $t \times t$ pixels. The feature map is reshaped into a token grid:
+
+\begin{equation}
+Q_s^{tok} = \text{Reshape}(Q_s) \in \mathbb{R}^{B \times n_h \times n_w \times C \times t^2}
+\end{equation}
+
+where $n_h = \lceil H_s / t \rceil$ and $n_w = \lceil W_s / t \rceil$ define the token grid dimensions, and $t^2$ represents the flattened spatial dimension within each token. Similar transformations apply to $K_s^{tok}$ and $V_s^{tok}$. For our implementation, token size $t$ varies across pyramid levels: $t=2$ for P3 (preserving fine spatial detail), $t=3$ for P4, and $t=4$ for P5 (accommodating larger receptive fields).
+
+\textbf{Localized Attention Computation.} Rather than computing global attention across all tokens, each query token attends only to a local neighborhood of key tokens. For a query token at grid position $(i, j)$, we extract a $k \times k$ neighborhood of key and value tokens centered at $(i, j)$:
+
+\begin{equation}
+\mathcal{N}_{ij} = \{K_s^{tok}[i', j'], V_s^{tok}[i', j'] \mid |i'-i| \leq \lfloor k/2 \rfloor, |j'-j| \leq \lfloor k/2 \rfloor\}
+\end{equation}
+
+where $k$ is the neighborhood size parameter. This localization is efficiently implemented via PyTorch's \texttt{unfold} operation with padding. The attention weights are then computed as:
+
+\begin{equation}
+\alpha_{ij} = \text{softmax}\left(\frac{Q_s^{tok}[i,j] \cdot K_s^{tok}[\mathcal{N}_{ij}]^\top}{\sqrt{t^2}}\right) \in \mathbb{R}^{C \times k^2}
+\end{equation}
+
+where $\sqrt{t^2}$ is the scaling factor (corresponding to the token dimension), and $\cdot$ denotes batched matrix multiplication across channels. The enhanced token is obtained through weighted aggregation:
+
+\begin{equation}
+\widetilde{Q}_s^{tok}[i,j] = \sum_{(i',j') \in \mathcal{N}_{ij}} \alpha_{ij}[i',j'] \cdot V_s^{tok}[i',j']
+\end{equation}
+
+The neighborhood size $k$ is adapted per pyramid level: $k=3$ for P3, $k=5$ for P4, and $k=7$ for P5. This hierarchical design balances local precision with contextual coverage. By constraining attention to local neighborhoods, complexity reduces from $O(N^2)$ to $O(N \cdot k^2)$, achieving approximately 91\% reduction when $k \ll \sqrt{N}$.
+
+\textbf{Feature Reconstruction and Residual Connection.} After computing enhanced tokens for all positions, we reverse the tokenization process to reconstruct the spatial feature map $\widetilde{F}_b^s \in \mathbb{R}^{B \times C \times H_s \times W_s}$. The final fused representation employs a residual connection to preserve original blue-light information:
+
+\begin{equation}
+F_{fused}^s = \text{Conv}_{1\times1}(F_b^s + \widetilde{F}_b^s)
+\end{equation}
+
+This residual formulation ensures that the network learns additive refinements rather than replacing the base features, facilitating gradient flow and training stability.
+
+\subsubsection{Concatenation with Compression}
+
+As a baseline fusion strategy, we implement channel-wise concatenation followed by dimensionality reduction. For feature pair $(F_b^s, F_w^s)$ at pyramid level $s$, this method directly concatenates along the channel dimension and applies $1 \times 1$ convolution for compression:
+
+\begin{equation}
+F_{concat}^s = \text{Concat}(F_b^s, F_w^s) \in \mathbb{R}^{B \times 2C \times H_s \times W_s}
+\end{equation}
+
+\begin{equation}
+F_{fused}^s = \text{Conv}_{1\times1}(F_{concat}^s) \in \mathbb{R}^{B \times C \times H_s \times W_s}
+\end{equation}
+
+where the $1 \times 1$ convolutional layer reduces channel count from $2C$ back to $C$ through learned linear combinations. While computationally efficient, this approach lacks explicit modeling of cross-modal semantic correspondences and spatial alignment, limiting its ability to resolve inter-modality registration errors or extract complementary information selectively.
+
+\subsubsection{Weighted Convolutional Fusion}
+
+This method attempts to learn modality-specific importance through adaptive weighting. The fusion combines spatial attention, global context, and learnable temperature parameters. Features are first normalized via layer normalization, then concatenated for joint weight prediction:
+
+\begin{equation}
+\hat{F}_b^s = \text{LayerNorm}(F_b^s), \quad \hat{F}_w^s = \text{LayerNorm}(F_w^s)
+\end{equation}
+
+\begin{equation}
+F_{joint}^s = \text{Concat}(\hat{F}_b^s, \hat{F}_w^s) \in \mathbb{R}^{B \times 2C \times H_s \times W_s}
+\end{equation}
+
+Spatial weights are generated through a convolutional network that predicts pixel-wise importance:
+
+\begin{equation}
+w_{spatial}^s = \sigma(\text{Conv}_{1\times1}(\text{Conv}_{3\times3}(\text{Conv}_{3\times3}(F_{joint}^s))))
+\end{equation}
+
+where $\sigma$ denotes the sigmoid activation. Simultaneously, a global context weight is computed via adaptive average pooling followed by fully connected projections:
+
+\begin{equation}
+w_{global}^s = \sigma(\text{Conv}_{1\times1}(\text{Conv}_{1\times1}(\text{AdaptiveAvgPool}(F_{joint}^s))))
+\end{equation}
+
+The final weight combines spatial and global components with a learnable temperature $\tau$:
+
+\begin{equation}
+w_{final}^s = \text{clamp}(w_{spatial}^s \cdot w_{global}^s \cdot \tau, 0.1, 0.9)
+\end{equation}
+
+The fused feature is obtained through weighted combination with residual enhancement:
+
+\begin{equation}
+F_{fused}^s = w_{final}^s \cdot \hat{F}_b^s + (1 - w_{final}^s) \cdot \hat{F}_w^s + 0.3 \cdot \hat{F}_b^s
+\end{equation}
+
+Despite its theoretical sophistication, this approach exhibits severe training instability in practice. Experiments reveal extreme weight degeneration during optimization, with $w_{final}$ collapsing to boundary values (0.1 or 0.9), resulting in detection success rates below 8\%. We attribute this failure to excessive parameterization and gradient conflicts among spatial, global, and temperature components.
+
+\subsection{Implementation Details}
+
+\subsubsection{Framework Integration and Modular Design}
+
+Our dual-modality detection framework is developed atop Ultralytics YOLO \cite{ultralytics_yolo}, with systematic modifications to support dual-backbone architectures and cross-modal fusion. Key implementation contributions include:
+
+\textbf{Fusion Module Library.} We introduce a new module file \texttt{ultralytics/nn/modules/fusion.py} that encapsulates three fusion strategies—\texttt{CrossModalAttention}, \texttt{ConcatCompress}, and \texttt{WeightedFusion}—as reusable PyTorch \texttt{nn.Module} classes. Each module accepts a list \texttt{[blue\_feat, white\_feat]} as input and outputs the fused representation, ensuring interface consistency across strategies.
+
+\textbf{Dual-Backbone Configuration.} The model architecture is defined via YAML configuration files (e.g., \texttt{yolo11x-dseg-crossattn-precise.yaml}). Unlike standard YOLO configs with a single \texttt{backbone} section, our format specifies two independent sections:
+
+\begin{itemize}
+    \item \texttt{backbone\_b}: Blue-light feature extraction pathway
+    \item \texttt{backbone\_w}: White-light feature extraction pathway
+    \item \texttt{head}: Detection head with fusion layers at lines 22-24 (P3, P4, P5 fusion)
+\end{itemize}
+
+The \texttt{head} section explicitly references layer outputs from both backbones (e.g., \texttt{[4, 15]} denotes P3 features from blue and white backbones) and specifies fusion modules with hyperparameters. For instance:
+
+\begin{verbatim}
+- [[4, 15], 1, CrossModalAttention, [2, 3]]  # P3 fusion
+- [[6, 17], 1, CrossModalAttention, [3, 5]]  # P4 fusion
+- [[10, 21], 1, CrossModalAttention, [4, 7]] # P5 fusion
+\end{verbatim}
+
+This configuration instantiates cross-modal attention at each pyramid level with level-specific token sizes (\texttt{[2, 3, 4]}) and neighborhood sizes (\texttt{[3, 5, 7]}).
+
+\textbf{Model Parser Extension.} We modify \texttt{ultralytics/nn/tasks.py} to parse dual-backbone YAML specifications. The parser constructs two independent backbone subgraphs, tracks their layer indices separately, and correctly resolves cross-backbone references in fusion layer definitions. During forward passes, the model splits 6-channel input tensors (concatenated RGB from both modalities) into two 3-channel streams, processes them through respective backbones, and merges features at designated fusion points.
+
+\textbf{Data Loading Adaptation.} To support dual-modality training, we extend YOLO's data pipeline to load paired images. Input data can be organized as separate directories (\texttt{images\_b/}, \texttt{images\_w/}) or as pre-concatenated 6-channel \texttt{.npy} arrays for I/O efficiency. The latter format reduces disk read operations by 40\% during training.
+
+This modular architecture enables flexible experimentation: switching between fusion strategies requires only changing a single line in the YAML configuration without altering source code, facilitating rapid prototyping and ablation studies.

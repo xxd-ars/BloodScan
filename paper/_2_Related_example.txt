@@ -1,0 +1,155 @@
+**1. CAISeg: A Clustering-Aided Interactive Network for Lesion Segmentation in 3D Medical Imaging**
+
+II. RELATED WORK
+A. Automatic Deep Learning-Based Medical Image
+Segmentation Methods
+Applying deep learning to medical image segmentation
+has long been challenging in computer vision. The Fully
+Convolutional Network [18] laid the foundation, but the
+real breakthrough came with U-Net [19], whose symmetric
+encoder-decoder structure and skip-connections effectively capture intricate structures in medical images. Numerous U-Net
+variants ([1], [16], [20], [21]) followed, with nnU-Net [1] standing out for its auto-adjusting capabilities and robustness across
+various segmentation tasks. The advent of ViT [22] initiated the
+integration of Transformers with CNNs, as seen in models like
+UNeTR [23], which combines CNNs for local feature extraction with Transformers for long-range contextual understanding. Further developments ([24], [2]) replaced convolutional
+modules with the shifted window self-attention mechanism of
+the Swin Transformer [25], creating a pure Transformer architecture. Liu et al. [3] introduced contrastive language-image
+pre-training embeddings into segmentation models, leading to
+the highly generalized Universal Model. Several studies introduced effective data augmentation techniques to enhance
+medical image segmentation models. Liang et al. [26] generated new samples by extracting inter-patient deformations
+through learning-based deformable registration, and creating
+intra-patient deformations using random 3D Thin-Plate-Spline
+transformations. Furthermore, He et al. [27] increased the diversity of generated samples through KL transform-based statistical
+analysis. Despite these advancements, handling tail features in
+medical images remains difficult. Our method, however, leverages interactive segmentation by incorporating expert guidance
+from physicians to identify and cluster tail features, allowing for
+more precise delineation of regions misjudged by the network.
+B. Interactive Segmentation Methods
+Traditional interactive segmentation methods such as Level
+Set [28], Graph Cut [29], Random Walker [30], Region Growing [31], and Grow Cut [32] are notably representative. The
+Level Set method uses partial differential equations to capture
+target boundaries, excelling in managing topological changes.
+Graph Cut segments images into foreground and background
+using the min-cut algorithm and user-annotated seed points. The
+Random Walker method labels pixels based on the probability
+of a random walk to seed points, while Region Growing incrementally expands segmentation areas from seed points based on
+local similarity. Grow Cut, based on cellular automata theory,
+iteratively updates pixel labels until a stable state is reached.
+However, despite their innovative designs, these methods face
+challenges in 3D medical image segmentation, including high
+computational complexity, sensitivity to noise, difficulties with
+complex structures, and susceptibility to local optima.
+In deep learning-based interactive segmentation, a key challenge is enabling networks to effectively comprehend user interaction cues. Xu et al. [4], the first model to integrate interactive concepts into deep learning for 2D image segmentation,
+using Euclidean distance maps to encode positive and negative
+user sample points, thereby providing spatial information to
+the network. DEXTR [33] required user points at the extreme
+edges of the target for precise location information. Wang
+et al. [8] and Luo et al. [9] used geodesic distance transforms
+to encode interaction points, aiming to enrich the network’s
+prior information. Wang’s model [8] started with a coarse segmentation, refining it using geodesic distance encoding, while
+Authorized licensed use limited to: Shanghai Jiaotong University. Downloaded on August 28,2025 at 18:35:35 UTC from IEEE Xplore. Restrictions apply. 
+SUN et al.: CAISEG: A CLUSTERING-AIDED INTERACTIVE NETWORK FOR LESION SEGMENTATION IN 3D MEDICAL IMAGING 373
+Luo [9] placed interaction points near the foreground boundary, utilizing an exponential geodesic distance transform for
+more accurate edge information. Sofiiuk et al. [34] analyzed
+and refined interaction encoding methods, training strategies,
+and loss functions, leading to the development of the RITM
+interactive segmentation network, which introduced sparse encoding and iterative training as a new standard. Jian et al. [7]
+proposed DINs, integrating sparse Gaussian distance encoding
+into multi-scale feature maps, which enhanced the transmission of sparse interaction information through the network. Liu
+et al. [35] used cross-attention between interaction point vectors
+and feature maps to incorporate category features directly. The
+VMN developed by Zhou et al. built upon [33] by performing
+segmentation on 2D slices and then bi-directionally propagating the segmentation mask, incorporating a quality assessment
+module to refine the process. While these methods encoded user
+interaction as shallow semantic information, they limited the
+prior knowledge conveyed to the network. The MedSAM [36],
+utilizing the pre-trained SAM [37] with transfer learning on
+a large medical dataset, introduces effective segmentation for
+medical images. On the other hand, MedLSAM [38] employs
+an additional network to regress six extreme points of a 3D object
+to anchor the corresponding bounding box, which is then segmented slice-by-slice using the SAM model. SAM-Med3D [39]
+further modified the SAM model into a 3D structure, allowing
+point-based interaction for 3D medical images. However, these
+SAM-based methods, while effective for organ segmentation,
+struggle with the heterogeneity of medical lesions, as their output
+tokens find it difficult to identify tail features within the target
+based on interaction cues. Our approach focuses on capturing
+semantic features deeply embedded in the network that closely
+resemble the vectors corresponding to user interaction points
+through clustering. For challenging tail features, we reposition
+them within the head distribution space to improve segmentation
+accuracy, aligning more closely with the physician’s intent.
+C. Mask Transformers
+Instead of directly employing Transformers as network backbones for image segmentation, Mask Transformers enhance
+CNN-based architectures with stand-alone blocks that leverage
+masked attention mechanisms. In MaX-Deeplab [40], MaskFormer [15], and Mask2Former [41], mask embedding queries
+are used in the decoder to perform dot-product operations
+with per-pixel features, generating the predicted binary masks.
+Building on this, CMT-Deeplab [10] and KMaX-Deeplab [11]
+introduced the concept of treating queries as clustering centers, incorporating constraints to improve cluster representation
+learning within the network. Yuan et al. [12] segmented unseen
+objects in medical scans by identifying outlier features within
+the clustering results. S2VNet [13] addresses 3D medical image
+segmentation by processing slices individually, initializing cluster centers based on the clustering results from previous slices,
+thereby leveraging prior knowledge to assist in the segmentation
+of current slices. Inspired by these advancements, we extend
+this clustering-based approach to interactive segmentation with
+CAISeg. In CAISeg, user-provided interaction points serve as
+clustering centers within a designed masked attention module,
+allowing the model to identify semantically similar regions and
+more effectively recognize tail features.
+
+**2. MACTFusion**
+
+II. RELATED WORK
+A. Deep Learning Image Fusion
+Deep learning based fusion methods significantly improve the
+fusion performance due to its powerful representation capability.
+Liu et al. developed a CNN-based method to generate fusion
+weight maps via multiscale pyramid approach [13]. However,
+the fusion strategy requires complex manual design. In another
+work, Liu et al. proposed a supervised framework trained on
+high-quality images to solve multi-focus image fusion [14].
+Zhang et al. developed a supervised network including feature extraction, feature fusion, and image reconstruction [15].
+However, these methods do not fully exploit the characteristics
+of images, and there are some mosaics in functional images
+that may blur the fusion results. Furthermore, training such an
+end-to-end model without the ground truth is a challenge. Zhang
+et al. further designed a unified image fusion model that uses
+a special loss function to preserve the intensity and gradient
+information [17]. They subsequently proposed a squeeze-anddecomposition framework to improve the fidelity [18]. Although
+these models have obtained relatively satisfactory fusion images,
+the structural information may be lost due to only considering
+intensity and gradient information [19]. Ma et al. developed a
+GAN-based model (FusionGAN) [20], which fed source images
+to a generator and fusion images were obtained by a discriminator. Later, they introduced a dual-discriminator conditional GAN
+model (DDcGAN) [21], which employed two discriminators
+to distinguish structure differences between fused images and
+source images. However, the training process is unstable and
+texture details are distorted.
+
+CNN-based image fusion methods still have limitations. They
+fail to capture global contextual information in the multimodal
+images. In addition, most of them still rely on traditional manual
+fusion strategies, which limit the fusion performance.
+B. Vision Transformer
+Transformer has achieved significant success in natural language processing. Due to its superior performance in global
+feature extraction, researchers are exploring Transformer-based
+models in computer vision, including visual recognition [25],
+object detection [26], and image segmentation [27]. Several related works have achieved excellent results in image fusion [33],
+[34]. However, they mainly focus on exploring intra-domain
+interactions and cannot fully integrate inter-domain contexts.
+More recently, SwinFusion introduced a cross Transformer
+model in the fusion strategy, which has achieved superior fusion
+performance [1]. Its computational cost is also high [29], as
+obtaining global interactions requires a considerable amount
+of computation. Therefore, effectively integrating global and
+local interactions remains a challenge. Tu et al. proposed a
+Transformer based on multi-axis attention mechanism, called
+MaxViT, aimed to learn local and global interactions [28]. It has
+achieved state-of-the-art (SOTA) results on various tasks including image generation, object detection, and image classification.
+Inspired by the above discussions, we design an adaptive cross
+Transformer fusion strategy that aims to effectively integrate
+the intra-modal and inter-modal interactions. Additionally, we
+also take into account the computational cost. This provides a
+promising direction for future image fusion.
