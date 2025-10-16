@@ -1,0 +1,102 @@
+# Dual-TSST: A Dual-Branch Temporal-Spectral-Spatial Transformer Model for EEG Decoding
+
+## IV. DATASET AND EXPERIMENTAL SETUP
+
+To evaluate the proposed method, two BCI competition datasets in MI [41], sourced from MOABB (Mother of All BCI Benchmarks) project [42], and one widely used emotional SEED dataset [43] are included. Here gives the relevant introduction and several required necessary procedures.
+
+### A. Datasets
+
+**Dataset I. BCI Competition IV 2a:**
+This dataset comprises EEG recordings from 9 subjects that performing four distinct MI tasks, i.e., imagery movements of the left hand, right hand, both feet, and tongue. Data were collected by 22 positioned Ag/AgCl electrodes according to international 10-20 system. To ensure signal quality, a 250 Hz sampling rate was utilized and the recorded data was filtered between 0.5 Hz and 100 Hz. The dataset includes two sessions, where the first session serves as the training set, and the second as the test set. Each session consists of six runs, with 48 trials per run that distributed evenly across task categories. In our study, we utilized data from all 22 EEG channels, set the time window for each trial of this dataset between 2 and 6 seconds, and filtered the data using a frequency range from 0 to 40 Hz.
+
+**Dataset II. BCI Competition IV 2b:**
+This dataset features by the data from 9 subjects engaged in left and right hand MI tasks. The recording data were captured from three electrodes of C3, Cz, and C4, with a sampling frequency of 250 Hz. A band-pass filter of 0.5–100 Hz and a notch filter at 50 Hz have been used. Each subject participated in five sessions, where the initial two collected data without visual feedback and the subsequent three sessions included online feedback. Moreover, the dataset designates the initial three sessions (400 trials in total) for training and the final two (i.e., 320 trials) for testing. For this dataset, we used data from all three available channels and allocated a time window from 3 to 7.5 s, with data similarly filtered within 0 to 40 Hz range.
+
+**Dataset III. SEED:**
+Provided by BCMI Lab from Shanghai Jiao Tong University, this dataset consists of EEG data from 15 subjects who viewed clips from Chinese films edited to evoke various emotions (e.g., positive, negative, neutral). The films last for 4 minutes, with data processed using 1-seconds or 4s sliding windows across 62 channels, and downsampled to 200 Hz. Each subject underwent three experimental sessions, with data filtered through a 0–75 Hz band-pass filter. Five-fold/ten-fold cross-validation techniques were involved in training. Also, a band-pass filter ranging from 0.5 Hz to 50 Hz was applied on the SEED dataset. For this dataset, we used data from all 62 EEG channels and segmented the continuous recordings into 1-second windows.
+
+### B. Experiment Settings
+
+We constructed the developed model using Python 3.11 and PyTorch 2.0, and conducted training on a Nvidia GeForce RTX 4090 GPU using the Adam optimizer. The Adam optimizer was configured with a learning rate of 0.0001 and a weight decay of 0.0012, with β₁ and β₂ values at 0.5 and 0.999, respectively. Throughout the training, the epoch value was set to 1000, with a batch size of 32. The critical hyperparameters D₁ and D₂ were set to 40 and 120. On Datasets I and II, the data augmentation parameters R were designated as 8 and 9. Since the data scale is enough, no data augmentation was applied in Dataset III. The learning rate was adjusted with Cosine Annealing [44], which can be explained by the following formula:
+
+[
+lr = lr_{min} + \frac{1}{2}(lr_{max} - lr_{min})\left(1 + \cos\frac{T_{cur}}{T_{max}}\pi\right)
+\tag{18}
+]
+
+where ( lr ) is the current learning rate, ( lr_{max} ) and ( lr_{min} ) are the related maximum and minimum values, respectively. ( T_{cur} ) is the current training epoch, and ( T_{max} ) is the total number of training epochs in a cycle. The learning rate decreases to ( lr_{min} ) at the end of a cycle. For the experiments, ( T_{max} ) was set to 32 to allow better model convergence and generalization during training.
+
+### C. Choice of Model Parameters
+
+Table I illustrates the input shapes, kernels, strides, and output configurations for each layer in the feature extraction, emphasizing how each layer contributes to the final outputs. Specifically, from the model structure, it is apparent that the final feature size outputted by each branch is primarily governed by the kernel size and stride of the Average Pooling layer. For Branch I, a relatively small convolution kernel is set to capture more granular features along the temporal dimension. However, despite richer details can be extracted, it may result in a larger feature map size. Using a larger Pooling Kernel size helps control the map size and the receptive field of the features. Meanwhile, it helps to reduce the computational requirements and enhance the model’s generalization capabilities while maintaining substantial contextual information.
+
+In contrast, a larger convolution kernel set in Branch II aims to capture broader features along the time-frequency dimension, and a following smaller Pooling Kernel Size may facilitate more intensive feature extraction. Indeed, balancing the convolution kernel sizes and pooling parameters between different branches enhances the model’s flexibility, which helps to better adapt to the model’s intrinsic structure and allow the model to learn features of different scales from different data types, thus improving model performance.
+
+Here, to balance the features obtained while enhancing the model performance, we set a larger Pooling Kernel size ( P_1 ) of 120 with a stride of ( P_1/10 ) for Branch I, and a smaller Pooling Kernel size ( P_2 ) of 64 with a stride of ( P_2/2 ) for Branch II.
+
+Moreover, the Transformer Encoder was configured with 4 blocks, and the multi-head attention mechanism was set with 10 heads. Finally, the model’s performance was evaluated using classification accuracy and the Kappa value, and the Kappa value is defined as:
+
+[
+Kappa = \frac{P_o - P_e}{1 - P_e}
+\tag{19}
+]
+
+where ( P_o ) is the proportion of correctly classified samples to the total number of samples, i.e., overall classification accuracy, and ( P_e ) represents the probability of chance agreement, i.e., the correctness of random guesses.
+
+Besides, we also used the Wilcoxon Signed-Rank Test to analyze the potential statistical significance.
+
+---
+
+# Multi-Scale Dynamic Sparse Attention UNet for Medical Image Segmentation
+
+## IV. EXPERIMENTS
+
+This section evaluates the effectiveness and efficiency of our proposed MDSA-UNet through extensive experiments. We begin by introducing the datasets, which cover three different modalities across four datasets. Next, we outline the evaluation metrics and hyperparameters used during training. Finally, we compare our method with state-of-the-art (SOTA) approaches and conduct ablation studies to validate the contributions of multi-scale dynamic sparse attention (MDSA) and other architectural choices in MDSA-UNet.
+
+### A. Datasets
+
+We evaluate our method on four diverse datasets, each posing unique segmentation challenges: two thyroid nodule datasets (DDTI [37] and TN3K [38]), the skin lesion dataset ISIC2018 [39], and the cardiac MRI dataset ACDC [40]. The key characteristics of these datasets are as follows:
+
+The DDTI and TN3K datasets consist of ultrasound images from different organizations, with 652 and 3,493 images, respectively. Ultrasound images often suffer from low contrast and speckle noise, which complicate the identification of thyroid nodule boundaries.
+
+1. For DDTI, we use 5-fold cross-validation, partitioning the dataset into five mutually exclusive subsets for training and validation.
+2. For TN3K, we follow the splitting strategy of [38], with 2,303 images for training, 576 for validation, and 614 for testing, also applying 5-fold cross-validation.
+3. The ISIC2018 dataset contains 2,594 skin lesion images. Issues like shadow effects, blurred lesion boundaries, and varying contrast between lesions and surrounding skin make segmentation challenging. We follow the split in [41], dividing the dataset into 1,715 images for training, 259 for validation, and 520 for testing.
+4. The ACDC dataset comprises 100 cardiac MRI samples, where challenges include motion artifacts and low signal-to-noise ratios in certain regions, which hinder accurate segmentation. We use the split from [14], with 70 samples for training, 10 for validation, and 20 for testing.
+
+### B. Evaluation Metrics
+
+We assess segmentation performance using widely adopted evaluation metrics, defined as follows:
+
+[
+Sensitivity (SE) = Recall = \frac{TP}{TP + FN},
+\quad
+Specificity (SP) = \frac{TN}{FP + TN},
+\quad
+Precision (PR) = \frac{TP}{TP + FP},
+]
+
+[
+Intersection\ Over\ Union\ (IoU) = \frac{TP}{TP + FP + FN},
+\quad
+Accuracy (Acc) = \frac{TN + TP}{TN + TP + FN + FP},
+\quad
+Dice\ Coefficient = \frac{2TP}{2TP + FP + FN},
+]
+
+HD95: The 95th percentile of the Hausdorff Distance, assessing segmentation boundary accuracy.
+
+where TP, FP, TN, and FN represent true positives, false positives, true negatives, and false negatives, respectively.
+
+### C. Implementation Details
+
+We implement MDSA-UNet in PyTorch and train all models on an NVIDIA A100 GPU with 80 GB RAM. Our model is designed as a general-purpose framework robust to various data characteristics across different modalities. The parameters (e.g., Top-k, auxiliary branches) were set based on a trade-off between performance and computational efficiency, as shown in Table II, without specific tuning for noise characteristics or dataset variations.
+
+To enhance training robustness, we apply standard data augmentation techniques, including random cropping, flipping, and rotation. For the TN3K dataset, we use the soft Dice loss function as in [38], while for the remaining datasets, we employ a combination of cross-entropy and Dice loss. The input image resolution is set to 224 × 224.
+
+The hyperparameter settings for training across different datasets are as follows:
+
+* **DDTI:** max_epoch = 300; batch_size = 32; lr = 0.1; lr_scheduler = lr × (1 − cur_epoch / max_epoch)^0.9; optimizer = SGD (momentum = 0.9, weight_decay = 0.0001);
+* **TN3K:** max_epoch = 150; batch_size = 4; lr = 0.01; lr_scheduler = lr × (1 − cur_epoch / max_epoch)^0.9; optimizer = SGD (momentum = 0.9, weight_decay = 0.0001);
+* **ISIC2018:** max_epoch = 100; batch_size = 16; lr = 0.1; lr_scheduler = lr × (1 − cur_epoch / max_epoch)^0.9; optimizer = SGD (momentum = 0.9, weight_decay = 0.0001);
+* **ACDC:** max_epoch = 200; batch_size = 24; lr = 0.001; lr_scheduler = lr × (1 − cur_epoch / max_epoch)^0.9; optimizer = AdamW (weight_decay = 0.0001).

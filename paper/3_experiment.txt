@@ -1,0 +1,73 @@
+\section{Dataset and Experimental Setup}
+\label{sec:experiments}
+
+This section describes the dataset construction, evaluation metrics, implementation details, and baseline comparisons for validating the proposed DIUA-YOLO framework.
+
+\subsection{Dataset Construction}
+
+\subsubsection{Data Acquisition and Annotation} We constructed a dual-illumination blood tube dataset comprising 90 tube samples acquired through the automated platform described in Section \ref{sec:methodology}. Each sample was sequentially imaged under white-light and blue-light illumination at 1504$\times$1504 pixel resolution, yielding 90 dual-modality image pairs. Consistent mechanical fixation during sequential acquisition ensured sub-pixel registration accuracy between modalities, with measured positional variance below 0.1 mm.
+
+Annotation was performed via the Roboflow platform under expert supervision. Each image received polygon-level segmentation masks for three blood component layers: serum/plasma layer (Class 0), buffy coat (Class 1), and erythrocyte layer (Class 2). The annotation protocol defined specific vertex configurations tailored to layer geometry: Class 0 employed a quadrilateral region defined by vertices 0--3; Class 1 utilized vertices 2--5 to capture the thin buffy coat band with overlapping boundaries; Class 2 adopted vertices 4--6 to represent the erythrocyte fraction. This structured annotation scheme enabled consistent multi-class layer delineation while accommodating overlapping boundaries inherent to stratified blood components. All annotations underwent dual-operator cross-validation, with discrepancies adjudicated by senior laboratory specialists.
+
+\subsubsection{Dataset Partitioning and Augmentation} The 90 samples were partitioned into training, validation, and test sets following a 6:3:1 ratio, yielding 54, 27, and 9 samples per subset, respectively. To enhance model robustness to imaging variability, we implemented a structured augmentation pipeline generating nine variants per sample. The base variant (suffix \_0) preserved original acquisition conditions. Variants \_1--\_4 combined rotation ($\pm$5\degree) with either Gaussian blur ($\sigma$=1.5) or exposure adjustment (factor=0.9--1.1). Variants \_5--\_8 applied three-way transformations involving rotation ($\pm$10\degree), brightness modulation (factor=0.85--1.15), and adaptive blur. These transformations address practical challenges including tube orientation variation, illumination inconsistency, and optical aberrations. Augmentation was applied uniformly to both modalities while transforming polygon annotations via corresponding geometric mappings to maintain spatial correspondence.
+
+\subsubsection{Six-Channel Data Format} To streamline dual-modality training, we adopted a unified 6-channel tensor representation concatenating white-light RGB channels (channels 0--2) with blue-light RGB channels (channels 3--5). This format enables batch-wise data loading while preserving full spectral information from both illumination conditions. Pre-concatenated samples were serialized as NumPy arrays (.npy format), reducing disk I/O latency by approximately 40\% compared to paired loading of separate modality files. The data loader automatically handles channel decomposition during forward propagation, routing channels 0--2 and 3--5 to their respective backbone networks as described in Section \ref{sec:methodology}.
+
+\subsection{Evaluation Metrics}
+
+\subsubsection{Detection Success Rate (DSR)} To assess clinical applicability, we define Detection Success Rate (DSR) as the primary evaluation metric. A sample is deemed successfully detected if and only if each of the three layer classes is detected exactly once with confidence exceeding threshold $\tau$. Formally:
+\begin{equation}
+\text{DSR} = \frac{1}{N}\sum_{i=1}^{N}\mathbb{1}\left(\bigwedge_{c \in \{0,1,2\}} |\mathcal{D}_i^c(\tau)| = 1\right)
+\end{equation}
+where $N$ denotes test set cardinality, $\mathcal{D}_i^c(\tau) = \{d \mid d \in \mathcal{D}_i^c, \text{conf}(d) \geq \tau\}$ represents detections of class $c$ in sample $i$ satisfying confidence threshold $\tau$, and $\mathbb{1}(\cdot)$ denotes the indicator function. This stringent criterion mandates zero false positives (no duplicate detections) and zero false negatives (no missing layers), reflecting the operational requirement for automated systems to deliver complete layer localization in a single inference pass.
+
+\subsubsection{Geometric Precision Metrics} Beyond detection completeness, we quantify localization accuracy through complementary geometric metrics. 
+
+\textbf{Intersection over Union} (IoU) measures mask overlap between predicted and ground-truth segmentation regions as the ratio of intersection to union pixel counts. For each class $c$ across the test set, we compute mean IoU over all successfully detected instances:
+\begin{equation}
+\text{mIoU}_c = \frac{1}{|\mathcal{S}_c|} \sum_{i \in \mathcal{S}_c} \frac{|M_{\text{pred}}^{i,c} \cap M_{\text{gt}}^{i,c}|}{|M_{\text{pred}}^{i,c} \cup M_{\text{gt}}^{i,c}|}
+\end{equation}
+where $\mathcal{S}_c$ denotes the subset of test samples with successful detection of class $c$, $M_{\text{pred}}^{i,c}$ and $M_{\text{gt}}^{i,c}$ represent predicted and ground-truth masks for class $c$ in sample $i$, and $|\cdot|$ denotes pixel count. 
+
+\textbf{Boundary displacement} metrics assess vertical positional error by computing absolute pixel differences between predicted and annotated upper/lower layer interfaces. For multi-vertex annotations, interface positions are defined as the mean vertical coordinate of the several most extreme vertices.
+
+\textbf{Mean Average Precision} (mAP) quantifies detection performance across varying confidence thresholds and IoU criteria. For a given IoU threshold $\theta$, precision and recall are computed at each confidence level $t$:
+\begin{equation}
+\begin{aligned}
+\text{Precision}(t) &= \frac{\text{TP}(t)}{\text{TP}(t) + \text{FP}(t)} \\
+\text{Recall}(t) &= \frac{\text{TP}(t)}{\text{TP}(t) + \text{FN}(t)}
+\end{aligned}
+\end{equation}
+where TP, FP, and FN denote true positives, false positives, and false negatives at threshold $t$. A predicted detection is deemed a true positive if its confidence value calculated by the model reaches $t$, its IoU with a ground-truth instance exceeds $\theta$ and the ground-truth has not been previously matched. Average Precision (AP) for class $c$ at IoU threshold $\theta$ is computed as the area under the precision-recall curve:
+\begin{equation}
+\text{AP}_c(\theta) = \int_{0}^{1} \text{Precision}_c(r, \theta) \, dr
+\end{equation}
+where $r$ denotes recall. Mean Average Precision aggregates AP across all classes: $\text{mAP}(\theta) = \frac{1}{|\mathcal{C}|} \sum_{c \in \mathcal{C}} \text{AP}_c(\theta)$. We report mAP@0.5 (IoU threshold 0.5) and mAP@0.5:0.95 (mean over IoU thresholds from 0.5 to 0.95 with step 0.05), following YOLO evaluation protocols.
+
+These metrics collectively provide comprehensive assessment of detection completeness, localization accuracy, and segmentation quality.
+
+\subsection{Implementation Details}
+
+\subsubsection{Training Configuration} All models were implemented in PyTorch 2.4.1 with CUDA 12.4 support and trained on a quad-GPU workstation equipped with four NVIDIA RTX 3090 cards (24GB VRAM each). Distributed data parallel (DDP) training was employed across devices [0,1,2,3], yielding an effective batch size of 8 (2 samples per GPU). Training proceeded for at most 30 epochs at input resolution 1504$\times$1504 pixels.
+
+We train our model using the Adam optimizer with initial learning rate $\eta_0 = 0.01$, momentum 0.937, and weight decay $5 \times 10^{-4}$. Learning rate scheduling followed applied linear decay from $\eta_0$ to $\eta_{\text{min}} = 0.0001$, preceded by 3-epoch linear warmup from 0 to $\eta_0$. Critically, automatic mixed precision (AMP) was explicitly disabled to preserve numerical stability in cross-modal attention weight computation, as float16 accumulation induced gradient instabilities during softmax normalization. This configuration demanded substantial GPU memory but ensured reliable convergence of attention mechanisms. Data loading utilized 4 parallel workers per GPU to overlap preprocessing with model computation.
+
+\subsubsection{Model Initialization and Transfer Learning} Our training pipeline employs a hierarchical initialization strategy designed to leverage knowledge from both generic feature extraction and modality-specific fine-tuning. The complete workflow comprises three stages:
+
+\textbf{Stage I: Single-Modality Pretraining.} We first trained two independent YOLO11x-seg models on blue-light and white-light images respectively, both initialized from COCO-pretrained weights. This stage enables each modality-specific backbone to learn discriminative features optimized for its illumination characteristics—blue-light models specialize in buffy coat fluorescence enhancement, while white-light models capture structural gradients and color transitions. Single-modality training proceeded for 30 epochs with augmentation pipelines.
+
+\textbf{Stage II: Dual-Backbone Weight Transfer.} To initialize the dual-backbone architecture, we developed a custom weight transfer mechanism that migrates trained single-modality parameters into corresponding branches. The transfer script implements layer-wise remapping: blue-light backbone weights (layers 0--10 from single-modality model) populate the blue-light branch (layers 0--10 in dual-backbone), while white-light backbone weights similarly populate the white-light branch (layers 11--21 in dual-backbone). Segmentation head weights are transferred via index mapping to account for the expanded backbone depth. This initialization preserves modality-specific feature extractors learned during Stage I, providing superior starting points compared to random initialization or naive COCO weight replication.
+
+\textbf{Stage III: Dual-Modality Fine-Tuning.} The dual-backbone model undergoes end-to-end fine-tuning with three alternative initialization strategies: (\textit{i}) \textit{pretrained}: loading transferred weights from Stage II for both backbones and fusion modules initialized via Xavier uniform; (\textit{ii}) \textit{freeze\_backbone}: identical to pretrained but with backbone parameters (layers 0--21) frozen during initial 5 epochs to stabilize fusion learning before joint optimization; (\textit{iii}) \textit{scratch}: training from COCO weights without Stage I/II transfer, serving as an ablation baseline. Our primary experiments employ the pretrained strategy, which empirically demonstrated the most reliable convergence across fusion variants.
+
+\subsection{Baseline Comparisons and Ablation Studies}
+
+To systematically validate our architectural design choices and quantify the contribution of each component, we conducted comprehensive baseline comparisons and ablation experiments along four dimensions:
+
+\textbf{Single-Modality vs. Dual-Modality Architecture.} To validate the necessity of dual-illumination imaging and rule out confounding factors, we establish single-modality baselines as YOLO11x-seg models exclusively trained on blue-light or white-light images. A critical concern in evaluating dual-backbone architectures is whether performance gains genuinely arise from cross-spectral fusion or merely from increased model capacity and extended training. To ensure fair comparison, all models—both single-modality and dual-modality—are trained under identical protocols: 30 epochs with COCO pretrained initialization and consistent hyperparameters. This controlled setup ensures that any observed performance differences are attributable to architectural design (dual-backbone with cross-modal fusion) rather than allocating more parameters or training iterations. The comparison directly quantifies whether dual-illumination imaging provides measurable advantages over conventional single-source acquisition, particularly for challenging targets like the buffy coat layer.
+
+\textbf{Fusion Strategy Comparison.} We systematically compare three fusion mechanisms of increasing sophistication: (\textit{i}) \textit{Channel Concatenation}: direct channel-wise concatenation followed by convolutional compression, representing minimal inter-modal interaction; (\textit{ii}) \textit{Adaptive Weighted Fusion}: learnable spatial and global attention weights for modality-specific importance estimation; (\textit{iii}) \textit{Cross-Modal Attention}: unidirectional token-level attention enabling explicit semantic correspondence modeling. All fusion variants are trained under identical conditions (pretrained initialization, 30 epochs) to isolate the impact of fusion architecture.
+
+\textbf{Initialization Strategy Ablation.} To further distinguish the contribution of cross-spectral fusion from hierarchical transfer learning, we compare dual-modality models under two initialization regimes: (\textit{i}) \textit{from scratch}: both dual-modality and single-modality models are trained directly from COCO-pretrained YOLO weights for identical 30 epochs, without modality-specific pretraining (Stage I/II omitted for dual-modality models); (\textit{ii}) \textit{pretrained}: dual-modality models leverage transferred weights from Stage I/II single-modality training. If dual-modality models trained from scratch still outperform single-modality counterparts trained for equivalent epochs, this confirms that performance improvements originate from the dual-backbone fusion architecture rather than accumulated training iterations on backbone parameters.
+
+All experiments employ identical training protocols (optimizer, learning rate schedule, augmentation pipelines) and evaluation procedures (DSR@$\tau$=0.25, mAP, IoU) to ensure rigorous controlled comparisons.

@@ -1,0 +1,173 @@
+IV. Results
+D. Comparison With SOTA Methods
+1) Experimental Results on the DDTI Dataset
+
+Thyroid nodule segmentation is particularly challenging due to the lack of standardized imaging protocols and the inherently low contrast of ultrasound images. We evaluate our method on the DDTI dataset, with the results presented in Table I.
+
+We compare MDSA-UNet against nine SOTA methods, all trained under our experimental setup. As shown in Table I, our model consistently outperforms others across multiple evaluation metrics, achieving 69.63% IoU, 94.46% Acc, 82.10% Dice, 81.97% PR, and 82.27% Recall. Compared to UNet, our method improves IoU by 4.52%, Acc by 0.93%, Dice by 3.24%, PR by 2.24%, and Recall by 4.14%. Meanwhile, our lightweight design significantly reduces model complexity, requiring only 6.65 M parameters and 4.54 G FLOPs—a reduction of 0.59 M parameters (8.15%) and 5.19 G FLOPs (53.34%) compared to UNet.
+
+We also compare MDSA-UNet with three pre-trained models: FCN [5], PSPNet [6], and DeepLabv3 [9]. Due to the powerful pre-trained weights, these classic methods continue to deliver excellent results. Surprisingly, our MDSA-UNet slightly outperforms them in some evaluation metrics. For instance, our MDSA-UNet surpasses DeepLabv3 by 2.65% in IoU and 1.89% in Dice, while maintaining significantly lower parameter counts and computational complexity.
+
+Additionally, we compare our model with recent SOTA medical segmentation methods, including MISSFormer [35], DAE-Former [10], MAXFormer [19], and MLMSeg [36]. Transformer-based methods such as MISSFormer and DAE-Former yield suboptimal results, even underperforming UNet. Although MAXFormer and MLMSeg integrate CNNs and Transformers to achieve prior SOTA performance, they suffer from excessive computational overhead.
+
+Our method significantly reduces model complexity while outperforming these models in multiple metrics. For example, compared to MLMSeg, MDSA-UNet improves IoU by 0.77% and Dice by 0.55%, while reducing parameters by 97.86% and FLOPs by 89.25%. This indicates the lightweight and effectiveness of the architecture we designed.
+
+Fig. 4 visualizes segmentation results, demonstrating that our method accurately segments nodules of varying sizes and shapes. Notably, MDSA-UNet excels in precise nodule localization, significantly reducing false positives (e.g., first, second, and fourth rows). Furthermore, for larger thyroid nodules (e.g., third and sixth rows), our dynamic sparse attention mechanism ensures efficient segmentation by preserving both local and global interactions.
+
+2) Experimental Results on the TN3K Dataset
+
+We further evaluate MDSA-UNet on the TN3K dataset, with results presented in Table III. Our model achieves 97.05% Acc, 70.39% IoU, 80.20% Dice, and 13.31 mm HD95 with only 6.65 M parameters and 4.54 G FLOPs.
+
+Our method significantly outperforms the baseline UNet, with an improvement of over 0.53% in Acc, over 5.21% in IoU, over 4.5% in Dice, and over 7.02 mm in HD95. Although there are many specialized methods for segmenting thyroid nodules in Table III, such as BPAT-UNet [43] and MLMSeg [36], our method still has great competitiveness, while our novel architecture greatly reduces the complexity of the model.
+
+Compared to BPAT-UNet, our method sacrifices only 0.12% in IoU and 0.04% in Dice while reducing 64.37 M (90.64%) parameters and 49.75 G Flops (91.64%). Compared to MLMSeg, we achieve a reduction of 304.18 M (97.86%) parameters and 37.68 G Flops (89.25%) with an accuracy loss of only 0.12% in IoU and 0.14% in Dice.
+
+These all indicate that the previous SOTA methods have a lot of redundancy and it is very difficult to continue development. Moreover, this demonstrates that our architectural design significantly reduces redundancy and maintains the model’s ability to capture local and global information efficiently, demonstrating strong development potential.
+
+3) Experimental Results on the ISIC2018 Dataset
+
+We conduct the evaluation on the challenging skin lesion dataset ISIC2018, and the results are shown in Table IV. Our MDSA-UNet still achieves minimal performance loss with lower model complexity (6.65 M parameters). Specifically, our method achieves 90.98%, 91.95%, 96.45%, and 95.04% on Dice, SE, SP, and Acc metrics, respectively.
+
+Our method achieves excellent results in a lightweight manner, without the need for extensive convolution operations for local induction like HiFormer and DMSA-UNet. Meanwhile, the multi-scale dynamic sparse attention (MDSA) module we designed also reduces the computational burden of global interaction.
+
+Compared to the previous SOTA methods, HiFormer and DMSA-UNet, our method reduced parameters by 22.87 M (77.47%) and 14.24 M (68.16%), respectively, while slightly increasing Dice scores by 0.22% and 0.12%, respectively.
+
+4) Experimental Results on the ACDC Dataset
+
+Table V shows the results of our method and seven other methods on the MRI-type ACDC test set. Our MDSA-UNet achieves the highest average Dice score of 91.05%, which is 0.62% higher than the previous best method MT-UNet, while maintaining an extremely low number of parameters.
+
+Our specific Dice scores for the three organs are 89.56% on RV, 88.37% on Myo, and 95.21% on LV, with the best result on RV and the second-best on Myo. Specifically, the Myo organ appears in a circular pattern in the image, which greatly requires long-range interaction. Although our proposed MDSA only interacts with partial regions for each feature, it still achieves high segmentation accuracy through its adaptive selection mechanism.
+
+
+以下是**后半部分，我已帮你恢复所有错误换行、保持每个字句完整无删改，仅对格式与层次进行整理排版，保证逻辑清晰：
+
+---
+
+## V. RESULTS
+
+In this section, we compared the relevant results of the proposed model against a variety of innovative state-of-the-art methods, where ablation experiments also being involved to demonstrate the contribution of each model part. Finally, we illustrated the interpretability of the extracted features visually, which helps in understanding underlying model principles.
+
+In general, for the selected datasets, the classification effect of existing deep learning has made great progress compared to machine learning. To avoid redundancy and ensure the persuasiveness of the comparison, we mainly review the latest methods of the relevant datasets in the past three years, as well as some well-established deep learning techniques (e.g., **ConvNet [12]**, **EEGNet [13]**, **FBCNet [45]**, **EEG Conformer [26]**).
+
+Among used methods, **DRDA [46]** offers a sophisticated end-to-end domain adaptation approach tailored for EEG-based motor imagery classification tasks, and **DAFS [47]** merges small sample learning with domain adaptation, enhancing domain-specific classification efficacy in MI-EEG tasks by leveraging source domain insights. **EEG-ITNet [48]** features an interpretable CNN framework that relies on inception modules and dilated causal convolutions, whereas **IFNet [49]** is a streamlined interactive convolutional network focusing on the interplay among various frequency signals to boost EEG feature depiction.
+
+**MANN [50]** integrates multiple attention mechanisms with transfer learning for EEG classification and incorporates domain adaptation techniques to enhance its efficacy, while a multi-scale hybrid convolutional network **MSHCNN [51]** leverages convolutions across different dimensions to distinctly extract temporal and spatial features from EEG data.
+
+In addition, several other latest models such as **TSFCNet [17]**, **Speech2EEG [37]**, **EISATC-Fusion [18]**, **FSA-TSP [52]**, **FTCN [56]** have also been used for the evaluation.
+
+---
+
+### A. Head-to-Head Comparison Results
+
+**Table II** lists the comparison results of different algorithms applied in Dataset I. Specifically, the proposed **Dual-TSST** outperforms existing SOTA methods in terms of overall average classification accuracy (i.e., **82.79%**), Kappa metrics (i.e., **0.7633**), and the majority of subjects (i.e., **S1, S3, S4, S5, S6, S7, and S8**).
+
+Typically, compared to classical EEG decoding techniques like ConvNet and EEGNet, the average accuracy under the current model has significantly improved by **10.26% (p < 0.01)** and **8.29% (p < 0.01)**, respectively, also with an obviously corresponding increase in Kappa values.
+
+For all test subjects, Dual-TSST achieves superior results over the FBCSP-inspired FBCNet, CNN-based EEG-ITNet, and domain adaptation methods like DRDA and DAFS, so that a significant improvement can be observed in terms of the average accuracy (p < 0.01). These results highlight the obvious effect of Dual-TSST for global feature extraction.
+
+Moreover, compared to the DL models that introduced attention mechanisms, such as Conformer, ADFCNN, and M-FANet, the developed Dual-TSST also shows better performance in most subjects’ accuracy, indicating the enhanced feature extraction capability of the designed structure.
+
+Of all the methods compared, **M-FANet** performs best in subject S2, and the **SHNN** model excels in S9, while being less accurate in S6. These results illustrate that the performance of DL models is still affected by factors such as individual differences and data distribution.
+
+Nevertheless, our proposed **Dual-TSST framework** delivers varied improvements in accuracy among most subjects within Dataset I and leads in terms of the average accuracy and the Kappa metrics.
+
+For the binary classification **Dataset II**, as we see from **Table III**, several additional models have been supplemented for the evaluation. Consequently, near the similar effects have been observed with those in Dataset I, where the Dual-TSST not only surpasses conventional deep learning models such as ConvNet and EEGNet but also significantly outperforms other advanced methods like MANN and SHNN in all individual and mean metrics (p < 0.01).
+
+In comparison with other leading techniques, Dual-TSST consistently achieved superior average accuracy and Kappa values with significant difference on DRDA, TSFCNet, and Speech2EEG (p < 0.01), while being not significant to MSHCNN, ADFCNN, and EISATC-Fusion.
+
+Furthermore, the standard deviation values of the proposed Dual-TSST in Table III is **9.58**, which is relatively lower than most of the compared methods. Such result underscores the model’s robust generalization ability to deliver steady strong results for diverse subjects.
+
+To further evaluate the robustness and generalization ability of the model, we extended our analysis with the challenging emotion Dataset III of **SEED**, which presents a different type of task and requires the model to adapt to new patterns. As listed in **Table IV**, the model continues to outperform traditional SVM and the majority of the compared SOTA methods, indicating a commendable level of adaptability of the designed model to effectively capture and interpret complex patterns associated with widely used EEG paradigms.
+
+---
+
+### B. Parameter Sensitivity
+
+For deep learning models, internal hyperparameters significantly affect performance. The critical hyperparameters of our constructed model mainly include:
+
+* the dimensionality used for channel fusion and upscaling through pointwise convolution,
+* the number of Transformer encoder layers, and
+* the number of Transformer Heads.
+
+First, the **pointwise dimension D₂** is used in Dual-TSST for feature fusion and dimensionality increase. To study its effects, a range of **[40, 160]** with an interval of 10 was designated, and **Fig. 4** gives the resultant average accuracy.
+
+As shown in Fig. 4, with an increase in D₂, the accuracy in Dataset I shows a trend of decreasing first, then rising, and finally maintaining mild fluctuation. Dataset II and III initially increase with D₂ and then oscillate. The optimal dimensional parameter for both Dataset I and Dataset II is **D₂ = 120**. The peak accuracy for Dataset III is at **D₂ = 140**, with sub-optimal performance at D₂ = 120 and only marginal improvement.
+
+Since higher dimensionality not only increases computational cost and complexity but also poses overfitting risk, we select **D₂ = 120** as a balanced trade-off, ensuring consistent strong performance while avoiding excessive complexity.
+
+The **number of Transformer layers** defines the depth and hierarchical capacity of the model. Generally, deeper models enhance representational ability but may cause overfitting or gradient explosion.
+
+Accuracy trends with varying layers are illustrated in **Fig. 5**. The introduction of Transformer (from 0 to 1 layer) markedly improves performance across all datasets. Specifically, increases from 0 to 4 layers enhance performance gradually for Dataset I and II, while Dataset III exhibits greater variation between 0 and 1 layer. After four layers, accuracy declines—indicating learning saturation or overfitting.
+
+Peak improvements achieved by Dual-TSST exceeded the lowest by **3.63% (Dataset I, p < 0.01)**, **4.99% (Dataset II, p < 0.05)**, and **4.20% (Dataset III, p < 0.01)**. Thus, while adding layers boosts performance up to a point, too many hinder training and increase overfitting risk.
+
+The **number of Transformer heads** was also analyzed. Each head represents an independent self-attention mechanism; multiple heads capture diverse relationships. However, too many increase complexity and may overfit.
+
+As shown in **Fig. 6**, the average accuracy on Dataset I varies significantly with head count, while fluctuations are smaller on Datasets II and III. The highest accuracy occurs at **10 heads** for Dataset I and II, and **8 heads** for Dataset III. The improvements (over lowest accuracy) are **2.97%**, **0.61%**, and **0.73%**, respectively (all p > 0.05). Hence, head number changes have limited overall impact.
+
+---
+
+### C. Ablation Experiments
+
+The Dual-TSST model comprises multiple modules, including data augmentation. To determine each module’s contribution, ablation experiments were conducted across all three datasets.
+
+**1. Transformer and Data Augmentation Modules:**
+As shown in **Fig. 7**, removing the Transformer leads to an obvious decrease in accuracy across most subjects and datasets. Some exceptions (e.g., S6 in Dataset II, S9 and S15 in Dataset III) suggest occasional overfitting with Transformer. This indicates that CNNs alone may yield high accuracy on specific cases but reduce overall generalization. Reintegration of the Transformer improved average accuracy by **5.33% (p < 0.01)**, **4.13% (p < 0.05)**, and **4.67% (p < 0.01)** across the three datasets, underscoring its critical role.
+
+Data augmentation expands data diversity and mitigates overfitting. It improved average accuracy by **7.33% (p < 0.05)** and **3.14% (p < 0.01)** on Datasets I and II, respectively, proving its strong contribution.
+
+**2. Branch Removal Analysis:**
+We further tested removal of **Branch I** or **Branch II** (with Input 1 or Input 2). Results in **Fig. 8** show that removing Branch I causes a significant drop (p < 0.05), as it provides major temporal features. Removing Branch II input had smaller but noticeable impact. Overall, two branches outperform one, and within Branch II, two inputs perform better than one. Smaller error bars indicate greater robustness.
+
+---
+
+### D. Visualization
+
+To intuitively demonstrate the effectiveness of designed branches and self-attention, a comparative **t-SNE [57]** visualization was performed for **Subject 7 of Dataset I**. **Fig. 9** reports the relevant results with and without prominent components.
+
+---
+
+## V. RESULTS AND DISCUSSION
+
+### A. Comparison With Other Methods
+
+**Tables I and II** present segmentation performance metrics and mNOC values for various segmentation algorithms across three datasets. The metrics reflect either best results after sampling 20 points (for point-based methods) or a single round for bounding-box methods. **mNOC@x** denotes the clicks required to achieve x% DSC.
+
+**Summary:**
+
+* **CAISeg** achieved strong performance across multiple key metrics, especially in Dice coefficient and mNOC. For instance, Dice scores reached **93.4% (Brain Tumor)** and **81.1% (Colon Cancer)**, showing high precision in complex medical segmentation tasks.
+* In **mNOC**, CAISeg excelled—only **2.9 clicks** were needed on Pancreas Cancer dataset for high accuracy.
+* Superior **Precision** and **Recall** on some datasets indicate effective reduction of false positives/negatives.
+
+However, in some cases (e.g., HD95 and ASD on Lung Cancer dataset), CAISeg performed comparably or slightly lower than other advanced methods.
+
+**T-test analysis** confirms statistically significant (p < 0.05) improvements in Dice and mNOC for Brain Tumor and Colon Cancer datasets, though not all datasets show significance (e.g., Lung and Pancreas Cancer).
+
+CAISeg also exhibited low standard deviation in mNOC and Dice on Brain Tumor dataset, implying consistency, but higher variability in Precision/Recall on Lung dataset.
+
+**Fig. 2** presents segmentation results from eight interactive neural networks on the same tissue slice. MIDeepSeg, VMN, SAM-Med3D, MedLSAM, and MedSAM show limitations in interaction flexibility, while CAISeg, DINs, and 3D RITM are more unrestricted.
+
+CAISeg leverages clustering analysis to capture deep semantic similarity in user interactions, allowing more accurate response to user intent. **Fig. 3** further demonstrates this ability through multi-slice segmentation examples.
+
+---
+
+### B. Ablation Studies
+
+To better understand CAISeg, we investigate key modules’ influence.
+
+**1) Quantitative Analysis of Feature Clustering Block:**
+Instead of absolute position embeddings, CAISeg computes distances between voxels and interaction points, using **Euclidean distance + Gaussian RBF** for similarity, rather than cosine similarity.
+
+**Table III** shows that positional information is crucial for semantic similarity, and that Euclidean + RBF combination significantly (p < 0.05) improves delineation of regions semantically close to user points. **Fig. 4 (left)** compares clustering heatmaps, confirming superior region distinction with Euclidean + RBF.
+
+Moreover, multi-head mechanism decomposition of high-dimensional features into lower-dimensional improves accuracy and consistency, yielding the best **DSC** and lowest **mNOC**.
+
+**2) Effects of Deep Supervision on Interaction-Guided Module:**
+Deep supervision enhances learning of feature queries within attention and clustering modules. **Table IV** shows consistent improvements across datasets, yielding better segmentation and stability. **Fig. 4 (middle)** compares similarity heatmaps, showing that with deep supervision, CAISeg more effectively learns head features and user intent.
+
+**3) Effects of Focus Guided Loss:**
+This weighted loss emphasizes voxels near user interactions. Hyperparameter **λ** controls influence: when λ = 0, it becomes BCE Loss. **Fig. 4 (right)** shows that varying λ affects both segmentation quality and responsiveness. Too small λ weakens intent understanding; too large λ harms visual feature extraction.
+
+We trained models with **Dice Loss**, **Focal Loss**, and **Focus Guided Loss**. As shown in **Fig. 5**, Focus Guided Loss yielded consistently higher DSC over 200 epochs, demonstrating better stability and convergence. Dice Loss plateaued near 125th epoch, while Focal Loss fluctuated and converged slower.
+
+Thus, **Focus Guided Loss** enables more stable learning, superior segmentation, and better alignment with user-guided intent—particularly crucial for interactive segmentation tasks.
