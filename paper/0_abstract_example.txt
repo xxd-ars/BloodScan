@@ -1,0 +1,77 @@
+\begin{abstract}
+These instructions give you guidelines for preparing papers for 
+IEEE Transactions and Journals. Use this document as a template if you are 
+using \LaTeX. Otherwise, use this document as an 
+instruction set. The electronic file of your paper will be formatted further 
+at IEEE. Paper titles should be written in uppercase and lowercase letters, 
+not all uppercase. Avoid writing long formulas with subscripts in the title; 
+short formulas that identify the elements are fine (e.g., "Nd--Fe--B"). Do 
+not write ``(Invited)'' in the title. Full names of authors are preferred in 
+the author field, but are not required. Put a space between authors' 
+initials. The abstract must be a concise yet comprehensive reflection of 
+what is in your article. In particular, the abstract must be self-contained, 
+without abbreviations, footnotes, or references. It should be a microcosm of 
+the full article. The abstract must be between 150--250 words. Be sure that 
+you adhere to these limits; otherwise, you will need to edit your abstract 
+accordingly. The abstract must be written as one paragraph, and should not 
+contain displayed mathematical equations or tabular material. The abstract 
+should include three or four different keywords or phrases, as this will 
+help readers to find it. It is important to avoid over-repetition of such 
+phrases as this can result in a page being rejected by search engines. 
+Ensure that your abstract reads well and is grammatically correct.
+\end{abstract}
+
+\begin{IEEEkeywords}
+Enter key words or phrases in alphabetical order, separated by commas. Using the IEEE Thesaurus can help you find the best standardized keywords to fit your article. Use the thesaurus access request form for free access to the IEEE Thesaurus: \underline{https://www.ieee.org/publications/services/thesaurus-acce}\\
+\underline{ss-page.com.}
+\end{IEEEkeywords}
+
+Abstract—The decoding of electroencephalography
+(EEG) signals allows access to user intentions conveniently, which plays an important role in the fields of
+human-machine interaction. To effectively extract sufficient
+characteristics of the multichannel EEG, a novel decoding
+architecture network with a dual-branch temporal-spectralspatial transformer (Dual-TSST) is proposed in this study.
+Specifically, by utilizing convolutional neural networks
+(CNNs) on different branches, the proposed processing
+network first extracts the temporal-spatial features of the
+original EEG and the temporal-spectral-spatial features
+of time-frequency domain data converted by wavelet
+transformation, respectively. These perceived features
+are then integrated by a feature fusion block, serving
+as the input of the transformer to capture the global
+long-range dependencies entailed in the non-stationary
+EEG, and being classified via the global average pooling
+and multi-layer perceptron blocks. To evaluate the efficacy
+of the proposed approach, the competitive experiments are
+conducted on three publicly available datasets of BCI IV 2a,
+BCI IV 2b, and SEED, with the head-to-head comparison of
+more than ten other state-of-the-art methods. As a result,
+our proposed Dual-TSST performs superiorly in various
+tasks, which achieves the promising EEG classification
+performance of average accuracy of 82.79% in BCI IV 2a,
+89.38% in BCI IV 2b, and 96.65% in SEED, respectively.
+Extensive ablation experiments conducted between the
+Dual-TSST and comparative baseline model also reveal the
+enhanced decoding performance with each module of our
+proposed method. This study provides a new approach to
+high-performance EEG decoding and has great potential
+for future CNN-Transformer based applications.
+
+Index Terms—EEG decoding, feature fusion, transformer,
+convolutional neural network, signal processing.
+
+Abstract—Knee osteoarthritis (KOA) as a prevalent
+chronic disease, detrimentally impacts the quality of life
+among affected individuals. The knee adduction moment
+(KAM) during the stance phase has been identified as a
+potential biomechanical measure for assessing the severity of KOA. Traditional KAM assessment relies on expensive equipment, which limits its popularization. In contrast, current KAM estimation methods based on wearables and deep-learning technology offer the advantage of
+lower costs. However, it still suffers challenges in achieving accurate estimation. To address this challenge, a novel
+deep-learning framework is proposed in this work, which
+estimates the KAM from Inertial Measurement Units (IMU)
+and Electromyography (EMG) data by a well-designed selfaware fusion model. Walking data from 18 effective subjects
+were recorded with 4 IMUs and 6 EMGs. Results show
+that the model significantly improves KAM estimation accuracy. The relative root-mean-square error of the proposed
+model is 9.15% BW · BH lower than counterpart estimation
+methods.
+Index Terms—Deep-learning, gait analysis, knee
+adduction moment (KAM), wearable sensing.

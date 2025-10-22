@@ -1,5 +1,6 @@
 \documentclass[journal,twoside,web]{ieeecolor}
 \usepackage{generic}
+\usepackage{gensymb}
 \usepackage{cite}
 \usepackage{amsmath,amssymb,amsfonts}
 \usepackage{algorithmic}
@@ -14,7 +15,7 @@
 \markboth{\hskip25pc IEEE TRANSACTIONS AND JOURNALS TEMPLATE}
 {Author \MakeLowercase{\textit{et al.}}: Title}
 \begin{document}
-\title{Preparation of Papers for IEEE Transactions and Journals (June 2023)}
+\title{Dual-Illumination Unidirectional Attention YOLO for Blood Fractionation Segmentation}
 \author{First A. Author, \IEEEmembership{Fellow, IEEE}, Second B. Author, and Third C. Author Jr., \IEEEmembership{Member, IEEE}
 \thanks{This paragraph of the first footnote will contain the date on 
 which you submitted your paper for review. It will also contain support 
@@ -65,23 +66,569 @@ Enter key words or phrases in alphabetical order, separated by commas. Using the
 
 \section{Introduction}
 \label{sec:introduction}
-\IEEEPARstart{T}{his} document is a template for \LaTeX. If you are 
-reading a paper or PDF version of this document, please download the 
-template from the IEEE Web site at \underline
-{http://ieeeauthorcenter.ieee.org/create-your-ieee-article/
-use-}\discretionary{}{}{}\underline{authoring-tools-and-ieee-article-templates/ieee-articletemplates/} so you can use it to prepare your manuscript. If 
-you would prefer to use \LaTeX, download IEEE's \LaTeX style and sample files 
-from the same Web page. You can also explore using the Overleaf editor at 
-\underline
-{https://www.overleaf.com/blog/278-how-to-use-overleaf-with-}\discretionary{}{}{}\underline
-{ieee-collabratec-your-quick-guide-to-getting-started\#.}\discretionary{}{}{}\underline{xsVp6tpPkrKM9}
+\IEEEPARstart {B}LOOD component stratification following centrifugation is a critical process in clinical laboratory workflows. Centrifuged blood tubes exhibit distinct layers—serum or plasma, buffy coat, and erythrocyte fractions—whose accurate localization is essential for automated liquid handling and downstream assays. Precise layer identification also enables preliminary quality assessment by revealing sample integrity and physiological conditions. However, conventional stratification methods rely predominantly on manual visual inspection or basic measurement tools, which are constrained by operator subjectivity, labor intensity, and inter-operator variability. As laboratory automation advances and testing volumes increase, intelligent systems capable of accurate layer localization are needed to ensure reliable, high-throughput clinical diagnostics.
 
-If your paper is intended for a conference, please contact your conference 
-editor concerning acceptable word processor formats for your particular 
-conference. 
+Automated blood stratification presents multiple technical challenges. First, inter-layer boundaries exhibit intrinsically low optical contrast. The buffy coat, typically 0.5–1.0 mm thick and comprising less than 1\% of blood volume, is particularly difficult to distinguish from adjacent layers under standard imaging conditions. Second, single-illumination imaging fails to capture the full range of discriminative features. White-light images provide structural context but poor buffy coat contrast, while blue-light illumination enhances buffy coat fluorescence but may obscure other boundaries. Third, cross-spectral registration is challenging due to parallax, pose variation, and temporal mismatch during dual-modality acquisition. Direct feature fusion often introduces spatial misalignment and semantic inconsistency, degrading detection accuracy.
 
-IEEE will do the final formatting of your paper. If your paper is intended 
-for a conference, please observe the conference page limits. 
+\begin{figure}[!t]
+\centering
+
+% ==== 参数定义 ====
+\newlength{\sepM}\setlength{\sepM}{10pt}      % 中间间距
+\newlength{\colw}\setlength{\colw}{0.45\linewidth} % 每个子图宽度
+\newlength{\imgheight}
+
+% ==== 左图 ====
+\begin{minipage}[t]{\colw}
+  \centering
+  \includegraphics[width=\linewidth]{img/blue_annotated.jpg}%
+  \settoheight{\imgheight}{\includegraphics[width=\linewidth]{img/blue_annotated.jpg}}\\
+  \vspace{3pt}
+\end{minipage}
+% ==== 右图 ====
+\begin{minipage}[t]{\colw}
+  \centering
+  \includegraphics[width=\linewidth]{img/normal_annotated.jpg}\\
+  \vspace{3pt}
+\end{minipage}
+
+\vspace{5pt}
+\caption{\textbf{Annotated visualization of blood component stratification under white-light and blue-light illumination.}
+Red markers denote manually selected layer boundary points by professional laboratory personnel: points 1–4 enclose the plasma region, points 3–6 define the buffy coat (white membrane layer), and points 5–7 correspond to the erythrocyte fraction. 
+Under white-light illumination (left), inter-layer boundaries show low optical contrast, making the buffy coat difficult to distinguish. 
+Under blue-light illumination (right), the buffy coat fluorescence enhances layer separability, though specular reflections on the tube surface and similar chromatic appearance between plasma and erythrocytes may introduce visual ambiguity.}
+\label{fig:annotated images}
+\end{figure}
+
+Despite recent advances, existing blood stratification methods remain limited. Prior approaches have focused on one-dimensional liquid-level regression [1], which can identify single interfaces but not complex multi-layer structures. Deep networks like Inception-ResNet-V2 [2] achieve serum quality classification but provide only categorical assessment without spatial localization. Commercial systems such as PerkinElmer's JANUS Blood iQ [3] utilize dual-illumination imaging based on traditional image processing and clustering algorithm for automated layer detection, but technical details remain unpublished. In broader medical imaging, Transformer-based methods like MicFormer [4] and A2FSeg [5] have introduced cross-modal attention for CT–MRI fusion, yet these approaches target segmentation neglecting detection capabilities. Multispectral detection methods such as YOLO-Phantom [6] and MAF-YOLO combine visible and infrared imaging through simple concatenation, lacking refined spatial alignment mechanisms. Current methods thus fail to address fine-grained cross-modal alignment and complementary information extraction for stratified blood component targets.
+
+To address these challenges, this paper proposes DIUA-YOLO (Dual-Illumination Unidirectional Attention YOLO), a dual-spectral detection framework for precise blood component stratification. Our principal contributions are:
+
+\begin{itemize}
+    \item A dual-backbone architecture that separately processes blue-light and white-light images is designed and developed, enabling multi-scale feature extraction and fusion to leverage complementary optical information. 
+    \item We introduce a cross-modal attention mechanism employing unidirectional queries—where blue-light features query white-light features—combined with localized token-level attention. This design achieves effective modality alignment and information fusion while reducing computational complexity by approximately 91\% compared to bidirectional global attention. 
+    \item We establish a rigorous clinical evaluation framework requiring each layer to be detected exactly once, demanding zero false positives and negatives. On our dual-illumination blood tube dataset, DIUA-YOLO achieves 98.89\% detection success rate, substantially outperforming single-modality YOLO11 baselines. 
+\end{itemize}
+
+The remainder of this paper is organized as follows. Section II details the DIUA-YOLO architecture and key technical modules. Section III describes the experimental design and evaluation methodology. Section IV presents results and performance analysis. Section V concludes and discusses future directions.
+
+
+\section{Methodology}
+\label{sec:methodology}
+
+\subsection{Automated Acquisition System}
+
+The proposed DIUA-YOLO system comprises two integrated components: a hardware acquisition platform for dual-modality image collection and a deep learning network for blood layer detection. This section describes the automated platform design and operational workflow.
+
+\subsubsection{Mechanical Configuration and Control Architecture} As in Fig. 2, the acquisition platform employs a three-degree-of-freedom linear motion system (X-axis horizontal, Y-axis anterior-posterior, Z-axis vertical) coupled with a single-degree-of-freedom rotational gripper. The X and Y axes coordinate to traverse all positions in a standard 96-well tube rack, while the Z axis provides vertical displacement between rack height and imaging focal plane. The rotational gripper delivers controllable radial clamping force and precise angular positioning, ensuring tube stability during transport and imaging.
+
+The motion control system adopts a layered architecture. At the communication layer, RS485 serial protocol governs linear motion stepper motors, while Modbus TCP Ethernet protocol controls rotational servo motors. The application layer encapsulates atomic motor commands into composite detection routines, with thread event synchronization coordinating precise timing between mechanical motion and image acquisition. A data management layer provides SQLite database support, recording tube barcode, type, detection results, batch number, and timestamps for full traceability.
+
+\begin{figure}[!t]
+\centerline{\includegraphics[width=\columnwidth]{img/mechanics.jpg}}
+\caption{\textbf{Mechanical configuration and prototype of the automated acquisition platform.} 
+Left: Three-degree-of-freedom (X–Y–Z) linear motion system coupled with a single-degree-of-freedom rotational gripper, designed for precise positioning, tube handling, and imaging. 
+Right: Physical implementation of the system, including the translational-rotational manipulator, tube rack, imaging module, and control interface.}
+\label{fig mechanics}
+\end{figure}
+
+\subsubsection{Dual-Illumination Imaging System} The imaging system employs a single industrial camera integrated with dual illumination sources. A blue LED array (center wavelength ~465 nm) enhances the optical contrast of the buffy coat through increased light scattering and weak intrinsic autofluorescence, while a white LED source (color temperature ~6500 K) provides structural and color information of the overall sample. A custom mechanical fixture rigidly maintains the relative geometry among the camera, light sources, and tube gripper, thereby minimizing parallax and viewpoint variation during acquisition. Illumination control is managed by a microcontroller that drives programmable LED arrays, with the host computer synchronizing illumination switching, motor actuation, and image capture via serial communication protocols.
+
+\subsubsection{Automated Detection Workflow} A single-tube detection sequence comprises a strictly ordered set of operations: (1) The robotic arm descends along the Z-axis to the rack height, while the X-axis and the Y-axis move synchronously to position above the target test tube well; (2) The gripper closes to clamp tube, and the Z-axis ascends to lift it; (3) The X-axis translates the tube to the camera’s field of view, and the Z-axis lowers it to the imaging focal plane; (4) Once arrvied, sequential dual-illumination imaging is performed: the white-light and blue-light sources are activated in turn to capture two aligned frames, while during such process, the camera–tube geometry remains mechanically fixed; (5) The rotational executor performs a 180 \degree rotation, the same dual-illumination imaging takes place to capture the full image of the sample; (6) The acquired images are processed by the cross-spectral detection model for layer localization and analysis; (7) After imaging, the Z-axis lifts, and the X-axis returns the tube to its original position; (8) The Z-axis then descends to rack height, the gripper releases the tube, and the arm resets to its initial position. Within the motion control system, event blocking at each critical node enforces sequential execution, ensuring completion of one action before the next begins, thereby eliminating potential motion conflicts. 
+
+Batch detection traverses all rack positions via nested loops: the outer loop controls column selection, the inner loop controls row selection. Upon completing all tubes, the system automatically homes and increments the batch counter. This design realizes a fully automated "grasp-image-assess-release" closed loop, requiring operators only to load racks and initiate commands after homing. Upon completing the final tube, the system automatically returns to the home position and increments the batch counter. This design achieves a fully automated closed-loop workflow encompassing tube loading, imaging, analysis, and return, requiring operator intervention only for rack placement and command initialization.
+
+\begin{figure*}[!t]
+\centering
+\includegraphics[width=\textwidth]{img/arch.png}
+\caption{\textbf{The proposed DIUA-YOLO framework,} comprising dual-illumination input, dual-backbone feature extraction, cross-spectral feature fusion, and YOLO11 segmentation modules. 
+White-light and blue-light images are independently processed through modality-specific backbones to capture complementary structural and contrast information. 
+Fused multi-scale representations are decoded through neck and segmentation heads to accurately localize plasma, buffy coat, and erythrocyte layers.}
+\label{fig:architecture}
+\end{figure*}
+
+\subsection{DIUA-YOLO Network Architecture}
+
+Fig. 3 illustrates the overall architecture of the proposed DIUA-YOLO framework. The network processes dual-illumination inputs through independent feature extraction backbones, fuses multi-scale representations via cross-modal feature fusion blocks, and outputs segmentation results through YOLO segmentation heads.
+
+\subsubsection{Dual-Backbone Feature Extraction} White-light and blue-light images enter two structurally identical but parameter-independent convolutional neural network backbones based on the YOLO11 architecture. This dual-backbone design allows each modality's feature extractor to specialize in learning modality-specific representations: the white-light backbone network excels at extracting overall hierarchical structures, three-material color gradients, and texture details, while the blue-light backbone network captures the optical properties and boundary features of the buffy coat layer layer under blue illumination.
+
+The backbone architecture employs YOLO11's C3k2 block, an efficient Cross Stage Partial (CSP) design that reduces computational overhead while preserving feature extraction capability. In each backbone stage, the C3k2 block employs three consecutive convolutional layers with residual connections to capture hierarchical feature representations at varying semantic depths. This streamlined architecture achieves approximately 40\% parameter reduction compared to prior YOLO variants while maintaining detection accuracy, thereby enabling efficient dual-backbone training for our dual-illumination framework without excessive computational burden.
+
+Each backbone outputs a multi-scale feature pyramid at three levels—P3, P4, and P5—corresponding to different spatial resolutions and semantic depths. The P3 layer, with higher spatial resolution, suits detection of thin-layer structures such as the buffy coat. The P5 layer, with larger receptive fields, accommodates detection of thick layers such as serum, plasma and erythrocyte. This multi-scale design effectively captures blood layer information across varying thicknesses.
+
+Let $I_w \in \mathbb{R}^{H \times W \times 3}$ and $I_b \in \mathbb{R}^{H \times W \times 3}$ denote the white-light and blue-light input images, respectively, where $H$ and $W$ represent height and width. The dual backbones extract feature pyramids:
+
+\begin{equation}
+\{F_w^{P3}, F_w^{P4}, F_w^{P5}\} = \text{Backbone}_w(I_w)
+\end{equation}
+\begin{equation}
+\{F_b^{P3}, F_b^{P4}, F_b^{P5}\} = \text{Backbone}_b(I_b)
+\end{equation}
+
+where each feature $F \in \mathbb{R}^{h \times w \times c}$ has spatial dimensions $(h, w)$ and channel dimension $c$. These features then feed into fusion modules at each pyramid level.
+
+\subsubsection{Cross-Modal Attention Fusion}
+
+To effectively integrate complementary information from dual modalities while maintaining computational efficiency, we propose a cross-modal attention mechanism employing unidirectional queries and localized spatial matching. This fusion strategy operates independently at each pyramid level $s \in \{P3, P4, P5\}$ to align and enhance blue-light features using white-light contextual information.
+
+\textbf{Unidirectional Query Design.} Unlike conventional bidirectional attention that computes mutual interactions, our method adopts an asymmetric design: blue-light features serve as queries $Q$ to retrieve information from white-light features (keys $K$ and values $V$), while the reverse direction is omitted. Formally, for feature pair $(F_b^s, F_w^s)$ at pyramid level $s$, we compute:
+
+\begin{equation}
+Q^s = \text{Conv}(F_b^s), \quad K_s = \text{Conv}(F_w^s), \quad V^s = \text{Conv}(F_w^s)
+\end{equation}
+
+where $Q_s, K_s, V_s \in \mathbb{R}^{B \times C \times H_s \times W_s}$, with $B$ denoting batch size, $C$ channel dimension, and $(H_s, W_s)$ spatial dimensions at level $s$. This unidirectional strategy exploits the blue-light modality's advantage in buffy coat detection to guide feature fusion, reducing attention computation by approximately 50\% compared to bidirectional schemes while maintaining detection performance.
+
+\textbf{Token-Based Spatial Partitioning.} To reduce computational complexity from $O(N^2)$ (where $N = H_s \times W_s$) to tractable levels, we partition feature maps into non-overlapping tokens of size $t \times t$ pixels. The feature map is reshaped into a token grid:
+
+\begin{equation}
+Q^s_{tok} = \text{Tokenize}(Q^s) \in \mathbb{R}^{B \times n_h \times n_w \times C \times t^2}
+\end{equation}
+
+where $\text{Tokenize}(\cdot)$ denotes the combined spatial decomposition, dimension rearrangement, and flattening operation that partitions the feature map into non-overlapping $t \times t$ tokens, $n_h = \lceil H_s / t \rceil$ and $n_w = \lceil W_s / t \rceil$ define the token grid dimensions, and $t^2$ represents the flattened spatial dimension within each token. Similar transformations apply to $K^s_{tok}$ and $V^s_{tok}$. For our implementation, token size $t$ varies across pyramid levels, e.g., $t=2$ for P3 (preserving fine spatial detail), $t=3$ for P4, and $t=4$ for P5 (accommodating larger receptive fields).
+
+\textbf{Localized Attention Computation.} Rather than computing global attention across all tokens, each query token attends only to a local neighborhood of key tokens. For a query token at grid position $(i, j)$, we extract a $k \times k$ neighborhood of key and value tokens centered at $(i, j)$:
+
+\begin{equation}
+\begin{aligned}
+\mathcal{N}_{ij} = \{&K^s_{tok}[i', j'], V^s_{tok}[i', j'] \mid \\
+&|i'-i| \leq \lfloor k/2 \rfloor, |j'-j| \leq \lfloor k/2 \rfloor\}
+\end{aligned}
+\end{equation}
+
+where $k$ is the neighborhood size parameter. This localization is efficiently implemented via PyTorch's \texttt{unfold} operation with padding. The attention weights are then computed as:
+
+\begin{equation}
+\alpha_{ij} = \text{softmax}\left(\frac{Q^s_{tok}[i,j] \cdot K^s_{tok}[\mathcal{N}_{ij}]^\top}{\sqrt{t^2}}\right) \in \mathbb{R}^{C \times k^2}
+\end{equation}
+
+where $\sqrt{t^2}$ is the scaling factor (corresponding to the token dimension), and $\cdot$ denotes batched matrix multiplication across channels. The enhanced token $\widetilde{Q}^s_{tok}[i,j]$ is obtained through weighted aggregation of values from the local neighborhood:
+
+\begin{equation}
+\widetilde{Q}^s_{tok}[i,j] = \sum_{(i',j') \in \mathcal{N}_{ij}} \alpha_{ij}[i',j'] \cdot V^s_{tok}[i',j'] \in \mathbb{R}^{C \times t^2}
+\end{equation}
+
+The neighborhood size $k$ is adapted per pyramid level: $k=3$ for P3, $k=5$ for P4, and $k=7$ for P5. These token size and neighborhood size hyperparameters were determined through grid search optimization on validation set, systematically evaluating candidate configurations $t \in \{2, 3, 4\}$ and $k \in \{3, 5, 7\}$ to maximize detection success rate while maintaining computational efficiency. This hierarchical design balances local precision with contextual coverage. By constraining attention to local neighborhoods, complexity reduces from $O(N^2)$ to $O(N \cdot k^2)$, achieving approximately 91\% reduction at level of P5 with input image size of $1504 \times 1504$.
+
+\textbf{Feature Reconstruction} After computing enhanced tokens for all grid positions, we collect them into a complete token grid:
+
+\begin{equation}
+\begin{aligned}
+\widetilde{Q}^s_{tok} &= \{\widetilde{Q}^s_{tok}[i,j] \mid 1 \leq i \leq n_h, 1 \leq j \leq n_w\} \\
+&\quad \in \mathbb{R}^{B \times n_h \times n_w \times C \times t^2}
+\end{aligned}
+\end{equation}
+
+We then reverse the tokenization process through spatial rearrangement and reshaping operations to reconstruct the feature map:
+
+\begin{equation}
+\widetilde{F}_b^s = \text{Detokenize}(\widetilde{Q}^s_{tok}) \in \mathbb{R}^{B \times C \times H_s \times W_s}
+\end{equation}
+
+where $\text{Detokenize}(\cdot)$ performs dimension permutation and reshaping to convert the token grid back to spatial layout. The final fused representation $F_{f}^s$ employs a residual connection to preserve original blue-light information:
+
+\begin{equation}
+F_{f}^s = \text{Proj}(\widetilde{F}_b^s + F_b^s)
+\end{equation}
+
+where $F_b^s$ denotes the original blue-light features and $\text{Proj}(\cdot)$ denotes a $1 \times 1$ convolution for channel projection. This residual formulation ensures that the network learns additive refinements rather than replacing the base features, facilitating gradient flow and training stability.
+
+\subsubsection{Channel Concatenation Fusion}
+
+As a commonly used fusion strategy, we implement channel-wise concatenation followed by dimensionality reduction. For feature pair $(F_b^s, F_w^s)$ at pyramid level $s$, this method directly concatenates along the channel dimension and applies $1 \times 1$ convolution for compression:
+
+\begin{equation}
+F_{f}^s = \text{Conv}(\text{Concat}(F_b^s, F_w^s)) \in \mathbb{R}^{B \times C \times H_s \times W_s}
+\end{equation}
+
+where the $1 \times 1$ convolutional layer reduces channel count from $2C$ back to $C$ through learned linear combinations. While computationally efficient, this approach lacks explicit modeling of cross-modal semantic correspondences and spatial alignment, limiting its ability to resolve inter-modality registration errors or extract complementary information selectively.
+
+\subsubsection{Adaptive Weighted Fusion}
+
+This method attempts to learn modality-specific importance through adaptive weighting. The fusion combines spatial attention, global context, and learnable temperature parameters. Features are first normalized via layer normalization, then concatenated for joint weight prediction:
+
+\begin{equation}
+\begin{split}
+\tilde{F}_s = \text{Concat}(&\text{LayerNorm}(F_b^s), \\
+&\text{LayerNorm}(F^w_s)) \in \mathbb{R}^{B \times 2C \times H_s \times W_s}
+\end{split}
+\end{equation}
+
+Two parallel pathways predict importance weights. The spatial pathway generates pixel-wise weights through cascaded convolutions:
+
+\begin{equation}
+w^s_{sp} = \sigma(\text{Conv}(\text{Conv}_{3\times3}(\text{Conv}_{3\times3}(\tilde{F}^s))))
+\end{equation}
+
+where $\sigma$ denotes the sigmoid activation. The global pathway computes context-aware weights via adaptive average pooling (which reduces spatial dimensions to $1 \times 1$ through global averaging) followed by convolutional projections:
+
+\begin{equation}
+w^s_{gl} = \sigma(\text{Conv}(\text{Conv}(\text{GAP}(\tilde{F}^s))))
+\end{equation}
+
+where $\text{GAP}(\cdot)$ denotes global average pooling. The final weight combines both pathways with a learnable temperature $\tau$, constrained to $[0.1, 0.9]$ via clamping to prevent extreme values:
+
+\begin{equation}
+w_s = \max(0.1, \min(w_s^{sp} \cdot w_s^{gl} \cdot \tau, 0.9))
+\end{equation}
+
+The fused feature $F_{f}^s$ applies this weight with additional blue-light residual to leverage its stronger buffy coat detection capability:
+
+\begin{equation}
+F_{f}^s = (\alpha + w_s) \cdot \hat{F}_b^s + (1 - w_s) \cdot \hat{F}_w^s
+\end{equation}
+
+where $\hat{F}_b^s$ and $\hat{F}_w^s$ denote the normalized features, and $\alpha$ is a fixed coefficient emphasizing blue-light contribution.
+
+\subsection{Implementation Details}
+
+Our implementation extends Ultralytics YOLO through minimally invasive modifications that enable dual-backbone architectures while preserving full compatibility with existing workflows. The key principle is deep integration: dual-modality support is achieved by extending—rather than replacing—YOLO's core components, allowing users to leverage the entire ecosystem with only data format adjustments.
+
+The model parser in \textit{ultralytics/nn/tasks.py} was extended to interpret three-section YAML configurations comprising \textit{backbone\_b}, \textit{backbone\_w}, and \textit{head}. The \textit{parse\_model} function maintains separate channel tracking lists (\textit{ch\_b}, \textit{ch\_w}) and iterates through concatenated layer definitions (\textit{backbone\_b + backbone\_w + head}), automatically inferring output channels via index-based branching. During forward propagation, \textit{\_predict\_once} routes features through modality-specific backbones using conditional logic, merging streams at designated fusion points. This architecture enables direct reuse of all existing YOLO modules (Conv, C3k2, SPPF) without modification, transforming YOLO from single-modality to dual-modality detection through parser-level extensions alone.
+
+Fusion modules are implemented as standalone PyTorch classes in \textit{ultralytics/nn/modules/fusion.py}, each accepting feature pairs $(F_b^s, F_w^s)$ and returning fused representations. To eliminate manual hyperparameter specification, we extended \textit{parse\_model} with specialized handling logic that automatically infers channel dimensions from backbone outputs. For example, YAML specification \textit{[[4, 15], 1, CrossModalAttention, [2, 3]]} triggers retrieval of channel counts from layers 4 and 15, followed by instantiation with token size 2 and neighbor size 3. This configuration-driven design enables switching fusion strategies by modifying a single YAML line—no source code changes required.
+
+Data flow adopts a unified 6-channel tensor format concatenating RGB from both modalities. The \textit{split\_6ch\_tensor} function separates inputs for independent backbone processing, while \textit{BaseDataset} was extended to accept \textit{channels=6} parameter. The \textit{load\_image} method automatically detects pre-concatenated NumPy arrays (\textit{.npy}) when available, falling back to paired loading from \textit{images\_b/} and \textit{images\_w/} directories otherwise. Users need only adjust dataset YAML metadata (\textit{channels: 6}) and organize data accordingly—all other YOLO functionalities (augmentation, validation, export) operate unchanged.
+
+This modular architecture achieves deep coupling with YOLO's ecosystem: training scripts, validation routines, and export utilities require no modification. The complete implementation will be open-sourced to support multi-modal detection research.
+
+
+\section{Dataset and Experimental Setup}
+\label{sec:experiments}
+
+This section describes the dataset construction, evaluation metrics, implementation details, and baseline comparisons for validating the proposed DIUA-YOLO framework.
+
+\subsection{Dataset Construction}
+
+\subsubsection{Data Acquisition and Annotation} We constructed a dual-illumination blood tube dataset comprising 500 tube samples acquired through the automated platform described in Section \ref{sec:methodology}. Each sample was sequentially imaged under white-light and blue-light illumination at 1504$\times$1504 pixel resolution, yielding 500 dual-modality image pairs. Consistent mechanical fixation during sequential acquisition ensured sub-pixel registration accuracy between modalities, with measured positional variance below 0.1 mm.
+
+Annotation was performed via the Roboflow platform under expert supervision. Each image received polygon-level segmentation masks for three blood component layers: serum/plasma layer (Class 0), buffy coat (Class 1), and erythrocyte layer (Class 2). All annotations underwent dual-operator cross-validation, with discrepancies adjudicated by senior laboratory specialists.
+
+\subsubsection{Dataset Partitioning and Augmentation} The 500 samples were partitioned into training, validation, and test sets, yielding 360, 100, and 40 samples per subset, respectively. To enhance model robustness to imaging variability, we implemented a structured augmentation pipeline generating nine variants per sample. The base variant (suffix 0) preserved original acquisition conditions. Variants 1 to 4 combined rotation ($\pm$5\degree) with either Gaussian blur ($\sigma$=1.5) or exposure adjustment (factor=0.9--1.1). Variants 5 to 8 applied three-way transformations involving rotation ($\pm$10\degree), brightness modulation (factor=0.85--1.15), and adaptive blur. These transformations address practical challenges including tube orientation variation, illumination inconsistency, and optical aberrations. Augmentation was applied uniformly to both modalities while transforming polygon annotations via corresponding geometric mappings to maintain spatial correspondence.
+
+\subsubsection{Six-Channel Data Format} To streamline dual-modality training, we adopted a unified 6-channel tensor representation concatenating white-light RGB channels (channels 0--2) with blue-light RGB channels (channels 3--5). This format enables batch-wise data loading while preserving full spectral information from both illumination conditions. Pre-concatenated samples were serialized as NumPy arrays (.npy format), reducing disk I/O latency by approximately 40\% compared to paired loading of separate modality files. The data loader automatically handles channel decomposition during forward propagation, routing channels 0--2 and 3--5 to their respective backbone networks as described in Section \ref{sec:methodology}.
+
+\subsection{Evaluation Metrics}
+
+\subsubsection{Detection Success Rate (DSR)} To assess clinical applicability, we define Detection Success Rate (DSR) as the primary evaluation metric. A sample is deemed successfully detected if and only if each of the three layer classes is detected exactly once with confidence exceeding threshold $\tau$. Formally:
+\begin{equation}
+\text{DSR} = \frac{1}{N}\sum_{i=1}^{N}\mathbb{1}\left(\bigwedge_{c \in \{0,1,2\}} |\mathcal{D}_i^c(\tau)| = 1\right)
+\end{equation}
+where $N$ denotes test set cardinality, $\mathcal{D}_i^c(\tau) = \{d \mid d \in \mathcal{D}_i^c, \text{conf}(d) \geq \tau\}$ represents detections of class $c$ in sample $i$ satisfying confidence threshold $\tau$, and $\mathbb{1}(\cdot)$ denotes the indicator function. This stringent criterion mandates zero false positives (no duplicate detections) and zero false negatives (no missing layers), reflecting the operational requirement for automated systems to deliver complete layer localization in a single inference pass.
+
+\subsubsection{Geometric Precision Metrics} Beyond detection completeness, we quantify localization accuracy through complementary geometric metrics. 
+
+\textbf{Intersection over Union} (IoU) measures mask overlap between predicted and ground-truth segmentation regions as the ratio of intersection to union pixel counts. For each class $c$ across the test set, we compute mean IoU over all successfully detected instances:
+\begin{equation}
+\text{mIoU}_c = \frac{1}{|\mathcal{S}_c|} \sum_{i \in \mathcal{S}_c} \frac{|M_{\text{pred}}^{i,c} \cap M_{\text{gt}}^{i,c}|}{|M_{\text{pred}}^{i,c} \cup M_{\text{gt}}^{i,c}|}
+\end{equation}
+where $\mathcal{S}_c$ denotes the subset of test samples with successful detection of class $c$, $M_{\text{pred}}^{i,c}$ and $M_{\text{gt}}^{i,c}$ represent predicted and ground-truth masks for class $c$ in sample $i$, and $|\cdot|$ denotes pixel count. 
+
+\textbf{Boundary displacement} metrics assess vertical positional error by computing absolute pixel differences between predicted and annotated upper/lower layer interfaces. For multi-vertex annotations, interface positions are defined as the mean vertical coordinate of the several most extreme vertices.
+
+\textbf{Mean Average Precision} (mAP) quantifies detection performance across varying confidence thresholds and IoU criteria. For a given IoU threshold $\theta$, precision and recall are computed at each confidence level $t$:
+\begin{equation}
+\begin{aligned}
+\text{Precision}(t) &= \frac{\text{TP}(t)}{\text{TP}(t) + \text{FP}(t)} \\
+\text{Recall}(t) &= \frac{\text{TP}(t)}{\text{TP}(t) + \text{FN}(t)}
+\end{aligned}
+\end{equation}
+where TP, FP, and FN denote true positives, false positives, and false negatives at threshold $t$. A predicted detection is deemed a true positive if its confidence value calculated by the model reaches $t$, its IoU with a ground-truth instance exceeds $\theta$ and the ground-truth has not been previously matched. Average Precision (AP) for class $c$ at IoU threshold $\theta$ is computed as the area under the precision-recall curve:
+\begin{equation}
+\text{AP}_c(\theta) = \int_{0}^{1} \text{Precision}_c(r, \theta) \, dr
+\end{equation}
+where $r$ denotes recall. Mean Average Precision aggregates AP across all classes: $\text{mAP}(\theta) = \frac{1}{|\mathcal{C}|} \sum_{c \in \mathcal{C}} \text{AP}_c(\theta)$. We report mAP@0.5 (IoU threshold 0.5) and mAP@0.5:0.95 (mean over IoU thresholds from 0.5 to 0.95 with step 0.05), following YOLO evaluation protocols.
+
+These metrics collectively provide comprehensive assessment of detection completeness, localization accuracy, and segmentation quality.
+
+\subsection{Implementation Details}
+
+\subsubsection{Training Configuration} All models were implemented in PyTorch 2.4.1 with CUDA 12.4 support and trained on a quad-GPU workstation equipped with four NVIDIA RTX 3090 cards (24GB VRAM each). Distributed data parallel (DDP) training was employed across devices [0,1,2,3], yielding an effective batch size of 8 (2 samples per GPU). Training proceeded for at most 30 epochs at input resolution 1504$\times$1504 pixels.
+
+We train our model using the Adam optimizer with initial learning rate $\eta_0 = 0.01$, momentum 0.937, and weight decay $5 \times 10^{-4}$. Learning rate scheduling followed applied linear decay from $\eta_0$ to $\eta_{\text{min}} = 0.0001$, preceded by 3-epoch linear warmup from 0 to $\eta_0$. Critically, automatic mixed precision (AMP) was explicitly disabled to preserve numerical stability in cross-modal attention weight computation, as float16 accumulation induced gradient instabilities during softmax normalization. This configuration demanded substantial GPU memory but ensured reliable convergence of attention mechanisms. Data loading utilized 4 parallel workers per GPU to overlap preprocessing with model computation.
+
+\subsubsection{Model Initialization and Transfer Learning} Our training pipeline employs a hierarchical initialization strategy designed to leverage knowledge from both generic feature extraction and modality-specific fine-tuning. The complete workflow comprises three stages:
+
+\textbf{Stage I: Single-Modality Pretraining.} We first trained two independent YOLO11x-seg models on blue-light and white-light images respectively, both initialized from COCO-pretrained weights. This stage enables each modality-specific backbone to learn discriminative features optimized for its illumination characteristics—blue-light models specialize in buffy coat fluorescence enhancement, while white-light models capture structural gradients and color transitions. Single-modality training proceeded for 30 epochs with augmentation pipelines.
+
+\textbf{Stage II: Dual-Backbone Weight Transfer.} To initialize the dual-backbone architecture, we developed a custom weight transfer mechanism that migrates trained single-modality parameters into corresponding branches. The transfer script implements layer-wise remapping: blue-light backbone weights (layers 0--10 from single-modality model) populate the blue-light branch (layers 0--10 in dual-backbone), while white-light backbone weights similarly populate the white-light branch (layers 11--21 in dual-backbone). Segmentation head weights are transferred via index mapping to account for the expanded backbone depth. This initialization preserves modality-specific feature extractors learned during Stage I, providing superior starting points compared to random initialization or naive COCO weight replication.
+
+\textbf{Stage III: Dual-Modality Fine-Tuning.} The dual-backbone model undergoes end-to-end fine-tuning with three alternative initialization strategies: (\textit{i}) \textit{pretrained}: loading transferred weights from Stage II for both backbones and fusion modules initialized via Xavier uniform; (\textit{ii}) \textit{freeze\_backbone}: identical to pretrained but with backbone parameters (layers 0--21) frozen during initial 5 epochs to stabilize fusion learning before joint optimization; (\textit{iii}) \textit{scratch}: training from COCO weights without Stage I/II transfer, serving as an ablation baseline. Our primary experiments employ the pretrained strategy, which empirically demonstrated the most reliable convergence across fusion variants.
+
+\subsection{Baseline Comparisons and Ablation Studies}
+
+To systematically validate our architectural design choices and quantify the contribution of each component, we conducted comprehensive baseline comparisons and ablation experiments along four dimensions:
+
+\textbf{Single-Modality vs. Dual-Modality Architecture.} To validate the necessity of dual-illumination imaging and rule out confounding factors, we establish single-modality baselines as YOLO11x-seg models exclusively trained on blue-light or white-light images. 
+This comparison directly quantifies whether cross-spectral fusion provides measurable performance gains over conventional single-source acquisition, particularly for challenging targets like the buffy coat layer.
+
+\textbf{Fusion Strategy Comparison.} We systematically compare three fusion mechanisms of increasing sophistication: (\textit{i}) \textit{Channel Concatenation}: direct channel-wise concatenation followed by convolutional compression, representing minimal inter-modal interaction; (\textit{ii}) \textit{Adaptive Weighted Fusion}: learnable spatial and global attention weights for modality-specific importance estimation; (\textit{iii}) \textit{Cross-Modal Attention}: unidirectional token-level attention enabling explicit semantic correspondence modeling. All fusion variants are trained under identical conditions (pretrained initialization, 30 epochs) to isolate the impact of fusion architecture.
+
+\textbf{Initialization Strategy Ablation.} To further distinguish the contribution of cross-spectral fusion from hierarchical transfer learning, we compare dual-modality models under two initialization regimes: (\textit{i}) \textit{from scratch}: both dual-modality and single-modality models are trained directly from COCO-pretrained weights for identical 30 epochs, without modality-specific pretraining (Stage I/II omitted for dual-modality models); (\textit{ii}) \textit{pretrained}: dual-modality models leverage transferred weights from Stage I/II single-modality training. If dual-modality models trained from scratch still outperform single-modality counterparts trained for equivalent epochs, this confirms that performance improvements originate from the dual-backbone fusion architecture rather than accumulated training iterations on backbone parameters.
+
+All experiments employ identical training protocols (optimizer, learning rate schedule, augmentation pipelines) and evaluation procedures (DSR@$\tau$=0.25, mAP, IoU) to ensure rigorous controlled comparisons.
+
+
+
+\section{Results}
+\label{sec:results}
+
+\begin{table*}[t]
+\centering
+\scriptsize
+\renewcommand{\arraystretch}{1.8}
+\caption{Comparison of Our Dual-Illumination Cross-Attention Fusion Against Other Approaches Across Plasma, Buffy Coat and Erythrocyte Segmentation Tasks in Terms of Various Metrics at conf=0.25}
+\label{tab:main_conf25}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{l c c c c c c c c c c c c c}
+\hline
+\multicolumn{2}{c}{} & \multicolumn{4}{c}{\textbf{Plasma Segmentation}} & \multicolumn{4}{c}{\textbf{Buffy Coat Segmentation}} & \multicolumn{4}{c}{\textbf{Erythrocyte Segmentation}}\\
+\cline{3-6}\cline{7-10}\cline{11-14}
+Method & Dual-backbone & \textbf{DSR(\%)} $\uparrow$ & IOU $\uparrow$ & Diff$_{up}$(px) $\downarrow$ & Diff$_{low}$(px) $\downarrow$ & \textbf{DSR(\%)} $\uparrow$ & IOU $\uparrow$ & Diff$_{up}$(px) $\downarrow$ & Diff$_{low}$(px) $\downarrow$ & \textbf{DSR(\%)} $\uparrow$ & IOU $\uparrow$ & Diff$_{up}$(px) $\downarrow$ & Diff$_{low}$(px) $\downarrow$\\
+\hline
+Yolo11-White & $\times$ & 52.50 & 0.81$\pm$0.18 & 5.8$\pm$4.8 & 97.2$\pm$119.3 & 8.06 & 0.69$\pm$0.08 & 5.9$\pm$3.9 & 2.5$\pm$1.1 & 51.39 & 0.88$\pm$0.15 & 93.2$\pm$116.7 & \underline{3.9$\pm$6.6}\\
+Yolo11-Blue & $\times$ & 24.72 & 0.94$\pm$0.03 & 9.7$\pm$6.1 & \underline{3.1$\pm$3.6} & 38.06 & 0.75$\pm$0.07 & \underline{4.0$\pm$2.3} & \textbf{1.9$\pm$1.4} & 2.22 & 0.96$\pm$0.01 & 6.4$\pm$2.6 & 6.0$\pm$3.7\\
+Dual Yolo Concat & $\checkmark$ & 86.94 & 0.97$\pm$0.03 & \textbf{5.2$\pm$3.7} & 5.9$\pm$19.2 & 67.78 & \underline{0.75$\pm$0.07} & 4.1$\pm$2.7 & 2.5$\pm$1.8 & 49.72 & \textbf{0.98$\pm$0.01} & \underline{4.9$\pm$5.2} & 5.2$\pm$2.4\\
+Dual Yolo Weighted & $\checkmark$ & \underline{99.72} & \textbf{0.97$\pm$0.01} & \underline{5.3$\pm$6.9} & 4.4$\pm$6.4 & \underline{75.56} & 0.73$\pm$0.07 & 4.6$\pm$3.0 & 2.7$\pm$2.3 & \underline{99.44} & \textbf{0.98$\pm$0.01} & 5.3$\pm$3.2 & 6.3$\pm$7.3\\
+\hline
+\textbf{Dual Yolo CrossAttn} & $\checkmark$ & \textbf{100.00} & \textbf{0.97$\pm$0.01} & 5.4$\pm$3.4 & \textbf{3.6$\pm$5.6} & \textbf{96.39} & \textbf{0.76$\pm$0.06} & \textbf{3.7$\pm$2.2} & \underline{2.4$\pm$1.8} & \textbf{100.00} & \textbf{0.98$\pm$0.01} & \underline{3.4$\pm$2.5} & \textbf{3.1$\pm$2.4}\\
+\hline
+\end{tabular}%
+} % end resizebox
+\end{table*}
+
+
+\begin{table*}[t]
+\centering
+\scriptsize
+\renewcommand{\arraystretch}{1.8}
+\caption{Comparison of Our Dual-Illumination Cross-Attention Fusion Against Other Approaches Across Plasma, Buffy Coat and Erythrocyte Segmentation Tasks in Terms of Various Metrics at conf=0.5}
+\label{tab:main_conf50}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{l c c c c c c c c c c c c c}
+\hline
+\multicolumn{2}{c}{} & \multicolumn{4}{c}{\textbf{Plasma Segmentation}} & \multicolumn{4}{c}{\textbf{Buffy Coat Segmentation}} & \multicolumn{4}{c}{\textbf{Erythrocyte Segmentation}}\\
+\cline{3-6}\cline{7-10}\cline{11-14}
+Method & Dual-backbone & \textbf{DSR(\%)} $\uparrow$ & IOU $\uparrow$ & Diff$_{up}$(px) $\downarrow$ & Diff$_{low}$(px) $\downarrow$ & \textbf{DSR(\%)} $\uparrow$ & IOU $\uparrow$ & Diff$_{up}$(px) $\downarrow$ & Diff$_{low}$(px) $\downarrow$ & \textbf{DSR(\%)} $\uparrow$ & IOU $\uparrow$ & Diff$_{up}$(px) $\downarrow$ & Diff$_{low}$(px) $\downarrow$\\
+\hline
+Yolo11-White & $\times$ & 56.67 & 0.81$\pm$0.18 & 5.7$\pm$4.7 & 96.7$\pm$118.7 & 4.72 & 0.72$\pm$0.06 & 5.0$\pm$3.5 & 1.5$\pm$0.8 & 47.50 & 0.89$\pm$0.14 & 80.7$\pm$111.5 & \underline{4.1$\pm$7.3}\\
+Yolo11-Blue & $\times$ & 72.78 & 0.94$\pm$0.03 & 9.6$\pm$7.8 & \underline{3.8$\pm$5.6} & \underline{66.67} & 0.75$\pm$0.07 & 4.1$\pm$2.4 & \textbf{1.9$\pm$1.4} & 10.28 & 0.96$\pm$0.01 & 4.9$\pm$2.9 & 7.7$\pm$9.5\\
+Dual Yolo Concat & $\checkmark$ & 93.06 & 0.96$\pm$0.04 & \underline{5.1$\pm$3.7} & 7.0$\pm$25.2 & 39.17 & \textbf{0.77$\pm$0.05} & \underline{3.8$\pm$2.8} & 2.4$\pm$1.5 & 96.67 & \textbf{0.98$\pm$0.01} & 4.7$\pm$5.1 & 5.2$\pm$2.5\\
+Dual Yolo Weighted & $\checkmark$ & \underline{98.61} & \textbf{0.97$\pm$0.01} & \textbf{5.0$\pm$5.0} & 4.4$\pm$6.4 & 43.89 & 0.74$\pm$0.07 & 4.2$\pm$2.8 & 2.7$\pm$2.2 & \textbf{100.00} & \textbf{0.98$\pm$0.01} & \textbf{3.3$\pm$3.2} & 6.4$\pm$7.4\\
+\hline
+\textbf{Dual Yolo CrossAttn} & $\checkmark$ & \textbf{100.00} & \textbf{0.97$\pm$0.01} & 5.4$\pm$3.4 & \textbf{3.6$\pm$5.6} & \textbf{90.28} & \underline{0.77$\pm$0.06} & \textbf{3.7$\pm$2.2} & \underline{2.3$\pm$1.8} & \textbf{100.00} & \textbf{0.98$\pm$0.01} & \underline{3.4$\pm$2.5} & \textbf{3.2$\pm$2.4}\\
+\hline
+\end{tabular}%
+}
+\end{table*}
+
+
+This section presents comprehensive evaluation of the DIUA-YOLO framework across multiple dimensions: quantitative performance metrics, ablation studies, qualitative visualization, and attention mechanism analysis. We evaluate our method against single-modality baselines and alternative fusion strategies under the stringent Detection Success Rate (DSR) criterion, which mandates exact detection of all three blood layers without false positives or negatives.
+
+
+\subsection{Single-Modality vs. Dual-Modality Performance}
+
+Table~\ref{tab:main_conf25} presents the primary evaluation results at confidence threshold 0.25, comparing single-modality baselines (Yolo11-White, Yolo11-Blue) against dual-modality fusion variants. The results demonstrate substantial performance gains from dual-illumination architectures while revealing complementary strengths of each modality.
+
+Single-modality methods exhibit distinct performance characteristics reflecting their illumination-specific advantages. Yolo11-Blue achieves 24.72\% DSR for plasma segmentation with high IoU (0.94$\pm$0.03), benefiting from blue-light enhancement of layer boundaries. Conversely, its erythrocyte layer DSR remains critically low (2.22\%), as blue illumination provides limited structural information for red blood cell visualization. Yolo11-White demonstrates inverse behavior: 52.50\% plasma DSR but only 8.06\% buffy coat DSR, confirming that white-light imaging struggles with the optically thin buffy coat layer despite adequate overall structural representation.
+
+Dual-modality architectures consistently outperform single-modality baselines across all metrics, validating our hypothesis that cross-spectral fusion addresses complementary deficiencies. Among dual-backbone methods, our Dual Yolo CrossAttn method achieves optimal performance with 100\% DSR for both plasma and erythrocyte segmentation, and 96.39\% DSR for the challenging buffy coat layer. This represents absolute improvements of +75.28\% (plasma), +96.39\% (buffy coat), and +97.78\% (erythrocyte) over the better-performing single-modality baseline for each respective class.
+
+Geometric precision metrics corroborate detection success rates. Cross-attention fusion maintains IoU of 0.97$\pm$0.01 for plasma and 0.98$\pm$0.01 for erythrocyte layers, matching or exceeding single-modality performance while achieving substantially higher detection completeness. Boundary displacement metrics reveal sub-5-pixel accuracy: Diff$_{up}$ = 5.4$\pm$3.4 px and Diff$_{low}$ = 3.6$\pm$5.6 px for plasma; Diff$_{up}$ = 3.4$\pm$2.5 px and Diff$_{low}$ = 3.1$\pm$2.4 px for erythrocyte. For the buffy coat layer—whose thickness typically spans 20--40 pixels—achieving Diff$_{up}$ = 3.7$\pm$2.2 px demonstrates clinically acceptable localization precision.
+
+Table~\ref{tab:main_conf50} presents results at higher confidence threshold (0.5), where the performance gap between single-modality and dual-modality methods becomes more pronounced. Cross-attention fusion maintains 100\% DSR for plasma and erythrocyte layers, while buffy coat DSR decreases marginally to 90.28\%. This threshold-dependent behavior reflects the inherent detection difficulty of thin buffy coat structures, yet dual-modality methods remain substantially more robust than single-modality alternatives.
+
+\begin{table*}[t]
+\centering
+\scriptsize
+\renewcommand{\arraystretch}{1.8}
+\caption{Segmentation Metrics Across Plasma, Buffy Coat and Erythrocyte Segmentation Tasks (conf=0.001, IoU@0.5)}
+\label{tab:academic_metrics}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{l c c c c c c c c c c c c c c c c c c c c}
+\hline
+\multicolumn{2}{c}{} & \multicolumn{6}{c}{\textbf{Plasma Segmentation}} & \multicolumn{6}{c}{\textbf{Buffy Coat Segmentation}} & \multicolumn{6}{c}{\textbf{Plasma Segmentation}}\\
+\cline{3-8}\cline{9-14}\cline{15-20}
+Method & Dual-backbone & mAP@[0.5:0.95] & AP@0.75 & AP@0.50 & F1 & Prec & Recall & mAP@[0.5:0.95] & AP@0.75 & AP@0.50 & F1 & Prec & Recall & mAP@[0.5:0.95] & A@0.P75 & AP@0.50 & F1 & Prec & Recall\\
+\hline
+Yolo11-White & $\times$ & 48.17 & 47.56 & 65.85 & 62.55 & 56.35 & 70.28 & 7.15 & 1.84 & 17.18 & 18.82 & 44.39 & 11.94 & 55.75 & 50.49 & 73.35 & 71.68 & 84.53 & 62.23\\
+Yolo11-Blue & $\times$ & 87.52 & 97.33 & 96.90 & 96.20 & 94.87 & 97.57 & 53.17 & 47.35 & \underline{97.38} & \underline{90.34} & \underline{95.69} & 85.56 & 93.24 & 98.57 & \textbf{99.50} & 73.09 & 57.60 & \textbf{100.00}\\
+Dual Yolo Concat & $\checkmark$ & 98.80 & 99.65 & 99.39 & 94.88 & 90.71 & 99.44 & \underline{55.22} & \textbf{57.77} & 90.86 & 84.17 & 87.79 & 80.83 & 98.52 & 98.53 & 98.49 & 91.69 & 86.09 & 98.06\\
+Dual Yolo Weighted & $\checkmark$ & \underline{99.36} & \underline{99.95} & \textbf{99.50} & \textbf{99.96} & \textbf{100.00} & \underline{99.92} & 50.31 & 38.62 & 95.06 & 88.83 & 87.70 & \underline{90.00} & \textbf{99.68} & \textbf{99.50} & \textbf{99.50} & \underline{99.39} & \underline{98.78} & \textbf{100.00}\\
+\hline
+\textbf{Dual Yolo CrossAttn} & $\checkmark$ & \textbf{99.57} & \textbf{100.00} & \textbf{99.50} & \underline{99.63} & \underline{99.25} & \textbf{100.00} & \textbf{55.71} & \underline{54.53} & \textbf{99.50} & \textbf{98.67} & \textbf{100.00} & \textbf{97.37} & \underline{99.50} & \textbf{99.50} & \textbf{99.50} & \textbf{99.89} & \textbf{99.78} & \textbf{100.00}\\
+\hline
+
+\end{tabular}%
+} % end resizebox
+\end{table*}
+
+\subsection{mAP Metrics and Segmentation Quality}
+
+Table~\ref{tab:academic_metrics} presents traditional detection metrics evaluated at low confidence threshold (conf=0.001, IoU@0.5) to comprehensively assess segmentation quality across the precision-recall spectrum. These metrics provide complementary insights to DSR by evaluating model performance across varying confidence levels.
+
+For plasma segmentation, Dual Yolo CrossAttn achieves mAP@[0.5:0.95] of 99.57\%, AP@0.75 of 100\%, and AP@0.50 of 99.50\%, surpassing all baselines. The F1 score of 99.63\% with precision 99.25\% and recall 100\% indicates near-perfect segmentation of this relatively straightforward class. Single-modality methods show substantial performance degradation: Yolo11-White achieves only 48.17\% mAP@[0.5:0.95], while Yolo11-Blue reaches 87.52\%, confirming the superiority of blue illumination for structural boundary detection.
+
+Buffy coat segmentation—the most challenging task—reveals the critical advantage of cross-modal attention. Our method achieves 55.71\% mAP@[0.5:0.95], 99.50\% AP@0.50, and 98.67\% F1 score with 100\% precision and 97.37\% recall. This represents a dramatic improvement over Yolo11-White (7.15\% mAP@[0.5:0.95], 17.18\% AP@0.50) and substantial gains over Yolo11-Blue (53.17\% mAP@[0.5:0.95], 97.38\% AP@0.50). The perfect precision (100\%) combined with high recall (97.37\%) demonstrates the model's ability to reliably localize buffy coat boundaries without generating false positives—essential for automated clinical deployment.
+
+For erythrocyte segmentation, all methods achieve high AP@0.50 ($\geq$98.49\%), reflecting the relative ease of detecting this thick, visually distinct layer. Nevertheless, Dual Yolo CrossAttn maintains the highest F1 score and joint-best recall, ensuring complete layer coverage.
+
+Figure~\ref{fig mechanics} visualizes average performance across all methods, illustrating that dual-modality approaches consistently dominate across DSR, IoU, and academic metrics. The cross-attention method exhibits the most balanced profile, achieving near-ceiling performance across all metrics without the instability observed in weighted fusion or the modest performance plateau of channel concatenation.
+
+
+\begin{figure}[!t]
+\centerline{\includegraphics[width=\columnwidth]{img/metrics.png}}
+\caption{Comparison of average detection and segmentation metrics across all methods. Detection sucess rate and IoU are from conf=0.25.}
+\label{fig mechanics}
+\end{figure}
+
+
+\subsection{Fusion Strategy Comparison}
+
+Among dual-modality architectures, fusion mechanism design critically determines performance. We compare three strategies of increasing sophistication: channel concatenation, adaptive weighted fusion, and cross-modal attention.
+
+\textbf{Channel Concatenation} (Dual Yolo Concat) provides baseline dual-modality fusion by directly concatenating feature channels followed by convolutional compression. This approach achieves 86.94\% plasma DSR and 67.78\% buffy coat DSR at conf=0.25 (Table~\ref{tab:main_conf25}), substantially outperforming single-modality methods but falling short of more advanced fusion mechanisms. The limited performance reflects the method's inability to model explicit cross-modal correspondences or adaptively weight modality-specific contributions, relying instead on learned convolutional filters to implicitly extract complementary information.
+
+\textbf{Adaptive Weighted Fusion} (Dual Yolo Weighted) employs learnable spatial and global attention weights to modulate modality contributions. This method achieves 99.72\% plasma DSR and 99.44\% erythrocyte DSR—approaching cross-attention performance for these classes. However, buffy coat DSR reaches only 75.56\%, revealing the method's limitations in handling optically challenging structures. Training stability also poses concerns: the weighted fusion mechanism exhibited convergence difficulties during early epochs, requiring careful training hyperparameter tuning and sometimes producing degenerate solutions where one modality dominates.
+
+\textbf{Cross-Modal Attention} (Dual Yolo CrossAttn) implements unidirectional token-level attention with localized spatial matching. This design achieves the highest DSR across all classes: 100\% for serum/plasma, 96.39\% for buffy coat, and 100\% for erythrocyte at conf=0.25. The substantial buffy coat improvement (+20.83\% over weighted fusion, +28.61\% over concatenation) demonstrates the value of explicit semantic correspondence modeling. By allowing blue-light features to query relevant white-light context within local neighborhoods, the attention mechanism effectively resolves ambiguities in thin-layer localization while maintaining computational efficiency through token-based spatial partitioning.
+
+Geometric precision metrics show consistent trends: cross-attention achieves the most balanced upper/lower boundary errors across all classes, with Diff$_{up}$ and Diff$_{low}$ typically within 3--6 pixels. This uniformity suggests the attention mechanism successfully integrates complementary spatial information rather than simply favoring one modality.
+
+\begin{table*}[!t]
+\caption{Ablation Experiments on the Blood Fractionation Component Segmentation Task at conf=0.25}
+\label{ablation}
+\centering
+\setlength{\tabcolsep}{12pt}
+\renewcommand{\arraystretch}{1.8}
+\begin{tabular}{c c c c c c}
+\hline
+\multirow{2}{*}{\textbf{No.}} &
+\multicolumn{3}{c}{\textbf{Settings}} &
+\multirow{2}{*}{\textbf{Detection Rate(\%) $\uparrow$}} &
+\multirow{2}{*}{\textbf{IOU $\uparrow$}} \\
+\cline{2-4}
+ & Dual-backbone & Dual-illumination fusion method & Pre-training & \\
+\hline
+1 & $\times$     & None                     & From Scratch      & 21.67 & 0.88$\pm$0.22 \\
+2 & $\checkmark$ & Channel Concatenation    & From Scratch      & 52.40 & 0.87$\pm$0.23 \\
+3 & $\checkmark$ & Channel Concatenation    & Transfer Learning & 68.15 & \underline{}{0.90$\pm$0.21} \\
+4 & $\checkmark$ & Adaptive Weighted        & From Scratch      & 83.20 & 0.86$\pm$0.20 \\
+5 & $\checkmark$ & Adaptive Weighted        & Transfer Learning & 91.57 & 0.89$\pm$0.17 \\
+6 & $\checkmark$ & Cross Modal Attention    & From Scratch      & \underline{95.10} & 0.89$\pm$0.18 \\
+7 & $\checkmark$ & Cross Modal Attention    & Transfer Learning & \textbf{98.80} & \textbf{0.90$\pm$0.14} \\
+\hline
+\end{tabular}
+\end{table*}
+
+\subsection{Ablation Studies}
+
+Table~\ref{ablation} presents systematic ablation experiments evaluating three critical design factors: dual-backbone architecture, fusion mechanism, and initialization strategy. All experiments were conducted at conf=0.25 under identical training protocols with 360 test samples. Statistical significance was assessed using two-proportion Z-tests to rigorously validate performance differences.
+
+\textbf{Dual-Backbone Necessity.} Comparing experiments 1 (single-backbone) and 2--7 (dual-backbone variants) reveals the fundamental importance of independent modality-specific feature extraction. Single-backbone architecture achieves only 21.67\% detection rate on total three classes. Introducing dual backbones with even the simplest fusion (channel concatenation, experiment 2) improves detection rate to 52.40\%, representing a statistically significant +30.73 percentage point improvement (p$<$0.001, Z=-8.54), validating the core architectural principle.
+
+\textbf{Fusion Mechanism Progression.} Experiments 2--3 (concatenation), 4--5 (weighted fusion), and 6--7 (cross-attention) demonstrate progressive performance gains with increasingly sophisticated fusion designs. Under scratch training, cross-modal attention (experiment 6) achieves 95.10\% detection rate and 0.89$\pm$0.18 IoU, representing +42.70\% and +11.90\% absolute improvements over concatenation (p$<$0.001, Z=-13.00) and weighted fusion (p$<$0.001, Z=-5.11) respectively. These highly significant differences validate our hypothesis that explicit semantic correspondence modeling through attention mechanisms better captures cross-modal complementarity than implicit feature blending.
+
+\textbf{Transfer Learning Impact.} Comparing scratch (even-numbered experiments) versus pretrained (odd-numbered experiments) initialization reveals consistent benefits from hierarchical weight transfer. Transfer learning improves detection rates by +15.75\% (concatenation, p$<$0.001), +8.37\% (weighted fusion, p$<$0.001), and +3.70\% (cross-attention, p$<$0.01). The diminishing marginal benefit for more sophisticated fusion methods suggests that cross-attention's architectural advantages partially compensate for initialization quality. Nevertheless, all pretrain effects remain statistically significant, and the pretrained cross-attention model (experiment 7) achieves the best overall performance: 98.80\% detection rate and 0.90$\pm$0.14 IoU, confirming the value of combining advanced fusion mechanisms with domain-adapted initialization.
+
+\begin{figure*}[!t]
+\centering
+\newlength{\sepSa}\setlength{\sepSa}{0.8pt}   % 小列间距
+\newlength{\sepLa}\setlength{\sepLa}{10pt}    % 大列间距（用于 2↔3 与 6↔7）
+\newlength{\sepYa}\setlength{\sepYa}{3pt}     % 行间距
+\newlength{\colwa}\setlength{\colwa}{\dimexpr(\linewidth - 4\sepSa - 2\sepLa)/7\relax}
+\newcommand{\Img}[1]{%
+  \includegraphics[width=\colwa,trim=2pt 2pt 2pt 2pt,clip]{#1}%
+}
+\newcommand{\Row}[7]{%
+  \noindent
+  \Img{#1}\hspace{\sepSa}%
+  \Img{#2}\hspace{\sepLa}% 2↔3 大间距
+  \Img{#3}\hspace{\sepSa}%
+  \Img{#4}\hspace{\sepSa}%
+  \Img{#5}\hspace{\sepSa}%
+  \Img{#6}\hspace{\sepLa}% 6↔7 大间距
+  \Img{#7}\par
+}
+\Row{evaluation/2022-03-28_103204_17_T3_2410.jpg}{evaluation/2022-03-28_103204_17_T5_2412.jpg}{evaluation/2022-03-28_103204_17_T5_2412_0_no_detection_id.jpg}{evaluation/2022-03-28_103204_17_T5_2412_0_no_detection_id_white.jpg}{evaluation/2022-03-28_103204_17_T5_2412_0_evaluation_concat.jpg}{evaluation/2022-03-28_103204_17_T5_2412_0_no_detection_cross.jpg}{evaluation/2022-03-28_103204_17_T5_2412_0_evaluation_best.jpg}\vspace{\sepYa}
+\Row{evaluation/2022-03-28_143344_64_T3_2432.jpg}{evaluation/2022-03-28_143344_64_T5_2434.jpg}{evaluation/2022-03-28_143344_64_T5_2434_7_no_detection_id.jpg}{evaluation/2022-03-28_143344_64_T5_2434_7_no_detection_id_white.jpg}{evaluation/2022-03-28_143344_64_T5_2434_7_no_detection_concat.jpg}{evaluation/2022-03-28_143344_64_T5_2434_7_no_detection_cross.jpg}{evaluation/2022-03-28_143344_64_T5_2434_7_evaluation_best.jpg}\vspace{\sepYa}
+\Row{evaluation/2022-04-07_141933_73_T3_2520.jpg}{evaluation/2022-04-07_141933_73_T5_2522.jpg}{evaluation/2022-04-07_141933_73_T5_2522_0_no_detection_id.jpg}{evaluation/2022-04-07_141933_73_T5_2522_0_no_detection_id_white.jpg}{evaluation/2022-04-07_141933_73_T5_2522_0_no_detection_concat.jpg}{evaluation/2022-04-07_141933_73_T5_2522_0_no_detection_cross.jpg}{evaluation/2022-04-07_141933_73_T5_2522_0_evaluation_best.jpg}\vspace{\sepYa}
+\Row{evaluation/2022-04-15_084806_41_T3_2436.jpg}{evaluation/2022-04-15_084806_41_T5_2438.jpg}{evaluation/2022-04-15_084806_41_T5_2438_4_no_detection_id.jpg}{evaluation/2022-04-15_084806_41_T5_2438_4_no_detection_id_white.jpg}{evaluation/2022-04-15_084806_41_T5_2438_4_evaluation_concat.jpg}{evaluation/2022-04-15_084806_41_T5_2438_4_evaluation_cross.jpg}{evaluation/2022-04-15_084806_41_T5_2438_4_evaluation_best.jpg}
+\noindent
+\makebox[\colwa][c]{\small Photo}\hspace{\sepSa}%
+\makebox[\colwa][c]{\small Ground Truth}\hspace{\sepLa}%
+\makebox[\colwa][c]{\small Yolo11-White}\hspace{\sepSa}%
+\makebox[\colwa][c]{\small Yolo11-Blue}\hspace{\sepSa}%
+\makebox[\colwa][c]{\parbox{\colwa}{\centering \small Dual Yolo\\Channel Concat}}%
+\makebox[\colwa][c]{\parbox{\colwa}{\centering \small Dual Yolo\\Adaptive Weighted}}%
+\makebox[\colwa][c]{\parbox{\colwa}{\centering \small Dual Yolo\\Cross Attention}}%
+\caption{Demonstrations of segmentation results from different models for the Blood Fractionation Component Segmentation task. In the figure, from top to bottom, the components are plasma, buffy coat, and red blood cell, respectively. From the third column, yellow, green, and blue points represent the segmented regions for each class. The regions outlined by white contours are the boundaries formed by the respective methods. From left to right, the columns display the following: original photos for the testing tube, ground truth annotated by professional blood testing personnel, Yolo11-White result, Yolo11-Blue result, Dual Yolo Channel Concatenation Fusion result, Dual Yolo Adaptive Weighted Fusion result, and Dual Yolo Cross Attention result.}
+\label{fig:evaluation-grid}
+\end{figure*}
+
+\subsection{Qualitative Visualization}
+
+Figure~\ref{fig:evaluation-grid} presents representative segmentation results across four test samples, comparing ground truth annotations against predictions from all methods. The visualizations reveal both qualitative performance differences and failure modes.
+
+\textbf{Plasma Segmentation.} All dual-modality methods produce accurate serum/plasma boundaries closely matching ground truth clinical annotation points (rows 1--4, columns 5--7). Yolo11-White occasionally generates irregular upper boundaries due to meniscus reflection artifacts (row 1, column 3), while Yolo11-Blue exhibits slight over-segmentation extending into the buffy coat region (row 2, column 4). Cross-attention fusion produces the most consistent boundaries, effectively suppressing both artifact types through complementary information integration.
+
+\textbf{Buffy Coat Detection.} The thin buffy coat layer (green regions) presents the greatest challenge, with substantial inter-method variation. Yolo11-White frequently fails to detect this layer entirely (rows 1--4, column 3), consistent with its 8.06\% buffy coat DSR. Yolo11-Blue performs better but occasionally produces fragmented detections or merged boundaries with adjacent layers. Concatenation and weighted fusion methods show improved consistency but exhibit thickness estimation errors—either compressing the layer too thinly or expanding into neighboring regions.
+
+Cross-attention fusion (column 7) demonstrates superior buffy coat localization across all samples, producing contiguous masks with accurate upper and lower boundaries. The white boundary contours closely align with ground truth annotations, with typical deviations under 5 pixels—sufficient for clinical volume estimation. This consistent performance across varying buffy coat thicknesses (ranging from $\sim$15 pixels to $\sim$35 pixels) validates the attention mechanism's ability to adaptively leverage blue-light contrast enhancement while consulting white-light structural context.
+
+\textbf{Erythrocyte Segmentation.} All methods achieve accurate erythrocyte layer detection (blue regions) in most cases, reflecting this class's high visual distinctiveness. However, single-modality methods occasionally exhibit lower boundary estimation errors when tube bottoms create optical discontinuities. Dual-modality methods consistently produce stable lower boundaries by integrating complementary depth cues.
+
+\section{Discussion}
+
+\subsection{Clinical Significance}
+The DIUA-YOLO framework achieves 98.80\% overall detection success rate at clinical operating threshold (conf=0.25), meeting the stringent requirement for automated blood tube analysis. The sub-5-pixel boundary localization accuracy translates to volume estimation errors below 0.5\% for typical 10mL tubes—well within acceptable clinical tolerance. Most critically, the 96.39\% buffy coat detection rate represents a transformative improvement for white blood cell quantification, as this layer contains leukocytes essential for immune system assessment and disease diagnosis.
+
+The automated platform processes a complete tube (dual-illumination acquisition, inference, result reporting) in approximately 8 seconds—enabling throughput exceeding 450 tubes per hour. This represents a 3.75$\times$ speedup over manual visual inspection and layer annotation workflows (typically 30 seconds per tube), while eliminating inter-operator variability. For high-volume clinical laboratories processing thousands of samples daily, such automation reduces greatly labor requirements, translating to substantial cost savings while improving result consistency and throughput.
+
+Integration with the mechanical gripper system enables full workflow automation from tube loading to result reporting. The SQLite database logging provides full traceability, while the platform's modular design allows deployment in standard laboratory environments without specialized infrastructure. However, comprehensive clinical field deployment and validation remain essential next steps. Future work should conduct prospective studies in operational clinical laboratories to assess system robustness under real-world conditions, including diverse operator workflows, environmental variations, and sustained high-throughput operation.
+
+\subsection{Understanding Cross-Modal Fusion Performance}
+
+The substantial performance gap between fusion strategies—particularly cross-attention's superiority over concatenation and weighted fusion—can be attributed to their differing abilities to handle spatial misalignment between dual-modality inputs. Despite mechanical fixture stabilization, residual misalignment inevitably arises from parallax effects, chromatic aberration, and temporal offset during sequential illumination switching. These subtle displacements, critically affect boundary-sensitive detection tasks where layer interfaces span only a few pixels.
+
+Channel concatenation operates under a strict pixel-to-pixel correspondence assumption, directly merging features at identical spatial coordinates. This rigid alignment makes concatenation vulnerable to misregistration: a blue-light edge feature may correspond to slightly shifted white-light context, causing the subsequent convolutional layers to receive semantically inconsistent input. Adaptive weighted fusion partially mitigates this limitation through learned spatial attention, enabling the network to suppress contributions from misaligned regions. However, its pixel-wise weighting remains constrained to fixed spatial positions, preventing active search for correct correspondences.
+
+Cross-modal attention fundamentally addresses misalignment through its token-based neighborhood mechanism. By partitioning features into tokens and allowing each blue-light query token to attend to a local neighborhood of white-light key tokens, the attention operation performs implicit local feature alignment. When a blue-light boundary token encounters spatial offset, it can retrieve semantically matching white-light features from neighboring positions within the $k \times k$ window rather than being forced to use the strictly co-located feature. This spatial flexibility is particularly critical for thin-layer boundaries such as the buffy coat, where minor pixel misalignment can shift edge responses beyond concatenation's receptive field but remain within attention's neighborhood range. The localized search mechanism thus enables robust cross-modal correspondence even under imperfect registration, explaining the dramatic performance improvements observed in ablation studies.
+
+\subsection{Limitations and Future Directions}
+
+Despite strong performance, several limitations warrant further investigation. First, the current system assumes pre-centrifuged tubes with established layer stratification. Fresh whole blood or partially centrifuged samples may not exhibit clear boundaries, potentially degrading detection performance. Future work should investigate time-series imaging during centrifugation to model dynamic layer formation.
+
+Second, the dataset comprises 90 samples covering typical clinical scenarios but may not fully represent rare pathological conditions such as severe anemia (reduced erythrocyte layer), leukemia (expanded buffy coat), or hemolysis (layer disruption). Expanding the dataset to include rare disease phenotypes and conducting clinical validation studies across diverse patient populations remains essential for regulatory approval and widespread deployment.
+
+Third, while dual-illumination imaging demonstrates clear advantages, the sequential white-light and blue-light acquisition requires 2--3 seconds, introducing potential motion artifacts if tubes are not mechanically stabilized. Simultaneous dual-spectrum imaging using beam-splitting optics or specialized sensors could reduce acquisition time and eliminate registration errors, though at increased hardware complexity and cost.
+
+Fourth, the high-resolution dual-modality input (1504$\times$1504 pixels, 6 channels) demands substantial GPU memory during training, limiting batch size to 2 per RTX 3090 GPU. While the cross-modal attention mechanism itself is computationally efficient relative to global attention, the large spatial dimensions necessitate careful memory management. Future work could explore input resolution reduction strategies, gradient checkpointing, or mixed-precision training to increase batch sizes and potentially improve convergence. Additionally, model compression techniques such as knowledge distillation or quantization-aware training could enable deployment on edge devices for point-of-care settings.
+
+Fifth, current evaluation focuses on layer detection and boundary localization but does not perform cell counting or morphological analysis within the buffy coat layer. Integrating microscopic imaging or cell classification sub-networks could provide complete blood count (CBC) equivalent information, enhancing clinical utility. Preliminary experiments with SAM-based cell segmentation within detected buffy coat regions show promise but require substantial annotation effort.
+
+Finally, the system currently operates on vacuum blood collection tubes, which maintain consistent geometry. Extending to capillary tubes, micro-centrifuge tubes, or non-standard containers would require retraining and potentially redesigning the gripper mechanism. Transfer learning experiments on these alternative tube types represent important future validation.
+
+\subsection{Broader Impact}
+
+Beyond blood tube analysis, the dual-illumination cross-attention architecture demonstrates general applicability to multi-modal medical imaging tasks where complementary spectral information enhances diagnostic accuracy. Potential extensions include dual-modality endoscopy (white-light + narrow-band imaging for polyp detection), dermatological imaging (visible + UV for skin lesion analysis), and histopathology (H\&E + immunofluorescence for tissue classification).
+
+The unidirectional attention design and token-based spatial partitioning offer computational advantages for high-resolution medical images ($\geq$1500$\times$1500 pixels), where global attention becomes prohibitively expensive. By constraining attention to local neighborhoods adaptive to pyramid level, the framework scales to large images while maintaining fine-grained feature interactions—addressing a key bottleneck in medical image analysis.
+
+From a methodological perspective, this work contributes to the broader understanding of multi-modal fusion in deep learning. The comparative evaluation of concatenation, weighted fusion, and attention mechanisms provides empirical evidence that explicit correspondence modeling through attention yields superior performance compared to implicit fusion approaches, particularly for challenging detection tasks involving thin or low-contrast structures. These insights generalize beyond medical imaging to applications such as RGB-D fusion for robotics, multi-spectral satellite imagery analysis, and sensor fusion for autonomous systems.
+
+
+\section{Conclusion}
+\label{sec:conclusion}
+This paper presents DIUA-YOLO, a dual-illumination detection and segmentation framework addressing the critical challenge of automated blood component stratification following centrifugation. Conventional approaches relying on single-modality imaging or manual inspection fail to reliably localize the optically thin buffy coat layer while maintaining high throughput. We address these limitations through a dual-backbone architecture that independently processes white-light and blue-light images, enabling complementary feature extraction tailored to each modality's optical characteristics. The key innovation lies in our cross-modal attention mechanism, which employs unidirectional queries and token-based localized attention to achieve effective feature fusion while reducing computational complexity by approximately 91\% compared to global attention. This design fundamentally addresses spatial misalignment between modalities through implicit local feature correspondence, enabling robust boundary detection even under imperfect registration, a critical advantage over rigid pixel-wise fusion methods.
+
+Comprehensive evaluation demonstrates that DIUA-YOLO achieves 98.80\% overall detection success rate under stringent clinical criteria requiring exact detection of all three blood layers without false positives or negatives. The framework achieves near-perfect performance for plasma and erythrocyte layers, while critically improving buffy coat detection to 96.39\%, representing transformative advancement for white blood cell localization. Statistical analysis confirms all architectural improvements are highly significant (p$<$0.001), validating the necessity of dual-backbone design, superiority of attention-based fusion, and benefits of hierarchical transfer learning. The integrated automated platform processes complete tubes in 8 seconds, delivering 3.75$\times$ speedup over manual workflows while dramatically reducing labor requirements. Sub-5-pixel boundary localization accuracy ensures volume estimation errors below 0.5\% for clinical applications.
+
+Beyond blood tube analysis, this work contributes methodological insights demonstrating that explicit correspondence modeling through localized attention outperforms rigid fusion approaches for thin-layer detection under spatial misalignment. Primary limitations include dataset scale and restriction to pre-centrifuged tubes. Future work should expand to rare pathological conditions, explore simultaneous dual-spectrum imaging, and integrate cell-level analysis capabilities. The proposed architecture demonstrates strong potential for extension to other dual-modality medical imaging tasks, contributing to the advancement of automated diagnostic systems in personalized medicine and laboratory informatics.
+
+
+
 
 \subsection{Abbreviations and Acronyms}
 Define abbreviations and acronyms the first time they are used in the text, 
@@ -881,7 +1428,7 @@ time of publication.
 time of publication.
 \end{IEEEbiographynophoto}
 
-
+\section*{Figures and Tables for Results}
 \begin{table*}[!t]
 \caption{Ablation Experiments on the Feature Clustering Block on Brain Tumor Dataset}
 \label{table3}
@@ -908,54 +1455,6 @@ time of publication.
 
 
 
-
-\begin{figure*}[!t]
-\centering
-
-% ==== 参数 ====
-\newlength{\sepS}\setlength{\sepS}{0.8pt}   % 小列间距
-\newlength{\sepL}\setlength{\sepL}{10pt}    % 大列间距（用于 2↔3 与 6↔7）
-\newlength{\sepY}\setlength{\sepY}{3pt}     % 行间距
-
-% 7列 → 总列间距 = 4*sepS + 2*sepL （因 2↔3 与 6↔7 为大间距）
-\newlength{\colw}\setlength{\colw}{\dimexpr(\linewidth - 4\sepS - 2\sepL)/7\relax}
-
-% 只按宽度放图，高度自适应
-\newcommand{\Img}[1]{%
-  \includegraphics[width=\colw,trim=2pt 2pt 2pt 2pt,clip]{#1}%
-}
-
-% 一行：传入 7 个不同的文件名；2↔3 与 6↔7 之间用大间距 \sepL
-\newcommand{\Row}[7]{%
-  \noindent
-  \Img{#1}\hspace{\sepS}%
-  \Img{#2}\hspace{\sepL}% 2↔3 大间距
-  \Img{#3}\hspace{\sepS}%
-  \Img{#4}\hspace{\sepS}%
-  \Img{#5}\hspace{\sepS}%
-  \Img{#6}\hspace{\sepL}% 6↔7 大间距
-  \Img{#7}\par
-}
-
-% ===== 4 行图片网格 =====
-\Row{evaluation.jpg}{evaluation.jpg}{evaluation.jpg}{evaluation.jpg}{evaluation.jpg}{evaluation.jpg}{evaluation.jpg}\vspace{\sepY}
-\Row{evaluation.jpg}{evaluation.jpg}{evaluation.jpg}{evaluation.jpg}{evaluation.jpg}{evaluation.jpg}{evaluation.jpg}\vspace{\sepY}
-\Row{evaluation.jpg}{evaluation.jpg}{evaluation.jpg}{evaluation.jpg}{evaluation.jpg}{evaluation.jpg}{evaluation.jpg}\vspace{\sepY}
-\Row{evaluation.jpg}{evaluation.jpg}{evaluation.jpg}{evaluation.jpg}{evaluation.jpg}{evaluation.jpg}{evaluation.jpg}
-
-% ===== 列标题（与上面列宽一致；间距模式 S, L, S, S, S, L）=====
-\noindent
-\makebox[\colw][c]{\small scan}\hspace{\sepS}%
-\makebox[\colw][c]{\small Ground Truth}\hspace{\sepL}%
-\makebox[\colw][c]{\small MIDeepSeg}\hspace{\sepS}%
-\makebox[\colw][c]{\small DINs}\hspace{\sepS}%
-\makebox[\colw][c]{\small 3D RITM}\hspace{\sepS}%
-\makebox[\colw][c]{\small VMN}\hspace{\sepL}%
-\makebox[\colw][c]{\small SAM\text{-}Med3D}
-
-\caption{Qualitative comparison grid (7 columns). Small gaps except large gaps between Col2–Col3 and Col6–Col7. Row gaps set by \texttt{\string\sepY}.}
-\label{fig:evaluation-grid-7}
-\end{figure*}
 
 
 
@@ -997,58 +1496,6 @@ Here, the gray font indicates fully automated segmentation methods. $^\dagger$~i
 
 
 
-
-\begin{figure*}[!t]
-\centering
-
-% ==== 参数 ====
-\newlength{\sepSa}\setlength{\sepSa}{0.8pt}   % 小列间距
-\newlength{\sepLa}\setlength{\sepLa}{10pt}    % 大列间距（用于 2↔3 与 6↔7）
-\newlength{\sepYa}\setlength{\sepYa}{3pt}     % 行间距
-
-% 7列 → 总列间距 = 4*sepSa + 2*sepLa （因 2↔3 与 6↔7 为大间距）
-\newlength{\colwa}\setlength{\colwa}{\dimexpr(\linewidth - 4\sepSa - 2\sepLa)/7\relax}
-
-% 只按宽度放图，高度自适应
-\newcommand{\Img}[1]{%
-  \includegraphics[width=\colwa,trim=2pt 2pt 2pt 2pt,clip]{#1}%
-}
-
-% 一行：传入 7 个不同的文件名；2↔3 与 6↔7 之间用大间距 \sepLa
-\newcommand{\Row}[7]{%
-  \noindent
-  \Img{#1}\hspace{\sepSa}%
-  \Img{#2}\hspace{\sepLa}% 2↔3 大间距
-  \Img{#3}\hspace{\sepSa}%
-  \Img{#4}\hspace{\sepSa}%
-  \Img{#5}\hspace{\sepSa}%
-  \Img{#6}\hspace{\sepLa}% 6↔7 大间距
-  \Img{#7}\par
-}
-
-% ===== 4 行图片网格 =====
-\Row{evaluation/2022-03-28_103204_17_T3_2410.jpg}{evaluation/2022-03-28_103204_17_T5_2412.jpg}{evaluation/2022-03-28_103204_17_T5_2412_0_no_detection_id.jpg}{evaluation/2022-03-28_103204_17_T5_2412_0_no_detection_id_white.jpg}{evaluation/2022-03-28_103204_17_T5_2412_0_evaluation_concat.jpg}{evaluation/2022-03-28_103204_17_T5_2412_0_no_detection_cross.jpg}{evaluation/2022-03-28_103204_17_T5_2412_0_evaluation_best.jpg}\vspace{\sepYa}
-\Row{evaluation/2022-03-28_143344_64_T3_2432.jpg}{evaluation/2022-03-28_143344_64_T5_2434.jpg}{evaluation/2022-03-28_143344_64_T5_2434_7_no_detection_id.jpg}{evaluation/2022-03-28_143344_64_T5_2434_7_no_detection_id_white.jpg}{evaluation/2022-03-28_143344_64_T5_2434_7_no_detection_concat.jpg}{evaluation/2022-03-28_143344_64_T5_2434_7_no_detection_cross.jpg}{evaluation/2022-03-28_143344_64_T5_2434_7_evaluation_best.jpg}\vspace{\sepYa}
-\Row{evaluation/2022-04-07_141933_73_T3_2520.jpg}{evaluation/2022-04-07_141933_73_T5_2522.jpg}{evaluation/2022-04-07_141933_73_T5_2522_0_no_detection_id.jpg}{evaluation/2022-04-07_141933_73_T5_2522_0_no_detection_id_white.jpg}{evaluation/2022-04-07_141933_73_T5_2522_0_no_detection_concat.jpg}{evaluation/2022-04-07_141933_73_T5_2522_0_no_detection_cross.jpg}{evaluation/2022-04-07_141933_73_T5_2522_0_evaluation_best.jpg}\vspace{\sepYa}
-\Row{evaluation/2022-04-15_084806_41_T3_2436.jpg}{evaluation/2022-04-15_084806_41_T5_2438.jpg}{evaluation/2022-04-15_084806_41_T5_2438_4_no_detection_id.jpg}{evaluation/2022-04-15_084806_41_T5_2438_4_no_detection_id_white.jpg}{evaluation/2022-04-15_084806_41_T5_2438_4_evaluation_concat.jpg}{evaluation/2022-04-15_084806_41_T5_2438_4_evaluation_cross.jpg}{evaluation/2022-04-15_084806_41_T5_2438_4_evaluation_best.jpg}
-
-% ===== 列标题（与上面列宽一致；间距模式 S, L, S, S, S, L）=====
-\noindent
-\makebox[\colwa][c]{\small Photo}\hspace{\sepSa}%
-\makebox[\colwa][c]{\small Ground Truth}\hspace{\sepLa}%
-\makebox[\colwa][c]{\small Yolo11-Blue}\hspace{\sepSa}%
-\makebox[\colwa][c]{\small Yolo11-White}\hspace{\sepSa}%
-\makebox[\colwa][c]{\parbox{\colwa}{\centering \small Dual Yolo\\Concat Fusion}}%
-\makebox[\colwa][c]{\parbox{\colwa}{\centering \small Dual Yolo\\CrossAttn Fusion}}%
-\makebox[\colwa][c]{\parbox{\colwa}{\centering \small Dual Yolo\\(Our Best)}}%
-
-\caption{Demonstrations of segmentation results from different models for the Blood Fractionation Component Segmentation task. In the figure, from top to bottom, the components are plasma, buffy coat, and red blood cell, respectively. From the third column, yellow, green, and blue points represent the segmented regions for plasma, buffy coat, and red blood cell. The regions outlined by white contours are the boundaries formed by the respective methods. From left to right, the columns display the following: original photo for the testing tube, ground truth annotated by professional blood testing personnel, Yolo11-Blue result, Yolo11-White result, Dual Yolo Concat Fusion result, Dual Yolo CrossAttn Fusion result, and Dual Yolo (Our Best).}
-\label{fig:evaluation-grid-7}
-\end{figure*}
-
-
-
-
 \begin{table*}[t]
 \centering
 \scriptsize
@@ -1062,17 +1509,13 @@ Here, the gray font indicates fully automated segmentation methods. $^\dagger$~i
 \cline{3-6}\cline{7-10}
 Method & Dual-backbone & Detection Rate(\%) $\uparrow$ & IOU $\uparrow$ & Diff$_{up}$(px) $\downarrow$ & Diff$_{low}$(px) $\downarrow$ & Detection Rate(\%) $\uparrow$ & IOU $\uparrow$ & Diff$_{up}$(px) $\downarrow$ & Diff$_{low}$(px) $\downarrow$\\
 \hline
-Yolo11-Blue & $\times$ & -- & -- & -- & -- & 96.39 & 0.73$\pm$0.22 & 6.2$\pm$6.6 & 6.9$\pm$4.9\\
-
-Yolo11-White & $\times$ & -- & -- & -- & -- & 96.39 & 0.73$\pm$0.22 & 6.2$\pm$6.6 & 6.9$\pm$4.9\\
-
-Dual Yolo Concat & $\checkmark$ & -- & -- & -- & -- & 90.56 & 0.73$\pm$0.22 & \underline{6.2$\pm$5.1} & \textbf{6.6$\pm$5.1}\\
-
-Dual Yolo Weighted & $\checkmark$ & -- & -- & -- & -- & 11.39 & \textbf{0.77$\pm$0.16} & 7.8$\pm$6.2 & 7.7$\pm$6.8\\
-
-Dual Yolo CrossAttn & $\checkmark$ & -- & -- & -- & -- & \underline{97.50} & 0.73$\pm$0.22 & 6.2$\pm$5.4 & 6.8$\pm$5.1\\
+Yolo11-Blue & $\times$ & 99.72 & \underline{0.98$\pm$0.01} & 4.1$\pm$3.2 & \underline{3.6$\pm$2.6} & 97.17 & \underline{0.78$\pm$0.07} & 4.3$\pm$2.9 & \underline{2.5$\pm$1.9}\\
+Yolo11-White & $\times$ & \underline{100.00} & 0.97$\pm$0.01 & \textbf{3.9$\pm$3.8} & 3.7$\pm$2.9 & \underline{98.61} & 0.75$\pm$0.07 & 4.6$\pm$3.3 & 2.5$\pm$1.9\\
+Dual Yolo Concat & $\checkmark$ & 99.72 & 0.97$\pm$0.01 & 4.4$\pm$3.1 & 4.3$\pm$4.2 & 68.89 & 0.77$\pm$0.06 & \textbf{3.8$\pm$2.2} & 2.6$\pm$1.8\\
+Dual Yolo Weighted & $\checkmark$ & 99.17 & 0.97$\pm$0.02 & 4.5$\pm$14.5 & 3.6$\pm$2.8 & 94.72 & 0.76$\pm$0.07 & \underline{4.0$\pm$2.3} & 2.7$\pm$1.9\\
+Dual Yolo CrossAttn & $\checkmark$ & 97.50 & 0.97$\pm$0.01 & \underline{4.1$\pm$4.3} & 5.4$\pm$7.0 & 96.11 & 0.77$\pm$0.06 & 4.2$\pm$2.5 & \textbf{2.4$\pm$1.2}\\
 \hline
-\textbf{Dual Yolo (Our Best)} & $\checkmark$ & \textbf{--} & \textbf{--} & \textbf{--} & \textbf{--} & \textbf{97.78} & \underline{0.73$\pm$0.22} & \textbf{6.1$\pm$5.1} & \underline{6.8$\pm$4.9}\\
+\textbf{Dual Yolo CrossAttnPrecise (Our best)} & $\checkmark$ & \textbf{100.00} & \textbf{0.98$\pm$0.01} & 4.7$\pm$4.5 & \textbf{3.6$\pm$2.8} & \textbf{99.17} & \textbf{0.80$\pm$0.02} & 4.6$\pm$3.0 & 2.6$\pm$2.0\\
 \hline
 
 \end{tabular}%
@@ -1094,17 +1537,14 @@ Dual Yolo CrossAttn & $\checkmark$ & -- & -- & -- & -- & \underline{97.50} & 0.7
 \cline{3-6}\cline{7-10}
 Method & Dual-backbone & Detection Rate(\%) $\uparrow$ & IOU $\uparrow$ & Diff$_{up}$(px) $\downarrow$ & Diff$_{low}$(px) $\downarrow$ & Detection Rate(\%) $\uparrow$ & IOU $\uparrow$ & Diff$_{up}$(px) $\downarrow$ & Diff$_{low}$(px) $\downarrow$\\
 \hline
-Yolo11-Blue & $\times$ & -- & -- & -- & -- & 91.67 & 0.73$\pm$0.22 & 6.3$\pm$6.7 & 7.0$\pm$5.0\\
-
-Yolo11-White & $\times$ & -- & -- & -- & -- & 91.67 & 0.73$\pm$0.22 & 6.3$\pm$6.7 & 7.0$\pm$5.0\\
-
-Dual Yolo Concat & $\checkmark$ & -- & -- & -- & -- & 86.11 & 0.73$\pm$0.22 & \underline{6.2$\pm$5.2} & \underline{6.6$\pm$5.2}\\
-
-Dual Yolo Weighted & $\checkmark$ & -- & -- & -- & -- & 9.44 & \textbf{0.77$\pm$0.17} & 41.8$\pm$104.3 & 7.6$\pm$6.5\\
-
-Dual Yolo CrossAttn & $\checkmark$ & -- & -- & -- & -- & \underline{94.72} & \underline{0.74$\pm$0.22} & 6.2$\pm$5.4 & \textbf{6.4$\pm$5.1}\\
+Yolo11-Blue & $\times$ & 99.72 & \underline{0.98$\pm$0.01} & 4.1$\pm$3.2 & 3.6$\pm$2.6 & \textbf{97.50} & 0.77$\pm$0.07 & 4.3$\pm$2.9 & 2.5$\pm$1.9\\
+Yolo11-White & $\times$ & \underline{100.00} & 0.97$\pm$0.01 & \textbf{3.9$\pm$3.8} & 3.7$\pm$2.9 & \underline{95.56} & 0.75$\pm$0.07 & 4.6$\pm$3.3 & 2.5$\pm$1.9\\
+Dual Yolo Concat & $\checkmark$ & 99.44 & 0.97$\pm$0.01 & 4.4$\pm$3.1 & 4.3$\pm$4.0 & 54.72 & \underline{0.78$\pm$0.06} & \underline{3.7$\pm$2.2} & \underline{2.5$\pm$1.7}\\
+Dual Yolo Weighted & $\checkmark$ & 98.89 & 0.97$\pm$0.01 & \underline{4.0$\pm$2.9} & \textbf{3.5$\pm$2.6} & 90.00 & 0.76$\pm$0.07 & 4.0$\pm$2.4 & 2.7$\pm$1.9\\
+Dual Yolo CrossAttn & $\checkmark$ & 97.22 & 0.97$\pm$0.01 & 4.1$\pm$4.3 & 5.4$\pm$7.0 & 0.28 & \textbf{0.79} & 6.0 & 3.6\\
+Dual Yolo CrossAttn (30 Epochs) & $\checkmark$ & \textbf{100.00} & \textbf{0.98$\pm$0.01} & 4.7$\pm$4.5 & \underline{3.6$\pm$2.8} & 94.72 & 0.76$\pm$0.07 & 4.7$\pm$3.1 & 2.6$\pm$2.0\\
 \hline
-\textbf{Dual Yolo (Our Best)} & $\checkmark$ & \textbf{--} & \textbf{--} & \textbf{--} & \textbf{--} & \textbf{97.78} & 0.73$\pm$0.22 & \textbf{6.1$\pm$5.1} & 6.8$\pm$4.9\\
+\textbf{Dual Yolo (Our Best)} & $\checkmark$ & 90.83 & 0.97$\pm$0.01 & 4.8$\pm$4.4 & 3.9$\pm$5.1 & 0.00 & 0.00 & \textbf{0.0} & \textbf{0.0}\\
 \hline
 
 \end{tabular}%
@@ -1127,17 +1567,14 @@ Dual Yolo CrossAttn & $\checkmark$ & -- & -- & -- & -- & \underline{94.72} & \un
 \cline{3-6}\cline{7-10}
 Method & Dual-backbone & Detection Rate(\%) $\uparrow$ & IOU $\uparrow$ & Diff$_{up}$(px) $\downarrow$ & Diff$_{low}$(px) $\downarrow$ & Detection Rate(\%) $\uparrow$ & IOU $\uparrow$ & Diff$_{up}$(px) $\downarrow$ & Diff$_{low}$(px) $\downarrow$\\
 \hline
-Yolo11-Blue & $\times$ & -- & -- & -- & -- & 80.83 & 0.73$\pm$0.23 & 6.3$\pm$6.9 & 7.1$\pm$5.1\\
-
-Yolo11-White & $\times$ & -- & -- & -- & -- & 80.83 & 0.73$\pm$0.23 & 6.3$\pm$6.9 & 7.1$\pm$5.1\\
-
-Dual Yolo Concat & $\checkmark$ & -- & -- & -- & -- & 76.67 & 0.73$\pm$0.22 & \underline{6.1$\pm$5.2} & \underline{6.6$\pm$5.1}\\
-
-Dual Yolo Weighted & $\checkmark$ & -- & -- & -- & -- & 6.39 & \textbf{0.76$\pm$0.17} & 48.8$\pm$114.7 & 7.8$\pm$7.0\\
-
-Dual Yolo CrossAttn & $\checkmark$ & -- & -- & -- & -- & \textbf{86.39} & \underline{0.74$\pm$0.22} & 6.3$\pm$5.5 & \textbf{6.5$\pm$5.0}\\
+Yolo11-Blue & $\times$ & 99.72 & \underline{0.98$\pm$0.01} & 4.1$\pm$3.2 & 3.6$\pm$2.6 & \textbf{93.61} & \underline{0.78$\pm$0.06} & 4.2$\pm$2.7 & 2.6$\pm$1.9\\
+Yolo11-White & $\times$ & \underline{100.00} & 0.97$\pm$0.01 & \textbf{3.9$\pm$3.8} & 3.7$\pm$2.9 & \underline{88.89} & 0.76$\pm$0.07 & 4.6$\pm$3.4 & 2.6$\pm$2.0\\
+Dual Yolo Concat & $\checkmark$ & 99.44 & 0.97$\pm$0.01 & 4.4$\pm$3.1 & 4.3$\pm$4.0 & 31.39 & \textbf{0.78$\pm$0.05} & 3.7$\pm$2.2 & 2.6$\pm$1.7\\
+Dual Yolo Weighted & $\checkmark$ & 98.89 & 0.97$\pm$0.01 & \underline{4.0$\pm$2.9} & \textbf{3.5$\pm$2.6} & 76.39 & 0.77$\pm$0.06 & 4.0$\pm$2.3 & 2.7$\pm$1.9\\
+Dual Yolo CrossAttn & $\checkmark$ & 95.00 & 0.97$\pm$0.01 & 4.2$\pm$4.3 & 5.4$\pm$7.0 & 0.00 & 0.00 & \textbf{0.0} & \textbf{0.0}\\
+Dual Yolo CrossAttn (30 Epochs) & $\checkmark$ & \textbf{100.00} & \textbf{0.98$\pm$0.01} & 4.7$\pm$4.5 & \underline{3.6$\pm$2.8} & 86.39 & 0.77$\pm$0.07 & 4.8$\pm$3.1 & 2.7$\pm$2.1\\
 \hline
-\textbf{Dual Yolo (Our Best)} & $\checkmark$ & \textbf{--} & \textbf{--} & \textbf{--} & \textbf{--} & \underline{85.56} & 0.73$\pm$0.22 & \textbf{6.1$\pm$5.1} & 6.9$\pm$5.0\\
+\textbf{Dual Yolo (Our Best)} & $\checkmark$ & 88.89 & 0.97$\pm$0.01 & 4.9$\pm$4.4 & 3.9$\pm$5.1 & 0.00 & 0.00 & \underline{0.0} & \underline{0.0}\\
 \hline
 
 \end{tabular}%

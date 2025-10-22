@@ -1,4 +1,4 @@
-\section{Results and Discussion}
+\section{Results}
 \label{sec:results}
 
 \begin{table*}[t]
@@ -153,67 +153,11 @@ Geometric precision metrics show consistent trends: cross-attention achieves the
 
 Table~\ref{ablation} presents systematic ablation experiments evaluating three critical design factors: dual-backbone architecture, fusion mechanism, and initialization strategy. All experiments were conducted at conf=0.25 under identical training protocols with 360 test samples. Statistical significance was assessed using two-proportion Z-tests to rigorously validate performance differences.
 
-\textbf{Dual-Backbone Necessity.} Comparing experiments 1 (single-backbone) and 2--7 (dual-backbone variants) reveals the fundamental importance of independent modality-specific feature extraction. Single-backbone architecture achieves only 21.67\% detection rate with IoU of 0.88$\pm$0.22, even when trained on concatenated 6-channel input. This poor performance confirms that a unified feature extractor cannot adequately specialize to the distinct optical properties of white-light and blue-light imaging. Introducing dual backbones with even the simplest fusion (channel concatenation, experiment 2) improves detection rate to 52.40\%, representing a statistically significant +30.73 percentage point improvement (p$<$0.001, Z=-8.54), validating the core architectural principle.
+\textbf{Dual-Backbone Necessity.} Comparing experiments 1 (single-backbone) and 2--7 (dual-backbone variants) reveals the fundamental importance of independent modality-specific feature extraction. Single-backbone architecture achieves only 21.67\% detection rate on total three classes. Introducing dual backbones with even the simplest fusion (channel concatenation, experiment 2) improves detection rate to 52.40\%, representing a statistically significant +30.73 percentage point improvement (p$<$0.001, Z=-8.54), validating the core architectural principle.
 
 \textbf{Fusion Mechanism Progression.} Experiments 2--3 (concatenation), 4--5 (weighted fusion), and 6--7 (cross-attention) demonstrate progressive performance gains with increasingly sophisticated fusion designs. Under scratch training, cross-modal attention (experiment 6) achieves 95.10\% detection rate and 0.89$\pm$0.18 IoU, representing +42.70\% and +11.90\% absolute improvements over concatenation (p$<$0.001, Z=-13.00) and weighted fusion (p$<$0.001, Z=-5.11) respectively. These highly significant differences validate our hypothesis that explicit semantic correspondence modeling through attention mechanisms better captures cross-modal complementarity than implicit feature blending.
 
 \textbf{Transfer Learning Impact.} Comparing scratch (even-numbered experiments) versus pretrained (odd-numbered experiments) initialization reveals consistent benefits from hierarchical weight transfer. Transfer learning improves detection rates by +15.75\% (concatenation, p$<$0.001), +8.37\% (weighted fusion, p$<$0.001), and +3.70\% (cross-attention, p$<$0.01). The diminishing marginal benefit for more sophisticated fusion methods suggests that cross-attention's architectural advantages partially compensate for initialization quality. Nevertheless, all pretrain effects remain statistically significant, and the pretrained cross-attention model (experiment 7) achieves the best overall performance: 98.80\% detection rate and 0.90$\pm$0.14 IoU, confirming the value of combining advanced fusion mechanisms with domain-adapted initialization.
-
-\subsection{Qualitative Visualization}
-
-Figure~\ref{fig:evaluation-grid-7} presents representative segmentation results across four test samples, comparing ground truth annotations against predictions from all methods. The visualizations reveal both qualitative performance differences and failure modes.
-
-\textbf{Serum/Plasma Segmentation.} All dual-modality methods produce accurate serum/plasma boundaries closely matching ground truth contours (rows 1--4, columns 3--7). Yolo11-White occasionally generates irregular upper boundaries due to meniscus reflection artifacts (row 1, column 3), while Yolo11-Blue exhibits slight over-segmentation extending into the buffy coat region (row 2, column 3). Cross-attention fusion produces the most consistent boundaries, effectively suppressing both artifact types through complementary information integration.
-
-\textbf{Buffy Coat Detection.} The thin buffy coat layer (green regions) presents the greatest challenge, with substantial inter-method variation. Yolo11-White frequently fails to detect this layer entirely (rows 1--4, column 3), consistent with its 8.06\% buffy coat DSR. Yolo11-Blue performs better but occasionally produces fragmented detections (row 2, column 4) or merged boundaries with adjacent layers. Concatenation and weighted fusion methods show improved consistency but exhibit thickness estimation errors—either compressing the layer too thinly (row 3, column 5) or expanding into neighboring regions (row 4, column 6).
-
-Cross-attention fusion (column 7) demonstrates superior buffy coat localization across all samples, producing contiguous masks with accurate upper and lower boundaries. The white boundary contours closely align with ground truth annotations, with typical deviations under 5 pixels—sufficient for clinical volume estimation. This consistent performance across varying buffy coat thicknesses (ranging from ~15 pixels in row 1 to ~35 pixels in row 4) validates the attention mechanism's ability to adaptively leverage blue-light contrast enhancement while consulting white-light structural context.
-
-\textbf{Erythrocyte Segmentation.} All methods achieve accurate erythrocyte layer detection (blue regions) in most cases, reflecting this class's high visual distinctiveness. However, single-modality methods occasionally exhibit lower boundary estimation errors when tube bottoms create optical discontinuities (row 2, column 3--4). Dual-modality methods consistently produce stable lower boundaries by integrating complementary depth cues.
-
-\subsection{Cross-Modal Attention Analysis}
-
-To understand the learned attention patterns, we visualized attention weight distributions within cross-modal attention modules at different pyramid levels (P3, P4, P5). The analysis reveals spatially structured attention patterns that align with anatomical layer boundaries.
-
-At level P3 (highest spatial resolution, token size 2$\times$2, neighborhood 3$\times$3), attention weights concentrate on narrow bands corresponding to layer interfaces. Blue-light query tokens near the buffy coat region exhibit strong attention to white-light key tokens in vertically adjacent positions ($\pm$5--10 pixels), suggesting the model learns to query structural context immediately surrounding the buffy coat to disambiguate its boundaries. This localized attention pattern confirms our design hypothesis that buffy coat detection benefits from consulting nearby structural cues rather than global image features.
-
-At level P4 (token size 3$\times$3, neighborhood 5$\times$5), attention patterns broaden to capture regional context. Query tokens in the serum/plasma layer distribute attention across larger neighborhoods (~15--25 pixel radius), reflecting this class's need for broader contextual integration to distinguish meniscus curves from layer boundaries. The increased receptive field at P4 enables the model to differentiate true layer transitions from local intensity variations.
-
-At level P5 (lowest resolution, token size 4$\times$4, neighborhood 7$\times$7), attention becomes more globally distributed, with query tokens attending to distant regions to capture overall tube geometry and vertical stratification patterns. This hierarchical attention organization—from local edge refinement (P3) to regional context (P4) to global structure (P5)—mirrors established principles in hierarchical visual processing.
-
-Quantitative attention entropy analysis reveals that buffy coat regions exhibit lower entropy (more focused attention) than serum or erythrocyte regions, confirming that the model relies more heavily on cross-modal integration when detecting challenging thin layers. This adaptive attention behavior demonstrates the mechanism's ability to modulate fusion strength based on task difficulty.
-
-\subsection{Discussion}
-
-\subsubsection{Clinical Significance}
-
-The DIUA-YOLO framework achieves 98.80\% overall detection success rate at clinical operating threshold (conf=0.25), meeting the stringent requirement for automated blood tube analysis. The sub-5-pixel boundary localization accuracy translates to volume estimation errors below 2\% for typical 5~mL tubes—well within acceptable clinical tolerance. Most critically, the 96.39\% buffy coat detection rate represents a transformative improvement for white blood cell quantification, as this layer contains leukocytes essential for immune system assessment and disease diagnosis.
-
-The automated platform processes a complete tube (dual-illumination acquisition, inference, result reporting) in approximately 8 seconds—enabling throughput exceeding 450 tubes per hour. This represents a 6--8$\times$ speedup over manual blood smear preparation and microscopic counting, while eliminating inter-operator variability. For high-volume clinical laboratories processing thousands of samples daily, such automation reduces labor costs by an estimated 60--70\% while improving result consistency.
-
-Integration with the mechanical gripper system enables full workflow automation from tube loading to result reporting. The SQLite database logging provides full traceability, while the platform's modular design allows deployment in standard laboratory environments without specialized infrastructure. Field testing in a partner clinical laboratory demonstrated successful operation over 2,000+ tubes with zero mechanical failures and <2\% image quality rejects due to tube defects (cracks, severe lipemia).
-
-\subsubsection{Limitations and Future Directions}
-
-Despite strong performance, several limitations warrant further investigation. First, the current system assumes pre-centrifuged tubes with established layer stratification. Fresh whole blood or partially centrifuged samples may not exhibit clear boundaries, potentially degrading detection performance. Future work should investigate time-series imaging during centrifugation to model dynamic layer formation.
-
-Second, the dataset comprises 90 samples covering typical clinical scenarios but may not fully represent rare pathological conditions such as severe anemia (reduced erythrocyte layer), leukemia (expanded buffy coat), or hemolysis (layer disruption). Expanding the dataset to include rare disease phenotypes and conducting clinical validation studies across diverse patient populations remains essential for regulatory approval and widespread deployment.
-
-Third, while dual-illumination imaging demonstrates clear advantages, the sequential white-light and blue-light acquisition requires 2--3 seconds, introducing potential motion artifacts if tubes are not mechanically stabilized. Simultaneous dual-spectrum imaging using beam-splitting optics or specialized sensors could reduce acquisition time and eliminate registration errors, though at increased hardware complexity and cost.
-
-Fourth, the cross-modal attention mechanism, while computationally efficient relative to global attention, still requires substantial GPU memory during training (batch size limited to 2 per RTX 3090). Model compression techniques such as knowledge distillation or quantization-aware training could enable deployment on edge devices for point-of-care settings. Additionally, exploring more efficient attention approximations (e.g., low-rank projections, sparse attention patterns) could reduce inference latency.
-
-Fifth, current evaluation focuses on layer detection and boundary localization but does not perform cell counting or morphological analysis within the buffy coat layer. Integrating microscopic imaging or cell classification sub-networks could provide complete blood count (CBC) equivalent information, enhancing clinical utility. Preliminary experiments with SAM-based cell segmentation within detected buffy coat regions show promise but require substantial annotation effort.
-
-Finally, the system currently operates on vacuum blood collection tubes, which maintain consistent geometry. Extending to capillary tubes, micro-centrifuge tubes, or non-standard containers would require retraining and potentially redesigning the gripper mechanism. Transfer learning experiments on these alternative tube types represent important future validation.
-
-\subsubsection{Broader Impact}
-
-Beyond blood tube analysis, the dual-illumination cross-attention architecture demonstrates general applicability to multi-modal medical imaging tasks where complementary spectral information enhances diagnostic accuracy. Potential extensions include dual-modality endoscopy (white-light + narrow-band imaging for polyp detection), dermatological imaging (visible + UV for skin lesion analysis), and histopathology (H\&E + immunofluorescence for tissue classification).
-
-The unidirectional attention design and token-based spatial partitioning offer computational advantages for high-resolution medical images (>1500$\times$1500 pixels), where global attention becomes prohibitively expensive. By constraining attention to local neighborhoods adaptive to pyramid level, the framework scales to large images while maintaining fine-grained feature interactions—addressing a key bottleneck in medical image analysis.
-
-From a methodological perspective, this work contributes to the broader understanding of multi-modal fusion in deep learning. The comparative evaluation of concatenation, weighted fusion, and attention mechanisms provides empirical evidence that explicit correspondence modeling through attention yields superior performance compared to implicit fusion approaches, particularly for challenging detection tasks involving thin or low-contrast structures. These insights generalize beyond medical imaging to applications such as RGB-D fusion for robotics, multi-spectral satellite imagery analysis, and sensor fusion for autonomous systems.
 
 \begin{figure*}[!t]
 \centering
@@ -241,11 +185,63 @@ From a methodological perspective, this work contributes to the broader understa
 \noindent
 \makebox[\colwa][c]{\small Photo}\hspace{\sepSa}%
 \makebox[\colwa][c]{\small Ground Truth}\hspace{\sepLa}%
-\makebox[\colwa][c]{\small Yolo11-Blue}\hspace{\sepSa}%
 \makebox[\colwa][c]{\small Yolo11-White}\hspace{\sepSa}%
+\makebox[\colwa][c]{\small Yolo11-Blue}\hspace{\sepSa}%
 \makebox[\colwa][c]{\parbox{\colwa}{\centering \small Dual Yolo\\Channel Concat}}%
 \makebox[\colwa][c]{\parbox{\colwa}{\centering \small Dual Yolo\\Adaptive Weighted}}%
 \makebox[\colwa][c]{\parbox{\colwa}{\centering \small Dual Yolo\\Cross Attention}}%
-\caption{Demonstrations of segmentation results from different models for the Blood Fractionation Component Segmentation task. In the figure, from top to bottom, the components are plasma, buffy coat, and red blood cell, respectively. From the third column, yellow, green, and blue points represent the segmented regions for each class. The regions outlined by white contours are the boundaries formed by the respective methods. From left to right, the columns display the following: original photos for the testing tube, ground truth annotated by professional blood testing personnel, Yolo11-Blue result, Yolo11-White result, Dual Yolo Channel Concatenation Fusion result, Dual Yolo Adaptive Weighted Fusion result, and Dual Yolo Cross Attention result.}
-\label{fig:evaluation-grid-7}
+\caption{Demonstrations of segmentation results from different models for the Blood Fractionation Component Segmentation task. In the figure, from top to bottom, the components are plasma, buffy coat, and red blood cell, respectively. From the third column, yellow, green, and blue points represent the segmented regions for each class. The regions outlined by white contours are the boundaries formed by the respective methods. From left to right, the columns display the following: original photos for the testing tube, ground truth annotated by professional blood testing personnel, Yolo11-White result, Yolo11-Blue result, Dual Yolo Channel Concatenation Fusion result, Dual Yolo Adaptive Weighted Fusion result, and Dual Yolo Cross Attention result.}
+\label{fig:evaluation-grid}
 \end{figure*}
+
+\subsection{Qualitative Visualization}
+
+Figure~\ref{fig:evaluation-grid} presents representative segmentation results across four test samples, comparing ground truth annotations against predictions from all methods. The visualizations reveal both qualitative performance differences and failure modes.
+
+\textbf{Plasma Segmentation.} All dual-modality methods produce accurate serum/plasma boundaries closely matching ground truth clinical annotation points (rows 1--4, columns 5--7). Yolo11-White occasionally generates irregular upper boundaries due to meniscus reflection artifacts (row 1, column 3), while Yolo11-Blue exhibits slight over-segmentation extending into the buffy coat region (row 2, column 4). Cross-attention fusion produces the most consistent boundaries, effectively suppressing both artifact types through complementary information integration.
+
+\textbf{Buffy Coat Detection.} The thin buffy coat layer (green regions) presents the greatest challenge, with substantial inter-method variation. Yolo11-White frequently fails to detect this layer entirely (rows 1--4, column 3), consistent with its 8.06\% buffy coat DSR. Yolo11-Blue performs better but occasionally produces fragmented detections or merged boundaries with adjacent layers. Concatenation and weighted fusion methods show improved consistency but exhibit thickness estimation errors—either compressing the layer too thinly or expanding into neighboring regions.
+
+Cross-attention fusion (column 7) demonstrates superior buffy coat localization across all samples, producing contiguous masks with accurate upper and lower boundaries. The white boundary contours closely align with ground truth annotations, with typical deviations under 5 pixels—sufficient for clinical volume estimation. This consistent performance across varying buffy coat thicknesses (ranging from $\sim$15 pixels to $\sim$35 pixels) validates the attention mechanism's ability to adaptively leverage blue-light contrast enhancement while consulting white-light structural context.
+
+\textbf{Erythrocyte Segmentation.} All methods achieve accurate erythrocyte layer detection (blue regions) in most cases, reflecting this class's high visual distinctiveness. However, single-modality methods occasionally exhibit lower boundary estimation errors when tube bottoms create optical discontinuities. Dual-modality methods consistently produce stable lower boundaries by integrating complementary depth cues.
+
+\section{Discussion}
+
+\subsection{Clinical Significance}
+
+The DIUA-YOLO framework achieves 98.80\% overall detection success rate at clinical operating threshold (conf=0.25), meeting the stringent requirement for automated blood tube analysis. The sub-5-pixel boundary localization accuracy translates to volume estimation errors below 0.5\% for typical 10mL tubes—well within acceptable clinical tolerance. Most critically, the 96.39\% buffy coat detection rate represents a transformative improvement for white blood cell quantification, as this layer contains leukocytes essential for immune system assessment and disease diagnosis.
+
+The automated platform processes a complete tube (dual-illumination acquisition, inference, result reporting) in approximately 8 seconds—enabling throughput exceeding 450 tubes per hour. This represents a 3.75$\times$ speedup over manual visual inspection and layer annotation workflows (typically 30 seconds per tube), while eliminating inter-operator variability. For high-volume clinical laboratories processing thousands of samples daily, such automation reduces greatly labor requirements, translating to substantial cost savings while improving result consistency and throughput.
+
+Integration with the mechanical gripper system enables full workflow automation from tube loading to result reporting. The SQLite database logging provides full traceability, while the platform's modular design allows deployment in standard laboratory environments without specialized infrastructure. However, comprehensive clinical field deployment and validation remain essential next steps. Future work should conduct prospective studies in operational clinical laboratories to assess system robustness under real-world conditions, including diverse operator workflows, environmental variations, and sustained high-throughput operation.
+
+\subsection{Understanding Cross-Modal Fusion Performance}
+
+The substantial performance gap between fusion strategies—particularly cross-attention's superiority over concatenation and weighted fusion—can be attributed to their differing abilities to handle spatial misalignment between dual-modality inputs. Despite mechanical fixture stabilization, residual misalignment inevitably arises from parallax effects, chromatic aberration, and temporal offset during sequential illumination switching. These subtle displacements, critically affect boundary-sensitive detection tasks where layer interfaces span only a few pixels.
+
+Channel concatenation operates under a strict pixel-to-pixel correspondence assumption, directly merging features at identical spatial coordinates. This rigid alignment makes concatenation vulnerable to misregistration: a blue-light edge feature may correspond to slightly shifted white-light context, causing the subsequent convolutional layers to receive semantically inconsistent input. Adaptive weighted fusion partially mitigates this limitation through learned spatial attention, enabling the network to suppress contributions from misaligned regions. However, its pixel-wise weighting remains constrained to fixed spatial positions, preventing active search for correct correspondences.
+
+Cross-modal attention fundamentally addresses misalignment through its token-based neighborhood mechanism. By partitioning features into tokens and allowing each blue-light query token to attend to a local neighborhood of white-light key tokens, the attention operation performs implicit local feature alignment. When a blue-light boundary token encounters spatial offset, it can retrieve semantically matching white-light features from neighboring positions within the $k \times k$ window rather than being forced to use the strictly co-located feature. This spatial flexibility is particularly critical for thin-layer boundaries such as the buffy coat, where minor pixel misalignment can shift edge responses beyond concatenation's receptive field but remain within attention's neighborhood range. The localized search mechanism thus enables robust cross-modal correspondence even under imperfect registration, explaining the dramatic performance improvements observed in ablation studies.
+
+\subsection{Limitations and Future Directions}
+
+Despite strong performance, several limitations warrant further investigation. First, the current system assumes pre-centrifuged tubes with established layer stratification. Fresh whole blood or partially centrifuged samples may not exhibit clear boundaries, potentially degrading detection performance. Future work should investigate time-series imaging during centrifugation to model dynamic layer formation.
+
+Second, the dataset comprises 90 samples covering typical clinical scenarios but may not fully represent rare pathological conditions such as severe anemia (reduced erythrocyte layer), leukemia (expanded buffy coat), or hemolysis (layer disruption). Expanding the dataset to include rare disease phenotypes and conducting clinical validation studies across diverse patient populations remains essential for regulatory approval and widespread deployment.
+
+Third, while dual-illumination imaging demonstrates clear advantages, the sequential white-light and blue-light acquisition requires 2--3 seconds, introducing potential motion artifacts if tubes are not mechanically stabilized. Simultaneous dual-spectrum imaging using beam-splitting optics or specialized sensors could reduce acquisition time and eliminate registration errors, though at increased hardware complexity and cost.
+
+Fourth, the high-resolution dual-modality input (1504$\times$1504 pixels, 6 channels) demands substantial GPU memory during training, limiting batch size to 2 per RTX 3090 GPU. While the cross-modal attention mechanism itself is computationally efficient relative to global attention, the large spatial dimensions necessitate careful memory management. Future work could explore input resolution reduction strategies, gradient checkpointing, or mixed-precision training to increase batch sizes and potentially improve convergence. Additionally, model compression techniques such as knowledge distillation or quantization-aware training could enable deployment on edge devices for point-of-care settings.
+
+Fifth, current evaluation focuses on layer detection and boundary localization but does not perform cell counting or morphological analysis within the buffy coat layer. Integrating microscopic imaging or cell classification sub-networks could provide complete blood count (CBC) equivalent information, enhancing clinical utility. Preliminary experiments with SAM-based cell segmentation within detected buffy coat regions show promise but require substantial annotation effort.
+
+Finally, the system currently operates on vacuum blood collection tubes, which maintain consistent geometry. Extending to capillary tubes, micro-centrifuge tubes, or non-standard containers would require retraining and potentially redesigning the gripper mechanism. Transfer learning experiments on these alternative tube types represent important future validation.
+
+\subsection{Broader Impact}
+
+Beyond blood tube analysis, the dual-illumination cross-attention architecture demonstrates general applicability to multi-modal medical imaging tasks where complementary spectral information enhances diagnostic accuracy. Potential extensions include dual-modality endoscopy (white-light + narrow-band imaging for polyp detection), dermatological imaging (visible + UV for skin lesion analysis), and histopathology (H\&E + immunofluorescence for tissue classification).
+
+The unidirectional attention design and token-based spatial partitioning offer computational advantages for high-resolution medical images ($\geq$1500$\times$1500 pixels), where global attention becomes prohibitively expensive. By constraining attention to local neighborhoods adaptive to pyramid level, the framework scales to large images while maintaining fine-grained feature interactions—addressing a key bottleneck in medical image analysis.
+
+From a methodological perspective, this work contributes to the broader understanding of multi-modal fusion in deep learning. The comparative evaluation of concatenation, weighted fusion, and attention mechanisms provides empirical evidence that explicit correspondence modeling through attention yields superior performance compared to implicit fusion approaches, particularly for challenging detection tasks involving thin or low-contrast structures. These insights generalize beyond medical imaging to applications such as RGB-D fusion for robotics, multi-spectral satellite imagery analysis, and sensor fusion for autonomous systems.
