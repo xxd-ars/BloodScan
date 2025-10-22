@@ -5,7 +5,7 @@
 
 The proposed DIUA-YOLO system comprises two integrated components: a hardware acquisition platform for dual-modality image collection and a deep learning network for blood layer detection. This section describes the automated platform design and operational workflow.
 
-\subsubsection{Mechanical Configuration and Control Architecture} As in Fig. 2, the acquisition platform employs a three-degree-of-freedom linear motion system (X-axis horizontal, Y-axis anterior-posterior, Z-axis vertical) coupled with a single-degree-of-freedom rotational gripper. The X and Y axes coordinate to traverse all positions in a standard 96-well tube rack, while the Z axis provides vertical displacement between rack height and imaging focal plane. The rotational gripper delivers controllable radial clamping force and precise angular positioning, ensuring tube stability during transport and imaging.
+\subsubsection{Mechanical Configuration and Control Architecture} As in Figure~\ref{fig:mechanics}, the acquisition platform employs a three-degree-of-freedom linear motion system (X-axis horizontal, Y-axis anterior-posterior, Z-axis vertical) coupled with a single-degree-of-freedom rotational gripper. The X and Y axes coordinate to traverse all positions in a standard 96-well tube rack, while the Z axis provides vertical displacement between rack height and imaging focal plane. The rotational gripper delivers controllable radial clamping force and precise angular positioning, ensuring tube stability during transport and imaging.
 
 The motion control system adopts a layered architecture. At the communication layer, RS485 serial protocol governs linear motion stepper motors, while Modbus TCP Ethernet protocol controls rotational servo motors. The application layer encapsulates atomic motor commands into composite detection routines, with thread event synchronization coordinating precise timing between mechanical motion and image acquisition. A data management layer provides SQLite database support, recording tube barcode, type, detection results, batch number, and timestamps for full traceability.
 
@@ -14,7 +14,7 @@ The motion control system adopts a layered architecture. At the communication la
 \caption{\textbf{Mechanical configuration and prototype of the automated acquisition platform.} 
 Left: Three-degree-of-freedom (X–Y–Z) linear motion system coupled with a single-degree-of-freedom rotational gripper, designed for precise positioning, tube handling, and imaging. 
 Right: Physical implementation of the system, including the translational-rotational manipulator, tube rack, imaging module, and control interface.}
-\label{fig mechanics}
+\label{fig:mechanics}
 \end{figure}
 
 \subsubsection{Dual-Illumination Imaging System} The imaging system employs a single industrial camera integrated with dual illumination sources. A blue LED array (center wavelength ~465 nm) enhances the optical contrast of the buffy coat through increased light scattering and weak intrinsic autofluorescence, while a white LED source (color temperature ~6500 K) provides structural and color information of the overall sample. A custom mechanical fixture rigidly maintains the relative geometry among the camera, light sources, and tube gripper, thereby minimizing parallax and viewpoint variation during acquisition. Illumination control is managed by a microcontroller that drives programmable LED arrays, with the host computer synchronizing illumination switching, motor actuation, and image capture via serial communication protocols.
@@ -34,7 +34,7 @@ Fused multi-scale representations are decoded through neck and segmentation head
 
 \subsection{DIUA-YOLO Network Architecture}
 
-Fig. 3 illustrates the overall architecture of the proposed DIUA-YOLO framework. The network processes dual-illumination inputs through independent feature extraction backbones, fuses multi-scale representations via cross-modal feature fusion blocks, and outputs segmentation results through YOLO segmentation heads.
+Figure~\ref{fig:architecture} illustrates the overall architecture of the proposed DIUA-YOLO framework. The network processes dual-illumination inputs through independent feature extraction backbones, fuses multi-scale representations via cross-modal feature fusion blocks, and outputs segmentation results through YOLO segmentation heads.
 
 \subsubsection{Dual-Backbone Feature Extraction} White-light and blue-light images enter two structurally identical but parameter-independent convolutional neural network backbones based on the YOLO11 architecture. This dual-backbone design allows each modality's feature extractor to specialize in learning modality-specific representations: the white-light backbone network excels at extracting overall hierarchical structures, three-material color gradients, and texture details, while the blue-light backbone network captures the optical properties and boundary features of the buffy coat layer layer under blue illumination.
 

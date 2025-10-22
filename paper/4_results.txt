@@ -101,13 +101,13 @@ Buffy coat segmentation—the most challenging task—reveals the critical advan
 
 For erythrocyte segmentation, all methods achieve high AP@0.50 ($\geq$98.49\%), reflecting the relative ease of detecting this thick, visually distinct layer. Nevertheless, Dual Yolo CrossAttn maintains the highest F1 score and joint-best recall, ensuring complete layer coverage.
 
-Figure~\ref{fig mechanics} visualizes average performance across all methods, illustrating that dual-modality approaches consistently dominate across DSR, IoU, and academic metrics. The cross-attention method exhibits the most balanced profile, achieving near-ceiling performance across all metrics without the instability observed in weighted fusion or the modest performance plateau of channel concatenation.
+Figure~\ref{fig:metrics} visualizes average performance across all methods, illustrating that dual-modality approaches consistently dominate across DSR, IoU, and academic metrics. The cross-attention method exhibits the most balanced profile, achieving near-ceiling performance across all metrics without the instability observed in weighted fusion or the modest performance plateau of channel concatenation.
 
 
 \begin{figure}[!t]
 \centerline{\includegraphics[width=\columnwidth]{img/metrics.png}}
 \caption{Comparison of average detection and segmentation metrics across all methods. Detection sucess rate and IoU are from conf=0.25.}
-\label{fig mechanics}
+\label{fig:metrics}
 \end{figure}
 
 
@@ -209,7 +209,6 @@ Cross-attention fusion (column 7) demonstrates superior buffy coat localization 
 \section{Discussion}
 
 \subsection{Clinical Significance}
-
 The DIUA-YOLO framework achieves 98.80\% overall detection success rate at clinical operating threshold (conf=0.25), meeting the stringent requirement for automated blood tube analysis. The sub-5-pixel boundary localization accuracy translates to volume estimation errors below 0.5\% for typical 10mL tubes—well within acceptable clinical tolerance. Most critically, the 96.39\% buffy coat detection rate represents a transformative improvement for white blood cell quantification, as this layer contains leukocytes essential for immune system assessment and disease diagnosis.
 
 The automated platform processes a complete tube (dual-illumination acquisition, inference, result reporting) in approximately 8 seconds—enabling throughput exceeding 450 tubes per hour. This represents a 3.75$\times$ speedup over manual visual inspection and layer annotation workflows (typically 30 seconds per tube), while eliminating inter-operator variability. For high-volume clinical laboratories processing thousands of samples daily, such automation reduces greatly labor requirements, translating to substantial cost savings while improving result consistency and throughput.
