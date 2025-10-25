@@ -23,7 +23,7 @@ where $N$ denotes test set cardinality, $\mathcal{D}_i^c(\tau) = \{d \mid d \in 
 
 \subsubsection{Geometric Precision Metrics} Beyond detection completeness, we quantify localization accuracy through complementary geometric metrics. 
 
-\textbf{Intersection over Union} (IoU) measures mask overlap between predicted and ground-truth segmentation regions as the ratio of intersection to union pixel counts. For each class $c$ across the test set, we compute mean IoU over all successfully detected instances:
+\textbf{Intersection over Union} (IoU) measures mask overlap between predicted and ground-truth segmentation regions as the ratio of intersection to union pixel counts \cite{iou_1}, \cite{iou_2}. For each class $c$ across the test set, we compute mean IoU over all successfully detected instances:
 \begin{equation}
 \text{mIoU}_c = \frac{1}{|\mathcal{S}_c|} \sum_{i \in \mathcal{S}_c} \frac{|M_{\text{pred}}^{i,c} \cap M_{\text{gt}}^{i,c}|}{|M_{\text{pred}}^{i,c} \cup M_{\text{gt}}^{i,c}|}
 \end{equation}
@@ -31,7 +31,7 @@ where $\mathcal{S}_c$ denotes the subset of test samples with successful detecti
 
 \textbf{Boundary displacement} metrics assess vertical positional error by computing absolute pixel differences between predicted and annotated upper/lower layer interfaces. For multi-vertex annotations, interface positions are defined as the mean vertical coordinate of the several most extreme vertices.
 
-\textbf{Mean Average Precision} (mAP) quantifies detection performance across varying confidence thresholds and IoU criteria. For a given IoU threshold $\theta$, precision and recall are computed at each confidence level $t$:
+\textbf{Mean Average Precision} (mAP) quantifies detection performance across varying confidence thresholds and IoU criteria \cite{map_1}, \cite{map_2}. For a given IoU threshold $\theta$, precision and recall are computed at each confidence level $t$:
 \begin{equation}
 \begin{aligned}
 \text{Precision}(t) &= \frac{\text{TP}(t)}{\text{TP}(t) + \text{FP}(t)} \\
